@@ -81,7 +81,7 @@ fullday2=pd.DataFrame(fullday1)
 fullday2.columns=datex
 fullday=fullday2.T
 fullday.replace(0,np.nan,inplace=True)
-fullday.index=pd.to_datetime(fullday.index)
+fullday.index=pd.to_datetime(fullday.index).date
 fullday.drop(fullday.iloc[:,0:1],axis=1,inplace=True)
 fullday.to_csv('F:\\COWS\data\\milk_data\\fullday\\fullday.csv')
 # 10 day
@@ -109,7 +109,7 @@ sumx = tenday.sum(axis=0).astype(float)
 
 tenday.loc['total'] = tenday.sum(axis=0)
 
-all3cols=['age lastcalf bdate','i_date','age last insem','u_date','readex','days left']
+all3cols=['status','age lastcalf bdate','i_date','age last insem','u_date','readex','days left']
 all4= all3.loc[:,all3cols].copy()
 
 # sum and nonzero count for entire milk df
