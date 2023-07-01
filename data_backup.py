@@ -21,17 +21,17 @@ u=pd.read_csv   ('F:\\COWS\\data\\csv_files\\ultra.csv')
 
 #write to csv
 # #
-bd.to_csv       ('C:\\Users\\alanw\\OneDrive\\Cows\\data backup\\CSV files\\birth death\\birth death'+tdy+'.csv')
-lb.to_csv       ('C:\\Users\\alanw\\OneDrive\\Cows\\data backup\\CSV files\\live births\\live births'+tdy+'.csv')
-i.to_csv        ('C:\\Users\\alanw\\OneDrive\\Cows\\data backup\\CSV files\\insem\\insem'            +tdy+'.csv')
-sd.to_csv       ('C:\\Users\\alanw\\OneDrive\\Cows\\data backup\\CSV files\\stop dates\\stop dates'  +tdy+'.csv')
-m.to_csv        ('C:\\Users\\alanw\\OneDrive\\Cows\\data backup\\CSV files\\miscarries\\miscarries' +tdy+'.csv')
-u.to_csv        ('C:\\Users\\alanw\\OneDrive\\Cows\\data backup\\CSV files\\ultra\\ultra'           +tdy+'.csv')
+bd.to_csv       ('D:\\OneDrive\\Cows\\data backup\\insem backup\\birth death\\birth death'+tdy+'.csv')
+lb.to_csv       ('D:\\OneDrive\\Cows\\data backup\\insem backup\\live births\\live births'+tdy+'.csv')
+i.to_csv        ('D:\\OneDrive\\Cows\\data backup\\insem backup\\insem\\insem'            +tdy+'.csv')
+sd.to_csv       ('D:\\OneDrive\\Cows\\data backup\\insem backup\\stop dates\\stop dates'  +tdy+'.csv')
+m.to_csv        ('D:\\OneDrive\\Cows\\data backup\\insem backup\\miscarries\\miscarries' +tdy+'.csv')
+u.to_csv        ('D:\\OneDrive\\Cows\\data backup\\insem backup\\ultra\\ultra'           +tdy+'.csv')
 
 
 
-# amliters.to_csv ('C:\\Users\\alanw\\OneDrive\\Cows\\data backup\\milk backup\\rawmilk\\AM_liters\\AM_liters_'   +tdy+'.csv')
-# amwy.to_csv     ('C:\\Users\\alanw\\OneDrive\\Cows\\data backup\\milk backup\\rawmilk\\AM_wy\\AM_wy_'       +tdy+'.csv')
-# pmliters.to_csv ('C:\\Users\\alanw\\OneDrive\\Cows\\data backup\\milk backup\\rawmilk\\PM_liters\\PM_liters_'   +tdy+'.csv')
-# pmwy.to_csv     ('C:\\Users\\alanw\\OneDrive\\Cows\\data backup\\milk backup\\rawmilk\\PM_wy\\PM_wy_'       +tdy+'.csv')
+# amliters.to_csv ('D:\\OneDrive\\Cows\\data backup\\milk backup\\rawmilk\\AM_liters\\AM_liters_'   +tdy+'.csv')
+# amwy.to_csv     ('D:\\OneDrive\\Cows\\data backup\\milk backup\\rawmilk\\AM_wy\\AM_wy_'       +tdy+'.csv')
+# pmliters.to_csv ('D:\\OneDrive\\Cows\\data backup\\milk backup\\rawmilk\\PM_liters\\PM_liters_'   +tdy+'.csv')
+# pmwy.to_csv     ('D:\\OneDrive\\Cows\\data backup\\milk backup\\rawmilk\\PM_wy\\PM_wy_'       +tdy+'.csv')
 
