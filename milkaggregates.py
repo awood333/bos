@@ -1,14 +1,24 @@
 import pandas as pd
 import numpy as np
 import datetime 
-import rawmilkupdate as rm
+# import rawmilkupdate as rm
 import birthdeath as bd
 import insem_ultra as iu 
 #
-liters1_am  = rm.amliters
-wy1_am      = rm.amwy
-liters1_pm  = rm.pmliters
-wy1_pm      = rm.pmwy
+AM_liters=pd.read_csv   ('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_liters.csv',          index_col=0,header=0)
+AM_wy=pd.read_csv       ('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_wy.csv',              index_col=0,header=0)
+PM_liters=pd.read_csv   ('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_liters.csv',          index_col=0,header=0)
+PM_wy=pd.read_csv       ('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_wy.csv',              index_col=0,header=0)
+# 
+liters1_am = AM_liters
+wy1_am      = AM_wy
+liters1_pm  = PM_liters
+wy1_pm      = PM_wy
+# 
+# liters1_am  = rm.amliters
+# wy1_am      = rm.amwy
+# liters1_pm  = rm.pmliters
+# wy1_pm      = rm.pmwy
 all3        = iu.all
 #
 wy=(bd.WY_id)
@@ -39,13 +49,13 @@ liters_pm1=liters_pm.to_numpy(dtype=float)
 
 #   FULL DAY
 #
-rows=wy_am.index                 
-cols=[*range(1,len(datex))]     
+rows=[range(0,69) ]              
+cols=[*range(0,len(datex))]     
 
 #   AM calc
 #
 for j in cols:
-    for i in rows-1:
+    for i in rows:
         w=wy_am1[i,j]
         l=liters_am1[i,j]
         idx_am[w,j]=l
@@ -53,7 +63,7 @@ for j in cols:
 #   PM calc
 #
 for j in cols:
-    for i in rows-1:
+    for i in rows:
         w=wy_pm1[i,j]
         l=liters_pm1[i,j]
         idx_pm[w,j]=l 
@@ -66,7 +76,7 @@ am=am2.T
 am.replace(0,np.nan,inplace=True)
 am.index=pd.to_datetime(am.index)
 am.drop(am.iloc[:,0:1],axis=1,inplace=True)
-am.to_csv('F:\\COWS\data\\milk_data\\halfday\\am\\am.csv')
+
 #
 pm2=pd.DataFrame(idx_pm)
 pm2.columns=datex
@@ -74,16 +84,18 @@ pm=pm2.T
 pm.replace(0,np.nan,inplace=True)
 pm.index=pd.to_datetime(pm.index)
 pm.drop(pm.iloc[:,0:1],axis=1,inplace=True)
-pm.to_csv('F:\\COWS\data\\milk_data\\halfday\\pm\\pm.csv')
+
 #
 fullday1=np.add(idx_am,idx_pm)
 fullday2=pd.DataFrame(fullday1)
 fullday2.columns=datex
 fullday=fullday2.T
+fullday.index.name = 'datex'
 fullday.replace(0,np.nan,inplace=True)
 fullday.index=pd.to_datetime(fullday.index).date
 fullday.drop(fullday.iloc[:,0:1],axis=1,inplace=True)
-fullday.to_csv('F:\\COWS\data\\milk_data\\fullday\\fullday.csv')
+fullday.index.name = 'datex'
+
 # 10 day
 #
 lastday=fullday.iloc[-1:,:]     #last milking day recorded
@@ -106,9 +118,8 @@ tenday.index.name='WY_id'
 # 
 sumx = tenday.sum(axis=0).astype(float)
 # tenday.loc[''] = sumx.round(0)                   # [''] means 'empty row'
-
 tenday.loc['total'] = tenday.sum(axis=0)
-
+# 
 all3cols=['status','age lastcalf bdate','i_date','age last insem','u_date','readex','days left']
 all4= all3.loc[:,all3cols].copy()
 
@@ -149,6 +160,15 @@ weekly  =   milk_weekly.iloc[-26:,:]
 
 # WRITE TO CSV
 #
+am.to_csv('F:\\COWS\data\\milk_data\\halfday\\am\\am.csv')
+pm.to_csv('F:\\COWS\data\\milk_data\\halfday\\pm\\pm.csv')
+# 
+fullday_lastdate = pd.DataFrame(index=[fullday.index[-1]], columns=['last_date'])
+
+# 
+fullday.to_csv('F:\\COWS\data\\milk_data\\fullday\\fullday.csv')
+fullday_lastdate.to_csv('F:\\COWS\data\\milk_data\\fullday\\fullday_lastdate.csv')
+# 
 weekly.         to_csv('F:\\COWS\data\\milk_data\\totals\\weekly.csv')
 monthly.        to_csv('F:\\COWS\data\\milk_data\\totals\\monthly.csv')
 #
