@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[41]:
+# In[40]:
 
 
 import pandas as pd
@@ -9,11 +9,23 @@ import numpy as np
 import datetime as dt
 from datetime import date, datetime, timedelta
 #
-f = pd.read_csv('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv',index_col='datex',parse_dates=['datex'], date_format='%m/%d/%Y')
-lb = pd.read_csv('F:\\COWS\\data\\csv_files\\live_births.csv',index_col=None,header=0,parse_dates=['b_date'])
+f1 = pd.read_csv('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv',index_col='datex',parse_dates=['datex'], date_format='%m/%d/%Y')
+lb = pd.read_csv('F:\\COWS\\data\\csv_files\\live_births.csv',index_col=None,header=0,parse_dates=['b_date'],dtype=None)
 bd = pd.read_csv('F:\\COWS\\data\\csv_files\\birth_death.csv',index_col=0,header=0,parse_dates=['birth_date','death_date'],low_memory=False,dtype=None)
-date_names = ['age cow','stop_last','lastcalf bdate','i_date','u_date','next bdate','ultra(e)']
-everything = pd.read_csv('F:\\COWS\\data\\insem_data\\all.csv',index_col=0,header=0,parse_dates=date_names, date_format='%m/%d/%Y',low_memory=False,dtype=None)
+date_names = ['stop_last','lastcalf bdate','i_date','u_date','next bdate','ultra(e)']
+everything = pd.read_csv('F:\\COWS\\data\\insem_data\\all.csv',index_col=0,header=0,parse_dates=date_names,low_memory=False,dtype=None)
+arrival = pd.read_csv('F:\\COWS\\data\\csv_files\\arrival.csv',index_col=None,header=0,parse_dates=['arrival_date'],dtype=None)
+# 
+# set the days in question inclusive of both dates
+startdate = pd.to_datetime('6/1/2023')
+enddate = pd.to_datetime('6/30/2023')
+span = int((enddate - startdate).days + 1)
+f = f1.iloc[-span:,:].copy()
+# 
+# create merged bd/arrival df
+bd_merge = bd.merge(arrival, on='WY_id', how='left')
+bd_merge['birth_date'] = bd_merge['arrival_date'].combine_first(bd_merge['birth_date'])
+bd_merge.drop('arrival_date', axis=1, inplace=True)
 #
 lb_pivot = lb.pivot_table(
     index= 'WY_id',
@@ -30,11 +42,6 @@ status=     pd.DataFrame()
 status['WY_id']=idx
 status.set_index('WY_id',inplace=True)
 #
-bd['birth_date']=pd.to_datetime(bd['birth_date'],)
-bd['death_date']=pd.to_datetime(bd['death_date'],)
-everything['cow bdate']=bd['birth_date']
-everything['death_date']=bd['death_date']
-# 
 bdmax=bd.index.max()+2
 rng=list(range(1,bdmax))         #blank df with WYs as index
 lastliveheifer=bdmax                #integer, wyid
@@ -44,23 +51,59 @@ df['WY_id']=rng
 df.set_index('WY_id',drop=True,inplace=True)
 
 
-# In[97]:
+# In[57]:
+
+
+#list of all never-birthed wy's from live_births (pivot)
+heif1 = [x for x in bd.index if x not in lb_pivot.index]
+#
+#filters bd with heif1 mask
+heif2 = bd.loc[heif1]
+# 
+# list comprehension for same thing as in loop below
+heif3 = [heif2['death_date'].isnull().sum() for date in f.index]
+heif4 = (heif2[heif2['death_date'].isnull()].index.to_list()  for date in f.index)
+heif4a = pd.DataFrame(heif4)
+heif4a.to_csv('F:\\COWS\\data\\testdata\\heif_list_1.csv')
+# 
+# 
+
+
+# In[51]:
 
 
 diff1 = bd.index[~bd.index.isin(lb_pivot.index)].to_list()
 hef1 = bd.loc[diff1]
 
-hef3 = []
+hef3,hef3a = [],[]
 for date in f.index:
     hef2 = (
         hef1['death_date'].isnull().sum()
        )
     hef3.append(hef2)
+#
+    hef2a = (
+        hef1[
+        hef1['death_date'].isnull()]
+        .index.to_list()
+       )
+    hef3a.append(hef2a)
+
+
+hef4a = pd.DataFrame(hef3a)
 hef4 = pd.DataFrame(hef3)
-hef4.to_csv('F:\\COWS\\data\\testdata\\heifers.csv')
+hef4a.to_csv('F:\\COWS\\data\\testdata\\heif_list.csv')
+hef4.to_csv('F:\\COWS\\data\\testdata\\heif_count.csv')
 
 
-# In[49]:
+#  list comprehension version of below
+
+# alive2 = [((bd['birth_date'] < date) & ((bd['death_date'] > date) | bd['death_date'].isnull())).sum() for date in f.index]
+# 
+# alive_ids2 = [bd.loc[(bd['birth_date'] < date) & ((bd['death_date'].isnull()) | (bd['death_date'] > date))].index for date in f.index]
+# 
+
+# In[31]:
 
 
 milking_count = f.count(axis=1)     #this is the easy part
@@ -77,18 +120,20 @@ for date in f.index:
         (bd  ['birth_date'] < date)   
         &   ((bd['death_date'].isnull()) | (bd['death_date'] > date ) ) 
             ].index
-
-    heifer = diff.loc
-        
-
     alive_ids2.append(alive_ids)
     #
 # alive_ids2
 # milking_count
 # a2= pd.DataFrame(alive2)
-# a_id2 = pd.DataFrame(alive_ids2)    
+a_id2 = pd.DataFrame(alive_ids2)    
 # a2.to_csv('F:\\COWS\\data\\testdata\\alive2.csv')
-# a_id2.to_csv('F:\\COWS\\data\\testdata\\alive_ids2.csv')
+a_id2.to_csv('F:\\COWS\\data\\testdata\\alive_ids2.csv')
+
+
+# In[27]:
+
+
+alive_ids
 
 
 # In[ ]:

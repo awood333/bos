@@ -12,64 +12,60 @@ AM_liters=pd.read_csv   ('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_liters.csv',  
 AM_wy=pd.read_csv       ('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_wy.csv',              index_col=0,header=0)
 PM_liters=pd.read_csv   ('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_liters.csv',          index_col=0,header=0)
 PM_wy=pd.read_csv       ('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_wy.csv',              index_col=0,header=0)
+# 
+now = datetime.now()
+tdy =now.strftime("%Y_%m_%d %H_%M_%S")      #for the csv file names
 
 # AM LITERS
-dat1=AM_liters.columns[-1]
-dat2=pd.to_datetime(dat1,format="%m/%d/%Y")
-# dat2=datetime.strptime(dat1,'%Y-%m-%d %H:%M:%S')
-
-dat = dat2 + timedelta(days=1)
-tdy=str(datetime.now().strftime("%m_%d_%Y"))
+dat1=AM_liters.columns[-1]                          #the date is a string eg '7/3/2023'
+dat=datetime.strptime(dat1,'%m/%d/%Y').date()      #%H:%M:%S
+# dat = dat2 + timedelta(days=1)
 newdata=dmAM_liters.loc[:,dat:].copy()
+newdata.columns = newdata.columns.strftime('%m/%d/%Y')
 #
 amliters=pd.concat([AM_liters,newdata],axis=1,join='inner')
 amliters.replace(0,np.nan,inplace=True)
+amliters.dropna(axis='columns', how='all', inplace=True)
 #
 amliters.to_csv(f"D:\\Cows\\data backup\\milk backup\\rawmilk\\AM_liters\\AM_liters_{tdy}.csv")
 amliters.to_csv(f"E:\\Cows\\data backup\\milk backup\\rawmilk\\AM_liters\\AM_liters_{tdy}.csv")
-amliters.to_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_liters.csv',mode='w',index=True)
+amliters.to_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_liters.csv',mode='w',header=True,index=True)
 # NOTE this to_csv command does not overwrite the last column of the df - so, if the wrong data has gotten written in, you gotta go erase that col 
 
 # AM WY
-# dat1=AM_liters.columns[-1]
-# dat2=datetime.strptime(dat1,'%Y-%m-%d %H:%M:%S')
-# dat = dat2 + timedelta(days=1)
-# tdy=str(datetime.now().strftime("%m_%d_%Y"))
 newdata=dmAM_wy.loc[:,dat:].copy()
+newdata.columns = newdata.columns.strftime('%m/%d/%Y')
 #
 amwy=pd.concat([AM_wy,newdata],axis=1,join='inner')
 amwy.replace(0,np.nan,inplace=True)
+amwy.dropna(axis='columns', how='all', inplace=True)
 #
 amwy.to_csv(f"D:\\Cows\\data backup\\milk backup\\rawmilk\\AM_wy\\AM_wy_{tdy}.csv")
 amwy.to_csv(f"E:\\Cows\\data backup\\milk backup\\rawmilk\\AM_wy\\AM_wy_{tdy}.csv")
-amwy.to_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_wy.csv',mode='w',index=True)
+amwy.to_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_wy.csv',mode='w',header=True,index=True)
 #
 
 # PM LITERS
-# dat1=AM_liters.columns[-1]
-# dat2=datetime.strptime(dat1,'%Y-%m-%d %H:%M:%S')
-# dat = dat2 + timedelta(days=1)
-# tdy=str(datetime.now().strftime("%m_%d_%Y"))
 newdata=dmPM_liters.loc[:,dat:].copy()
+newdata.columns = newdata.columns.strftime('%m/%d/%Y')
 #
 pmliters=pd.concat([PM_liters,newdata],axis=1,join='inner')
 pmliters.replace(0,np.nan,inplace=True)
+pmliters.dropna(axis='columns', how='all', inplace=True)
 #
 pmliters.to_csv(f"D:\\Cows\\data backup\\milk backup\\rawmilk\\PM_liters\\PM_liters_{tdy}.csv")
 pmliters.to_csv(f"E:\\Cows\\data backup\\milk backup\\rawmilk\\PM_liters\\PM_liters_{tdy}.csv")
-pmliters.to_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_liters.csv',mode='w',index=True)
+pmliters.to_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_liters.csv',mode='w',header=True,index=True)
 
 # PM WY
-# dat1=AM_liters.columns[-1]
-# dat2=datetime.strptime(dat1,'%Y-%m-%d %H:%M:%S')
-# dat = dat2 + timedelta(days=1)
-# tdy=str(datetime.now().strftime("%m_%d_%Y"))
 newdata=dmPM_wy.loc[:,dat:].copy()
+newdata.columns = newdata.columns.strftime('%m/%d/%Y')
 #
 pmwy=pd.concat([PM_wy,newdata],axis=1,join='inner')
 pmwy.replace(0,np.nan,inplace=True)
+pmwy.dropna(axis='columns', how='all', inplace=True)
 #
 pmwy.to_csv(f"D:\\Cows\\data backup\\milk backup\\rawmilk\\PM_wy\\PM_wy_{tdy}.csv")
 pmwy.to_csv(f"E:\\Cows\\data backup\\milk backup\\rawmilk\\PM_wy\\PM_wy_{tdy}.csv")
-pmwy.to_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_wy.csv',mode='w',index=True)
+pmwy.to_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_wy.csv',mode='w',header=True,index=True)
 
