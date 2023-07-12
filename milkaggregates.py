@@ -2,27 +2,23 @@ import pandas as pd
 import numpy as np
 import datetime 
 # import rawmilkupdate as rm
-import birthdeath as bd
-import insem_ultra as iu 
+# import birthdeath as bd
+# import insem_ultra as iu 
 #
 AM_liters=pd.read_csv   ('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_liters.csv',          index_col=0,header=0)
 AM_wy=pd.read_csv       ('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_wy.csv',              index_col=0,header=0)
 PM_liters=pd.read_csv   ('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_liters.csv',          index_col=0,header=0)
 PM_wy=pd.read_csv       ('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_wy.csv',              index_col=0,header=0)
+bd=pd.read_csv         ('F:\\COWS\\data\\csv_files\\birth_death.csv',                                header=0)
+all3=pd.read_csv         ('F:\\COWS\\data\\insem_data\\all.csv',                                header=0)
 # 
 liters1_am = AM_liters
 wy1_am      = AM_wy
 liters1_pm  = PM_liters
 wy1_pm      = PM_wy
 # 
-# liters1_am  = rm.amliters
-# wy1_am      = rm.amwy
-# liters1_pm  = rm.pmliters
-# wy1_pm      = rm.pmwy
-all3        = iu.all
-#
-wy=(bd.WY_id)
-alive1=bd.ddate.isnull()
+wy=bd['WY_id']
+alive1=bd['death_date'].isnull()
 alive=wy.loc[alive1].copy()
 alive.reset_index(drop=True,inplace=True)
 #
@@ -120,7 +116,7 @@ sumx = tenday.sum(axis=0).astype(float)
 # tenday.loc[''] = sumx.round(0)                   # [''] means 'empty row'
 tenday.loc['total'] = tenday.sum(axis=0)
 # 
-all3cols=['status','age lastcalf bdate','i_date','age last insem','u_date','readex','days left']
+all3cols=['WY_id','status','age lastcalf bdate','i_date','age last insem','u_date','readex','days left']
 all4= all3.loc[:,all3cols].copy()
 
 # sum and nonzero count for entire milk df
