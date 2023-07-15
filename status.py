@@ -3,11 +3,12 @@ import numpy as np
 import datetime as dt
 from datetime import date
 #
-f=pd.read_csv('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv')
+f1 = pd.read_csv('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv')
 bd=pd.read_csv('F:\\COWS\\data\\csv_files\\birth_death.csv',index_col=0,header=0,parse_dates=['birth_date','death_date'],low_memory=False,dtype=None)
 date_names = ['age cow','stop_last','lastcalf bdate','i_date','u_date','next bdate','ultra(e)']
 everything=pd.read_csv('F:\\COWS\\data\\insem_data\\all.csv',index_col=0,header=0,parse_dates=date_names, date_format='%m/%d/%Y',low_memory=False,dtype=None)
 #
+f = f1.iloc[:,:-5].copy()
 bdidx=      bd.index.to_series()
 idx=        np.arange(1,len(bdidx)+1)
 idxforloop= np.arange(0,len(bdidx))
@@ -46,6 +47,7 @@ deadlist=dead.index.tolist()
 alive_count=len(alivelist)
 dead_count=len(deadlist)
 df.loc[deadlist] ='gone'
+
 # Heifers
 #
 everything2=everything.iloc[:lastliveheifer,:].copy()
@@ -60,20 +62,6 @@ heiferlist.sort()
 heiferx=pd.DataFrame(heiferlist,columns=['heifer'])
 heifer_count=len(heiferlist)
 df.loc[heiferlist]= 'H'
-
-# NBY
-#
-lastday1=f.iloc[-1,0]
-lastday=pd.to_datetime(lastday1)
-#
-nby=everything.loc[(
-    everything['cow bdate'] > lastday
-    )].copy()
-#
-nbylist=nby.index.tolist()
-nbyx=pd.DataFrame(nbylist,columns=['nby'])
-nbylist.sort()
-nby_count=len(nbylist)
 
 # Milking cows on last milking day on record
 #
@@ -112,23 +100,22 @@ set_intersection=set(milkinglist)&set(heiferlist)    #set intersection
 allx=[*milkinglist,*drylist,*heiferlist]
 set_diff2=set(alivelist).difference(set(allx))
 
-# Status df
-#
-collist=[alivex,milkx,dryx,heiferx,nbyx]
+# Status d
+collist=[alivex,milkx,dryx,heiferx]
 sl1=pd.merge(left=alivex,right=milkx,how='outer',left_index=True,right_index=True)
 sl2=pd.merge(left=sl1,right=dryx,how='outer',left_index=True,right_index=True)
 sl3=pd.merge(left=sl2,right=heiferx,how='outer',left_index=True,right_index=True)
-sl4=pd.merge(left=sl3,right=nbyx,how='outer',left_index=True,right_index=True)
-#
-sl4.to_csv('F:\\COWS\\data\\status\\status_lists.csv')
-df.to_csv('F:\\COWS\\data\\status\\status_column.csv')
 
 # Box score
-#
 allcows_count=milking_count+dry_count+heifer_count
-cols2=['date','alive_count','milking_count','dry_count','heifer_count','nby_count','dead_count','total']
+cols2=['date','alive_count','milking_count','dry_count','heifer_count','dead_count','total']
 boxscore=pd.DataFrame(index=None,columns=['type','count'])
-#
-boxscore['type']=['date','milking_count','dry_count','heifer_count','alive_count','total','nby_count']
-boxscore['count'] = [lastdate,milking_count,dry_count,heifer_count,alive_count,allcows_count,nby_count]
+boxscore['type']=['date','milking_count','dry_count','heifer_count','alive_count','total']
+boxscore['count'] = [lastdate,milking_count,dry_count,heifer_count,alive_count,allcows_count]
+
+#  write to csv
+sl3.to_csv('F:\\COWS\\data\\status\\status_lists.csv')
+df.to_csv('F:\\COWS\\data\\status\\status_column.csv')
 boxscore.to_csv('F:\\COWS\\data\\status\\boxscore.csv')
+
+
