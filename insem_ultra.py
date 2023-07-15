@@ -54,7 +54,6 @@ lb3a['first calf#'].fillna(0,inplace=True)
 
 #
 # Last insem
-#
 i1a=i.groupby('WY_id',as_index=True).agg({
     'calf_num':'max',
     'insem_date':'max'
