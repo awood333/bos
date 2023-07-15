@@ -33,6 +33,9 @@ fx = f.loc[    (
         ),    :    ].reset_index(drop=True)
 # 
 
+fx2 = fx.iloc[:,1:-5]
+datex = fx['datex']
+# 
 col_integers = [int(x) for x in fx2.columns.to_list()]
 cols =col_integers          #200+ cols WY_ids
 rows1 = len(fx['datex'])     #30 rows    dates
@@ -45,13 +48,11 @@ maskdry2  = []
 for i in cols:
     maskmilk1 = []
     maskheif1 = []
-    maskdry1  = []
     for j in range(rows):
         r       = fx.iloc[j,i]
-        calf1   = iu.lb3a.iloc[j,1]
-        # fcalf2  = iu.lb3a.iloc[j,0]
+        calf1   = iu.lb3a.iloc[i,1]
         daynum  = datex.iloc[j]
-        # t = fx.iloc[j,i]
+        # 
         maskmilk = r>0
         maskheif = ((daynum < calf1) |( pd.isnull(calf1)))
         maskmilk1.append(maskmilk)
