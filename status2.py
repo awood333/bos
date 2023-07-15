@@ -43,11 +43,9 @@ rows =+1
 maskmilk2 = []
 maskheif2 = []
 maskdry2  = []
-
+# 
 # Loop through each element in fullday_wy
 for i in cols:
-    maskmilk1 = []
-    maskheif1 = []
     for j in range(rows):
         r       = fx.iloc[j,i]
         calf1   = iu.lb3a.iloc[i,1]
@@ -58,10 +56,12 @@ for i in cols:
         maskmilk1.append(maskmilk)
         maskheif1.append(maskheif)
         j +=1
-        
+        # 
     maskmilk2.append(maskmilk1) 
-    maskheif2.append(maskheif1)   
-
+    maskheif2.append(maskheif1)  
+    maskmilk1 = []
+    maskheif1 = [] 
+# 
 # maskmilk = pd.DataFrame({'alivemaskmilk': alivemaskmilk})
 # alivemaskmilk2
 # maskmilk2 = [[fx.iloc[j, i] > 0 for j in range(rows)] for i in cols]
