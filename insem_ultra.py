@@ -50,7 +50,7 @@ lb_first.rename(columns={'b_date':'1st_bdate'},inplace=True)
 lb3 =  df.join(lb_last)      #sl=stop_last and is indexed 1-200ish
 lb3a = df.join(lb_first)
 lb3['last calf#'].  fillna(0,inplace=True)
-lb3a['first calf#'].fillna(0,inplace=True)
+lb3a['calf#'].fillna(0,inplace=True)
 
 #
 # Last insem
