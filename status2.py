@@ -38,14 +38,18 @@ datex = fx['datex']
 # 
 col_integers = [int(x) for x in fx2.columns.to_list()]
 cols =col_integers          #200+ cols WY_ids
-rows1 = len(fx['datex'])     #30 rows    dates
-rows =+1
+rows = len(fx['datex'])     #30 rows    dates
+# 
+# maskmilk1 = []
 maskmilk2 = []
-maskheif2 = []
-maskdry2  = []
+# maskheif1 = []
+maskheif2  = []
 # 
 # Loop through each element in fullday_wy
 for i in cols:
+    maskmilk1 = []
+    maskheif1 = [] 
+    # 
     for j in range(rows):
         r       = fx.iloc[j,i]
         calf1   = iu.lb3a.iloc[i,1]
@@ -59,12 +63,7 @@ for i in cols:
         # 
     maskmilk2.append(maskmilk1) 
     maskheif2.append(maskheif1)  
-    maskmilk1 = []
-    maskheif1 = [] 
+
 # 
-# maskmilk = pd.DataFrame({'alivemaskmilk': alivemaskmilk})
-# alivemaskmilk2
-# maskmilk2 = [[fx.iloc[j, i] > 0 for j in range(rows)] for i in cols]
 milking = pd.DataFrame(maskmilk2).T
 heifers = pd.DataFrame(maskheif2)
-# len(maskmilk2), len(cols),rows
