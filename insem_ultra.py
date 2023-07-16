@@ -47,10 +47,10 @@ lb_first=lb.groupby('WY_id').agg({           #returns a df
 #
 lb_last.rename(columns={'b_date':'lastcalf bdate','calf#':'last calf#'},inplace=True)
 lb_first.rename(columns={'b_date':'1st_bdate'},inplace=True)
-lb3 =  df.join(lb_last)      #sl=stop_last and is indexed 1-200ish
-lb3a = df.join(lb_first)
-lb3['last calf#'].  fillna(0,inplace=True)
-lb3a['calf#'].fillna(0,inplace=True)
+lb_last =  df.join(lb_last)      #sl=stop_last and is indexed 1-200ish
+lb_first = df.join(lb_first)
+lb_last['last calf#'].  fillna(0,inplace=True)
+lb_first['calf#'].fillna(0,inplace=True)
 
 #
 # Last insem
@@ -62,7 +62,7 @@ i1a.rename(columns={'calf_num':'i_calf#','insem_date':'i_date'},inplace=True)
 Lcols=  ["WY_id",'i_calf#','i_date']
 Rcols= ["WY_id",'calf_num','insem_date']
 #
-i1b=lb3.merge(i1a,on='WY_id')
+i1b=lb_last.merge(i1a,on='WY_id')
 i1c=i1b.loc[       (i1b['i_calf#'] > i1b['last calf#'])   ]  #last calf# is from livebirths
 i1=i1c[['i_calf#','i_date']]
 i2=i1.merge(right=i,how='left',left_on=Lcols,right_on=Rcols)
@@ -81,10 +81,10 @@ i6=i5[['i_calf#','i_date']]
 u1a=u.groupby('WY_id',as_index=True).agg({
     'Calf_num':'max',
     'ultra_date' :'max'   }).copy()
-mcols=['WY_id','Calf_num','ultra_date']
-u1b=lb3.merge(u1a,on=('WY_id'),suffixes=('lb','u'))
+mcols=['WY_id','calf#','u_date']
+u1b=lb_first.merge(u1a,on=('WY_id'),suffixes=('lb','u'))
 u1c=u1b.loc[
-          ((u1b['Calf_num'] > u1b['last calf#'])  |  (u1b['last calf#'].isnull()) )
+          ((u1b['Calf_num'] > u1b['calf#'])  |  (u1b['calf#'].isnull()) )
           ]
 #
 u1=u1c[['Calf_num','ultra_date']]
@@ -104,7 +104,7 @@ u6=u5[   [ 'u_calf#','u_date','readex']].copy()
 
 # Merge ultra, insem, last bdate, last stop
 #
-x  = bd.merge(right=lb3,on='WY_id')
+x  = bd.merge(right=lb_last,on='WY_id')
 x1 = x.loc[alivemask].copy()                                    # filter all live 
 #
 cows =        x1.loc[x1['lastcalf bdate'].notnull()]            #filter out the heifers
