@@ -42,16 +42,26 @@ datex = fx['datex']
 # 
 col_integers = [int(x) for x in fx2.columns.to_list()]
 cols =col_integers          #200+ cols WY_ids
-cols = [227,228,229,230]
 rows = len(fx['datex'])     #30 rows    dates
 # 
-maskmilk2 = []
-maskheif2  = []
+maskalive2  = []
+maskmilk2   = []
+maskheif2   = []
+alivenotmilking2 = []
+gottabedry2 = []
+gone2       = []
+# 
+
 # 
 # Loop through each element in fullday_wy
 for i in cols:                              # wy index
-    maskmilk1 = []
-    maskheif1 = [] 
+    maskmilk1   = []
+    maskheif1   = [] 
+    maskalive1  = []
+    alivenotmilking1 = []
+    gottabedry1 = []
+    gone1       = []
+    
     # 
     for j in range(rows):                   #date index
         r       = fx.iloc[j,i]
@@ -59,19 +69,65 @@ for i in cols:                              # wy index
         daynum  = datex.iloc[j]
         deathdate = dd.iloc[i]
         # 
-        maskmilk = r>0
-        maskheif = (
-            ((daynum < calf1) |( pd.isnull(calf1))) 
-            & ((daynum < deathdate)  | (pd.isnull(deathdate))   ) 
-                    )
+        maskmilk        = r>0
+        maskheif        = (((daynum < calf1) |( pd.isnull(calf1))) 
+                            & ((daynum < deathdate)  | (pd.isnull(deathdate))   ) 
+                                    )
+        maskalive       = ((daynum < deathdate) |  (pd.isnull(deathdate)))
+        alivenotmilking = ( ((daynum < deathdate) |  (pd.isnull(deathdate))) & (r==0))
+        gottabedry      = ( ((daynum < deathdate) |  (pd.isnull(deathdate)))
+                            & (r==0)  
+                            & ((daynum > calf1) & ( pd.notnull(calf1))) 
+                            )
+        gone            = ((daynum >= deathdate) |  (pd.notnull(deathdate)))
+                # 
         maskmilk1.append(maskmilk)
         maskheif1.append(maskheif)
+        maskalive1.append(maskalive)
+        alivenotmilking1.append(alivenotmilking)
+        gottabedry1.append(gottabedry)
+        gone1.append(gone)
+        
         j +=1
         # 
+        
+    maskalive2.append(maskalive1)
     maskmilk2.append(maskmilk1) 
-    maskheif2.append(maskheif1)  
-
-# 
-milking = pd.DataFrame(maskmilk2).T
+    maskheif2.append(maskheif1) 
+    alivenotmilking2.append(alivenotmilking1)
+    gottabedry2.append(gottabedry1)
+    gone2.append(gone1)
+    # 
+    milking = pd.DataFrame(maskmilk2)
 heifers = pd.DataFrame(maskheif2)
-print(heifers.iloc[:10,-10:])
+heif_dry= pd.DataFrame(alivenotmilking2)
+dry     = pd.DataFrame(gottabedry2)
+alive   = pd.DataFrame(maskalive2)
+gone    = pd.DataFrame(gone2)
+#
+milking_count =     milking .sum(axis=0)
+heifer_count =      heifers .sum(axis=0)
+heif_dry_count =    heif_dry.sum(axis=0)
+dry_count =         dry     .sum(axis=0)
+alive_count=        alive   .sum(axis=0)
+gone_count =        gone    .sum(axis=0)
+total_check =       alive_count + gone_count
+
+status = pd.DataFrame({
+    'milking'   :milking_count,
+    'dry'       :dry_count,
+    'heif+dry'  :heif_dry_count,
+    'heifers'   :heifer_count,
+    'alive'     :alive_count,
+    'gone'      :gone_count,
+    'total check':total_check
+    })
+status.to_csv('F:\\Cows\\data\\testdata\\status.csv')
+# 
+
+xx = dry.iloc[:,-1:]
+mask = xx>0
+mask
+
+alivecomp   = [x for x in alive.iloc[:,-1:] if x not in iu.alivemask]
+gonecomp    = [x for x in gone.iloc[:,-1:]  if x not in iu.deadmask]
