@@ -81,14 +81,15 @@ i6=i5[['i_calf#','i_date']]
 u1a=u.groupby('WY_id',as_index=True).agg({
     'Calf_num':'max',
     'ultra_date' :'max'   }).copy()
-mcols=['WY_id','calf#','u_date']
-u1b=lb_first.merge(u1a,on=('WY_id'),suffixes=('lb','u'))
+# 
+u1b=lb_last.merge(u1a,on=('WY_id'),suffixes=('lb','u'))
 u1c=u1b.loc[
-          ((u1b['Calf_num'] > u1b['calf#'])  |  (u1b['calf#'].isnull()) )
+          ((u1b['Calf_num'] > u1b['last calf#'])  |  (u1b['last calf#'].isnull()) )
           ]
 #
 u1=u1c[['Calf_num','ultra_date']]
 #
+mcols=['WY_id','Calf_num','ultra_date']
 u2=u1.merge (right=u,how='left',left_on=mcols,right_on=mcols)
 u2.rename   (columns={'Calf_num':'u_calf#','ultra_date':'u_date','ultrareading':'readex'},inplace=True)
 # 

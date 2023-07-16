@@ -22,6 +22,8 @@ dd      = bd['death_date']
 fullday_datex = f['datex'].to_list()            #datex in list form
 f2cols  = [int(x) for x in f2.columns.tolist()] #list of WY_ids as integers
 # 
+
+
 # creates df for the past whole month with datex intact and a 'day' index.
 # 
 month_filter = 6
@@ -32,31 +34,36 @@ fx = f.loc[    (
         (f['month'] == month_filter)
         ),    :    ].reset_index(drop=True)
 # 
-
 fx2 = fx.iloc[:,1:-5]
+
+
+#  Loop
 datex = fx['datex']
 # 
 col_integers = [int(x) for x in fx2.columns.to_list()]
 cols =col_integers          #200+ cols WY_ids
+cols = [227,228,229,230]
 rows = len(fx['datex'])     #30 rows    dates
 # 
-# maskmilk1 = []
 maskmilk2 = []
-# maskheif1 = []
 maskheif2  = []
 # 
 # Loop through each element in fullday_wy
-for i in cols:
+for i in cols:                              # wy index
     maskmilk1 = []
     maskheif1 = [] 
     # 
-    for j in range(rows):
+    for j in range(rows):                   #date index
         r       = fx.iloc[j,i]
         calf1   = iu.lb_first.iloc[i,1]
         daynum  = datex.iloc[j]
+        deathdate = dd.iloc[i]
         # 
         maskmilk = r>0
-        maskheif = ((daynum < calf1) |( pd.isnull(calf1)))
+        maskheif = (
+            ((daynum < calf1) |( pd.isnull(calf1))) 
+            & ((daynum < deathdate)  | (pd.isnull(deathdate))   ) 
+                    )
         maskmilk1.append(maskmilk)
         maskheif1.append(maskheif)
         j +=1
@@ -67,3 +74,4 @@ for i in cols:
 # 
 milking = pd.DataFrame(maskmilk2).T
 heifers = pd.DataFrame(maskheif2)
+print(heifers.iloc[:10,-10:])
