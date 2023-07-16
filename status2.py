@@ -52,7 +52,7 @@ for i in cols:
     # 
     for j in range(rows):
         r       = fx.iloc[j,i]
-        calf1   = iu.lb3a.iloc[i,1]
+        calf1   = iu.lb_first.iloc[i,1]
         daynum  = datex.iloc[j]
         # 
         maskmilk = r>0
