@@ -8,8 +8,7 @@ bd=pd.read_csv('F:\\COWS\\data\\csv_files\\birth_death.csv',parse_dates=['birth_
 u=pd.read_csv ('F:\\COWS\\data\\csv_files\\ultra.csv',      parse_dates= ['ultra_date'])
 i=pd.read_csv ('F:\\COWS\\data\\csv_files\\insem.csv',      parse_dates= ['insem_date']) 
 s=pd.read_csv ('F:\\COWS\\data\\csv_files\\stop_dates.csv', parse_dates= ['stop'])
-f=pd.read_csv ('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv',index_col=0,parse_dates= ['datex'])
-sc=pd.read_csv ('F:\\COWS\\data\\status\\status_column.csv',index_col=0)
+f=pd.read_csv ('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv',index_col=0,parse_dates= ['datex']) 
 #
 lb.set_index('WY_id',inplace=True)
 bd.set_index('WY_id',inplace=True)
@@ -108,10 +107,9 @@ u6=u5[   [ 'u_calf#','u_date','readex']].copy()
 x  = bd.merge(right=lb_last,on='WY_id')
 x1 = x.loc[alivemask].copy()                                    # filter all live 
 #
-cows =        x1.loc[x1['lastcalf bdate'].notnull()]            #filter out the heifers
-heifers1 =   x1.loc[x1['lastcalf bdate'].isnull()]
+# cows = x1.loc[x1['lastcalf bdate'].notnull()].copy()            #filter out the heifers
 #
-x2= cows.merge(right=i6,how='left',on='WY_id')
+x2= x1.merge(right=i6,how='left',on='WY_id')
 x3= x2.merge(right=u6,how='left',on='WY_id')
 x4= x3.merge(right=sl,how='left',on='WY_id')
 x4.rename(columns={'dam_num':'dam'},inplace=True)
@@ -119,9 +117,10 @@ x4.rename(columns={'dam_num':'dam'},inplace=True)
 
 #
 # valid insem
+# i_calf# is bigger than last calf# 
 x_insem = x4.loc[ (x4['i_calf#'] > x4['last calf#'])   ]
 x_insem_list    = list(x_insem.index)
-#
+#u_calf# bigger than last calf# and u_date after stop_last / i_date
 x_ultra = x4.loc[ ((x4['u_calf#'] > x4['last calf#'])  
     &  (x4['u_date'] > x4['stop_last'])
     &  (x4['u_date'] > x4['i_date'])
@@ -130,16 +129,16 @@ x_ultra_list    = list(x_ultra.index)
 #
 x_readex_list = x_ultra_list
 #
-x_insem2 = x4.loc[x_insem_list]
-x_ultra2 = x4.loc[x_ultra_list]
+x_insem2 = x4.loc[x_insem_list]    #filters x4 (all) by the 'valid insem' mask
+x_ultra2 = x4.loc[x_ultra_list]     #filters x4 (all) by the 'valid ultra' mask
 x_readex2 = x4.loc[x_readex_list]
 #
-x_insem3 = x_insem2['i_date']
+x_insem3 = x_insem2['i_date']       # add i_date back in to the filtered insem df
 x_ultra3 = x_ultra2['u_date']
 x_readex3 = x_readex2['readex']
 
 #
-# filter
+# merge
 #
 x5a = x4.merge(right=x_insem3,how='left',on='WY_id',suffixes=('_remove',""))
 x5a.drop([i for i in x5a.columns if 'remove' in i],axis=1,inplace=True)
@@ -187,13 +186,13 @@ all2intlist=['insem-ultra'
 ,'i_calf#'
 ,'sl_calf#'
 ,'age cow'
+# ,'death_date'
 ]
-all2['status']=sc['status']
 
 # re-order columns
 #
 all=all2.loc[:,[
-'status','age cow',#'death_date',
+'age cow',
 'stop_last','lastcalf bdate','days waiting',
 'sl_calf#','last calf#','i_calf#','u_calf#',
 'i_date','u_date','readex',
@@ -204,7 +203,10 @@ all=all2.loc[:,[
 #
 all_list=list(all.index)
 
+
 # NEW COLUMNS
+all['cow bdate']=bd['birth_date']
+all['death_date']=bd['death_date']
 
 # Pregnant
 #
@@ -213,66 +215,23 @@ preg2=all.loc[
     & (all['i_calf#']   > all['last calf#'])
     & ((all['i_date']    > all['lastcalf bdate'] ) | (all['lastcalf bdate'].isnull()))
     ].copy()
-preglist=list(preg2.index)
-preg=preg2.loc[:,[
-# 'dam','cow bdate','death_date',
-'status','stop_last','lastcalf bdate','readex',
-# 'sl_calf#','last calf#','i_calf#','u_calf#',
-'i_date','u_date',
-# 'stop_next',
-'next bdate',
-# 'age cow','age lastcalf bdate','age last insem','age last ultra',
-'insem-ultra','days left'
-# ,'ultra(e)'
-]]
-pregcols=['stop_next']
-preg=preg.sort_values('next bdate')
-
+preglist = list(preg2.index)
+preg     = all.loc[preglist,:]
+preg.sort_values('next bdate',inplace=True)
+# 
 # Not pregnant
 #
-notpreglist=list(set(all_list).difference(set(preglist)))
-# notpregsym=set(preglist.symmetric_difference(all_list))
-notpreg2=all.loc[notpreglist]
-notpreg=notpreg2.loc[:,[
-# 'dam','cow bdate','death_date',
-'status','stop_last','lastcalf bdate',
-'sl_calf#','last calf#','i_calf#','u_calf#','readex',
-'i_date','u_date','readex',
-# 'stop_next',
-'next bdate',
-# 'age cow',
-'age lastcalf bdate','age last insem','age last ultra',
-'insem-ultra'
-# ,'days left'
-# ,'ultra(e)'
-]].copy()
+notpreglist = list(set(all_list).difference(set(preglist)))
+notpreg     = all.loc[notpreglist]
 notpreg.sort_index(inplace=True)
-
+# 
 # too early (no heifers)
 #
 tooEarly2=notpreg.loc[
-    (notpreg['age last insem']<40) & (notpreg['status']=='M')
-    ].copy()
-tooearlylist_milking=list(tooEarly2.index)
-tooEarly=tooEarly2.loc[:,[
-# 'dam','cow bdate','death_date',
-'status','stop_last','lastcalf bdate',
-'sl_calf#','last calf#','i_calf#','u_calf#',
-'i_date',
-# 'u_date','readex',
-# 'stop_next',
-# 'next bdate',
-# 'age cow',
-'age lastcalf bdate',
-'age last insem',
-'age last ultra',
-# 'insem-ultra'
-# ,'days left'
-# ,'ultra(e)'
-]]
-#
-
-
+    (notpreg['age last insem']<40)     ].copy()
+tooearlylist_milking    = list(tooEarly2.index)
+tooEarly                = all.loc[tooearlylist_milking,:]
+# 
 # no insem  (no heifers)
 #
 no_insem2=notpreg.loc[
@@ -280,53 +239,16 @@ no_insem2=notpreg.loc[
     & (notpreg['i_date'].isnull())
     ].copy()
 no_insem2_list=list(no_insem2.index)
-no_insem2=no_insem2.sort_values('age lastcalf bdate')
-noinsemcol=['sl_calf#','age lastcalf bdate','last calf#']
-no_insem2[noinsemcol]=no_insem2[noinsemcol].astype('int')
-no_insem=no_insem2.loc[:,[
-# 'dam','cow bdate','death_date',
-'status','stop_last','lastcalf bdate',
-'sl_calf#','last calf#',
-# ,'i_calf#','u_calf#','i_date',
-# 'u_date','readex',
-# 'stop_next',
-# 'next bdate',
-# 'age cow',
-'age lastcalf bdate',
-# 'age last insem','age last ultra',
-# 'insem-ultra'
-# ,'days left'
-# ,'ultra(e)'
-]].copy()
-
+no_insem3 = all.loc[no_insem2_list,:].copy()
+no_insem=no_insem3.sort_values('age lastcalf bdate')
+# 
 # Ultra out of date
 #
 uod2=notpreg[(notpreg['insem-ultra'] < 0)
-    & (notpreg['age last insem']>=40)
-]
-uod_list=list(uod2.index)
-uod=notpreg.loc[uod_list]
+    & (notpreg['age last insem']>=40)]
+uod_list = list(uod2.index)
+uod      = all.loc[uod_list]
 
-
-# all heifers
-#
-heifers2=heifers1.merge(all,how='left',on='WY_id',suffixes=('_x','_y'))
-#
-heifers3= heifers2.loc[:,('birth_date','dam_num'
-# ,'age cow'
-# ,'i_date','u_date','readex','age last insem','age last ultra' 
-)]
-heifers3['age (M))']             =((today - heifers3['birth_date'])/np.timedelta64(1,'M'))
-#
-heifers4 = heifers3.merge(i6,how='left',on='WY_id',suffixes=('-remove',''))
-heifers4.drop([i for i in heifers4.columns if 'remove' in i],axis=1,inplace=True)
-heifers4['days last insem']      =(today - heifers4['i_date']).dt.days
-#
-heifers5 = heifers4.merge(u6,how='left',on='WY_id',suffixes=('-remove',''))
-heifers5.drop([i for i in heifers5.columns if 'remove' in i],axis=1,inplace=True)
-heifers5['days last ultra']      =(today - heifers5['u_date']).dt.days
-#
-heifers=heifers5
 
 # Write to csv
 #
@@ -340,7 +262,3 @@ notpreg.to_csv  ('F:\\COWS\\data\\insem_data\\not_pregnant.csv')
 tooEarly.to_csv ('F:\\COWS\\data\\insem_data\\ tooEarly.csv')
 no_insem.to_csv ('F:\\COWS\\data\\insem_data\\no_insem.csv')
 uod.to_csv      ('F:\\COWS\\data\\insem_data\\ultraoutofdate.csv')
-#
-# notpregHeif.to_csv  ('F:\\COWS\\data\\insem_data\\notpregHeif.csv')
-# pregHeif.to_csv     ('F:\\COWS\\data\\insem_data\\pregHeif.csv')
-heifers.to_csv         ('F:\\COWS\\data\\insem_data\\all_heifers.csv')

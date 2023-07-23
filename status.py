@@ -6,6 +6,9 @@ from datetime import date
 f1 = pd.read_csv('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv')
 bd=pd.read_csv('F:\\COWS\\data\\csv_files\\birth_death.csv',index_col=0,header=0,parse_dates=['birth_date','death_date'],low_memory=False,dtype=None)
 date_names = ['age cow','stop_last','lastcalf bdate','i_date','u_date','next bdate','ultra(e)']
+# 
+# NOTE: 'status' reads from 'all' so don't make circular references
+# 
 everything=pd.read_csv('F:\\COWS\\data\\insem_data\\all.csv',index_col=0,header=0,parse_dates=date_names, date_format='%m/%d/%Y',low_memory=False,dtype=None)
 #
 f = f1.iloc[:,:-5].copy()
@@ -17,11 +20,6 @@ status=     pd.DataFrame()
 status['WY_id']=idx
 status.set_index('WY_id',inplace=True)
 #
-bd['birth_date']=pd.to_datetime(bd['birth_date'],)
-bd['death_date']=pd.to_datetime(bd['death_date'],)
-everything['cow bdate']=bd['birth_date']
-everything['death_date']=bd['death_date']
-# 
 bdmax=bd.index.max()+2
 rng=list(range(1,bdmax))         #blank df with WYs as index
 lastliveheifer=bdmax
@@ -50,11 +48,10 @@ df.loc[deadlist] ='gone'
 
 # Heifers
 #
-everything2=everything.iloc[:lastliveheifer,:].copy()
-heifers = everything2.loc[(
-        everything2['death_date'].isnull()
-    &   everything2['stop_last'].isnull()
-    &   everything2['lastcalf bdate'].isnull()
+heifers = everything.loc[(
+        everything['death_date'].isnull()
+    &   everything['stop_last'].isnull()
+    &   everything['lastcalf bdate'].isnull()
     )].copy()
 # 
 heiferlist=heifers.index.tolist()
@@ -100,10 +97,10 @@ set_intersection=set(milkinglist)&set(heiferlist)    #set intersection
 allx=[*milkinglist,*drylist,*heiferlist]
 set_diff2=set(alivelist).difference(set(allx))
 
-# Status d
+# Status df
 collist=[alivex,milkx,dryx,heiferx]
 sl1=pd.merge(left=alivex,right=milkx,how='outer',left_index=True,right_index=True)
-sl2=pd.merge(left=sl1,right=dryx,how='outer',left_index=True,right_index=True)
+sl2=pd.merge(left=sl1,right=dryx,   how='outer',left_index=True,right_index=True)
 sl3=pd.merge(left=sl2,right=heiferx,how='outer',left_index=True,right_index=True)
 
 # Box score

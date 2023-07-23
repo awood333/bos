@@ -55,7 +55,7 @@ len(bd) == len(alive)+len(gone)
 # iu.heifers.index.tolist() == heifers   
 # 
 
-# write to df
+# create df for last day of milking
 status1 = pd.DataFrame({
     'milking':[ milking_count],
     'dry': [dry_count],
@@ -64,16 +64,28 @@ status1 = pd.DataFrame({
    
 status1.to_csv('F:\\Cows\\data\\status\\status1.csv')
 
-milking = pd.Series(milking,name='milking')
-dry = pd.Series(dry,name='dry')
-heifers = pd.Series(heifers,name='heifers')
+milking = pd.DataFrame(milking,columns=['WY_id'])
+dry     = pd.DataFrame(dry,columns=['WY_id'])
+heifers = pd.DataFrame(heifers,columns=['WY_id'])
 status2 = pd.concat([milking,dry,heifers],axis=1).fillna('')
 # 
 title = pd.to_datetime(datemax).date()
 status2.index.name = title
 status2.to_csv('F:\\Cows\\data\\status\\status2.csv')
 # 
+# create status column with M D H
+statusm = 'M'
+statusd = 'D'
+statush = 'H'
+milking['status']   = statusm
+dry['status']       = statusd
+heifers['status']   = statush
+status_list = pd.concat([milking,dry,heifers],axis=0)
+status_list.reset_index(drop=True,inplace=True)
+status_list.sort_values(by=['status','WY_id'],ascending=[False,True],inplace=True)
+status_list.to_csv('F:\\Cows\\data\\status\\status_column.csv')
 
+# 
 # creates df for the past whole month with datex intact and a 'day' index.
 # 
 month_filter = 6
