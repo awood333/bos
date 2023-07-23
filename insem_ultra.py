@@ -120,7 +120,7 @@ x4.rename(columns={'dam_num':'dam'},inplace=True)
 # i_calf# is bigger than last calf# 
 x_insem = x4.loc[ (x4['i_calf#'] > x4['last calf#'])   ]
 x_insem_list    = list(x_insem.index)
-#u_calf# bigger than last calf# and u_date after stop_last / i_date
+#u_calf# is bigger than last calf# and, u_date is after stop_last / i_date
 x_ultra = x4.loc[ ((x4['u_calf#'] > x4['last calf#'])  
     &  (x4['u_date'] > x4['stop_last'])
     &  (x4['u_date'] > x4['i_date'])
@@ -166,12 +166,12 @@ all1['next bdate']=nextcalf_bdate
 all2 = all1
 #
 all2['age cow']             =((today - all2['cow bdate'])/np.timedelta64(1,'M'))
-all2['age lastcalf bdate']  =(today - all2['lastcalf bdate']).dt.days
+all2['age last calf']  =(today - all2['lastcalf bdate']).dt.days
 all2['age last insem']      =(today - all2['i_date']).dt.days
 all2['age last ultra']      =(today - all2['u_date']).dt.days
 #
 all2['days left']           =-(today - all2['next bdate'])/np.timedelta64(1,'D')
-all2['days waiting']         =(all2['lastcalf bdate'] - all2['stop_last'])/np.timedelta64(1,'D')
+# all2['days waiting']         =(all2['lastcalf bdate'] - all2['stop_last'])/np.timedelta64(1,'D')
 #
 all2['insem-ultra']         =all2['age last insem'] - all2['age last ultra']
 all2["ultra(e)"]            =all2['i_date'] + timedelta(days= 40)
@@ -186,18 +186,18 @@ all2intlist=['insem-ultra'
 ,'i_calf#'
 ,'sl_calf#'
 ,'age cow'
-# ,'death_date'
+,'death_date'
 ]
 
 # re-order columns
 #
 all=all2.loc[:,[
 'age cow',
-'stop_last','lastcalf bdate','days waiting',
+'stop_last','lastcalf bdate',
 'sl_calf#','last calf#','i_calf#','u_calf#',
 'i_date','u_date','readex',
 'next bdate',
-'age lastcalf bdate','age last insem','age last ultra',
+'age last calf','age last insem','age last ultra',
 'insem-ultra','ultra(e)','days left'
 ]].copy()
 #
@@ -235,12 +235,12 @@ tooEarly                = all.loc[tooearlylist_milking,:]
 # no insem  (no heifers)
 #
 no_insem2=notpreg.loc[
-    (notpreg['age lastcalf bdate']>=40 )
+    (notpreg['age last calf']>=40 )
     & (notpreg['i_date'].isnull())
     ].copy()
 no_insem2_list=list(no_insem2.index)
 no_insem3 = all.loc[no_insem2_list,:].copy()
-no_insem=no_insem3.sort_values('age lastcalf bdate')
+no_insem=no_insem3.sort_values('age last calf')
 # 
 # Ultra out of date
 #
