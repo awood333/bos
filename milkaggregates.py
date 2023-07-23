@@ -5,12 +5,13 @@ import datetime
 # import birthdeath as bd
 # import insem_ultra as iu 
 #
-AM_liters=pd.read_csv   ('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_liters.csv',          index_col=0,header=0)
-AM_wy=pd.read_csv       ('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_wy.csv',              index_col=0,header=0)
-PM_liters=pd.read_csv   ('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_liters.csv',          index_col=0,header=0)
-PM_wy=pd.read_csv       ('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_wy.csv',              index_col=0,header=0)
-bd=pd.read_csv         ('F:\\COWS\\data\\csv_files\\birth_death.csv',                                header=0)
-all3=pd.read_csv         ('F:\\COWS\\data\\insem_data\\all.csv',                                header=0)
+AM_liters = pd.read_csv     ('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_liters.csv',   index_col=0,header=0)
+AM_wy   = pd.read_csv       ('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_wy.csv',       index_col=0,header=0)
+PM_liters = pd.read_csv     ('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_liters.csv',   index_col=0,header=0)
+PM_wy   = pd.read_csv       ('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_wy.csv',       index_col=0,header=0)
+bd      = pd.read_csv       ('F:\\COWS\\data\\csv_files\\birth_death.csv',                       header=0)
+all     = pd.read_csv       ('F:\\COWS\\data\\insem_data\\all.csv',                              header=0)
+status  = pd.read_csv     ('F:\\COWS\\data\status\\status_column.csv',            index_col=0,header=0)       
 # 
 liters1_am = AM_liters
 wy1_am      = AM_wy
@@ -116,8 +117,11 @@ sumx = tenday.sum(axis=0).astype(float)
 # tenday.loc[''] = sumx.round(0)                   # [''] means 'empty row'
 tenday.loc['total'] = tenday.sum(axis=0)
 # 
-all3cols=['WY_id','status','age lastcalf bdate','i_date','age last insem','u_date','readex','days left']
-all4= all3.loc[:,all3cols].copy()
+allcols=['WY_id','age lastcalf bdate','i_date','age last insem','u_date','readex','days left']
+all1= all.loc[:,allcols].copy()
+all2 = all1.merge(status['status'],how='left',left_on='WY_id',right_on='WY_id')
+ 
+
 
 # sum and nonzero count for entire milk df
 #
@@ -171,7 +175,7 @@ monthly.        to_csv('F:\\COWS\data\\milk_data\\totals\\monthly.csv')
 milk.           to_csv('F:\\COWS\data\\milk_data\\fullday\\milk.csv')
 tenday.         to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\ten day.csv')
 tenday1.        to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\ten day1.csv')
-all4.           to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\ten day2.csv')
+all2.           to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\ten day2.csv')
 
 
 
