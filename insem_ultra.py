@@ -186,7 +186,7 @@ all2intlist=['insem-ultra'
 ,'i_calf#'
 ,'sl_calf#'
 ,'age cow'
-,'death_date'
+# ,'death_date'   because these are only the live cows
 ]
 
 # re-order columns
