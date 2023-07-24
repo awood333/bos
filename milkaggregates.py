@@ -117,7 +117,7 @@ sumx = tenday.sum(axis=0).astype(float)
 # tenday.loc[''] = sumx.round(0)                   # [''] means 'empty row'
 tenday.loc['total'] = tenday.sum(axis=0)
 # 
-allcols=['WY_id','age lastcalf bdate','i_date','age last insem','u_date','readex','days left']
+allcols=['WY_id','age last calf','i_date','age last insem','u_date','readex','days left']
 all1= all.loc[:,allcols].copy()
 all2 = all1.merge(status['status'],how='left',left_on='WY_id',right_on='WY_id')
  
