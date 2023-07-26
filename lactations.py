@@ -3,10 +3,11 @@ import numpy as np
 from datetime import datetime as dt
 from datetime import timedelta as td
 ##
-start = pd.read_csv   ('F:\\COWS\\data\\csv_files\\live_births.csv',header = 0,parse_dates = ['b_date'])
-stop = pd.read_csv    ('F:\\COWS\\data\\csv_files\\stop_dates.csv',header = 0,parse_dates = ['stop'])
-milk1 = pd.read_csv    ('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv',header = 0,index_col = 0)
-step7 = pd.read_csv   ('F:\\COWS\\data\\milk_data\\lactations\\step7_series.csv')
+start   = pd.read_csv    ('F:\\COWS\\data\\csv_files\\live_births.csv',     header = 0,parse_dates = ['b_date'])
+stop    = pd.read_csv    ('F:\\COWS\\data\\csv_files\\stop_dates.csv',      header = 0,parse_dates = ['stop'])
+milk1   = pd.read_csv    ('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv',header = 0,index_col = 0)
+bd      = pd.read_csv    ('F:\\COWS\\data\\csv_files\\birth_death.csv',      header = 0,parse_dates = ['birth_date','death_date'])
+step7 =   pd.read_csv    ('F:\\COWS\\data\\milk_data\\lactations\\step7_series.csv')
 # 
 milk = milk1.iloc[:,:-5]
 col_list = milk.columns               #fullday labels are 'object'
@@ -15,6 +16,9 @@ col_list_int = [int(x) for x in milk.columns]
 milk_a = milk.loc[:,col_list].copy()
 #
 step7.rename(columns = {'wk':666},inplace = True)
+# 
+cownum = bd.index.max()
+cownum2 = max(col_list_int)
 
 #   create an array of blank rows to pad the milk df back to 9/1/2016<br>
 #
@@ -39,11 +43,11 @@ milk1.replace(0,np.nan,inplace = True)            #milk1 is in register with ful
 
 # align the start and stop dfs (they're different lengths)<br>
 startpivot = start.pivot(index = 'WY_id',columns = 'calf#',values = 'b_date')   #128,6
-stoppivot =  stop.pivot(index = 'WY_id',columns = 'lact_num',values = 'stop')    #118,6
-rng1 = np.arange(0,201,dtype = int)                         #for wy numbers - col headings
-rng =  pd.Series(rng1,name = 'WY_id')
+stoppivot  =  stop.pivot(index = 'WY_id',columns = 'lact_num',values = 'stop')    #118,6
+rng1 = np.arange(0,cownum,dtype = int)                         #for wy numbers - col headings
+rng  =  pd.Series(rng1,name = 'WY_id')
 start2 = startpivot.merge(right = rng,how = 'right',on = 'WY_id')
-stop2 =  stoppivot.merge(right = rng,how = 'right',on = 'WY_id')
+stop2  =  stoppivot.merge(right = rng,how = 'right',on = 'WY_id')
 #
 start2.set_index('WY_id',inplace = True)
 stop2.set_index('WY_id',inplace = True)
