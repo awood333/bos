@@ -46,7 +46,7 @@ startpivot = start.pivot(index = 'WY_id',columns = 'calf#',values = 'b_date')   
 stoppivot  =  stop.pivot(index = 'WY_id',columns = 'lact_num',values = 'stop')    #118,6
 rng1 = np.arange(0,cownum,dtype = int)                         #for wy numbers - col headings
 rng  =  pd.Series(rng1,name = 'WY_id')
-start2 = startpivot.merge(right = rng,how = 'right',on = 'WY_id')
+start2 = startpivot.merge(right = rng,how = 'right',on = 'WY_id')  #this assures that start2 contains all the WYs (see 'shape')
 stop2  =  stoppivot.merge(right = rng,how = 'right',on = 'WY_id')
 #
 start2.set_index('WY_id',inplace = True)
@@ -67,9 +67,9 @@ milk3,milk3a,milksum3,milkmax3,milk4,milksum4,milkmax4,milk2idx3,milk2idx4,milk4
 milkmean3,milkcount3,milkmean4,milkcount4 = [],[],[],[]
 wy,start4,stop4,r2,c2  =  [],[],[],[],[]
 #
-rows1 = stopTx.index    # string 'objects'
-rows =  range(1,7)       #integers
-cols =  stopTx.columns    #integers
+# rows1 = stopTx.index    # string 'objects' 
+rows =  range(1,7)       #integers --  stop has only 6 rows for 6 lactations 
+cols =  stopTx.columns    #integers -- all the cows which have a stop date
 #
 #
 #   NOTE: milk1 takes a string col_name, start/stop take integer col labels
@@ -77,11 +77,11 @@ cols =  stopTx.columns    #integers
 for r in rows:           
     for c in cols:        
       c1 = str(c)
-      r1 = 'L'+str(r)
+      r1 = 'L'+str(r)               #creates Lx
       start4 = startTx.loc[r,c]
       stop4  = stopTx.loc[r,c]
-      if   (pd.isnull(start4)  ==  False) & (pd.isnull(stop4)  ==  False)   :
-        milk2    = milk1.loc[start4:stop4,c1]
+      if   (pd.isnull(start4)  ==  False) & (pd.isnull(stop4)  ==  False)   :  #if both start and stop exist
+        milk2    = milk1.loc[start4:stop4,c1]                                   #get the location in 'milk2'
         milk2a   = (0,0)
         c2.append(c1)
         r2.append(r1)
@@ -91,7 +91,7 @@ for r in rows:
         gap2     = z.shape[0] - milk3a.shape[0]
         milk4    = np.pad(milk3,pad_width = ((0,gap1)),constant_values = 0)
         milk4a   = np.pad(milk3a,pad_width = ((0,gap2)),constant_values = 0)
-        milk5.append(milk4)
+        milk5.append(milk4) 
         milk5a.append(milk4a)      
         milk2,milk2a = [],[]
 #     
