@@ -23,7 +23,6 @@ AM_lastdate = AM_liters.columns[-1]
 dm_str = dm_lastdate1.strftime('%Y-%m-%d')
 AM_str = datetime.strptime(AM_lastdate,'%m/%d/%Y').strftime('%Y-%m-%d')
 # 
-print(AM_liters.iloc[:5,-5:])
 # 
 if dm_str == AM_str:
     print(dm_str, AM_str)
@@ -31,8 +30,9 @@ if dm_str == AM_str:
 
 # AM LITERS
 dat1=AM_liters.columns[-1]                          #the date is a string eg '7/3/2023'
-dat=datetime.strptime(dat1,'%m/%d/%Y').date()      #%H:%M:%S
-# dat = dat2 + timedelta(days=1)
+dat1=datetime.strptime(dat1,'%m/%d/%Y').date()      #%H:%M:%S
+dat = dat1 + timedelta(days=1)
+# 
 newdata=dmAM_liters.loc[:,dat:].copy()
 newdata.columns = newdata.columns.strftime('%m/%d/%Y')
 #
@@ -67,22 +67,22 @@ pmwy=pd.concat([PM_wy,newdata],axis=1,join='inner')
 pmwy.replace(0,np.nan,inplace=True)
 pmwy.dropna(axis='columns', how='all', inplace=True)
 #
-print(amliters.iloc[:5,-5:])
+print(amliters.iloc[:1,-5:])
 
 # # write to csv
-# amliters.to_csv(f"D:\\Cows\\data backup\\milk backup\\rawmilk\\AM_liters\\AM_liters_{tdy}.csv")
-# amliters.to_csv(f"E:\\Cows\\data backup\\milk backup\\rawmilk\\AM_liters\\AM_liters_{tdy}.csv")
-# amliters.to_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_liters.csv',mode='w',header=True,index=True)
+amliters.to_csv(f"D:\\Cows\\data backup\\milk backup\\rawmilk\\AM_liters\\AM_liters_{tdy}.csv")
+amliters.to_csv(f"E:\\Cows\\data backup\\milk backup\\rawmilk\\AM_liters\\AM_liters_{tdy}.csv")
+amliters.to_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_liters.csv',mode='w',header=True,index=True)
 # # 
-# amwy.to_csv(f"D:\\Cows\\data backup\\milk backup\\rawmilk\\AM_wy\\AM_wy_{tdy}.csv")
-# amwy.to_csv(f"E:\\Cows\\data backup\\milk backup\\rawmilk\\AM_wy\\AM_wy_{tdy}.csv")
-# amwy.to_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_wy.csv',mode='w',header=True,index=True)
-# # 
-# pmliters.to_csv(f"D:\\Cows\\data backup\\milk backup\\rawmilk\\PM_liters\\PM_liters_{tdy}.csv")
-# pmliters.to_csv(f"E:\\Cows\\data backup\\milk backup\\rawmilk\\PM_liters\\PM_liters_{tdy}.csv")
-# pmliters.to_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_liters.csv',mode='w',header=True,index=True)
-# # 
-# pmwy.to_csv(f"D:\\Cows\\data backup\\milk backup\\rawmilk\\PM_wy\\PM_wy_{tdy}.csv")
-# pmwy.to_csv(f"E:\\Cows\\data backup\\milk backup\\rawmilk\\PM_wy\\PM_wy_{tdy}.csv")
-# pmwy.to_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_wy.csv',mode='w',header=True,index=True)
+amwy.to_csv(f"D:\\Cows\\data backup\\milk backup\\rawmilk\\AM_wy\\AM_wy_{tdy}.csv")
+amwy.to_csv(f"E:\\Cows\\data backup\\milk backup\\rawmilk\\AM_wy\\AM_wy_{tdy}.csv")
+amwy.to_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_wy.csv',mode='w',header=True,index=True)
+# 
+pmliters.to_csv(f"D:\\Cows\\data backup\\milk backup\\rawmilk\\PM_liters\\PM_liters_{tdy}.csv")
+pmliters.to_csv(f"E:\\Cows\\data backup\\milk backup\\rawmilk\\PM_liters\\PM_liters_{tdy}.csv")
+pmliters.to_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_liters.csv',mode='w',header=True,index=True)
+# 
+pmwy.to_csv(f"D:\\Cows\\data backup\\milk backup\\rawmilk\\PM_wy\\PM_wy_{tdy}.csv")
+pmwy.to_csv(f"E:\\Cows\\data backup\\milk backup\\rawmilk\\PM_wy\\PM_wy_{tdy}.csv")
+pmwy.to_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_wy.csv',mode='w',header=True,index=True)
 
