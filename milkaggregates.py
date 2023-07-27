@@ -46,24 +46,23 @@ liters_pm1=liters_pm.to_numpy(dtype=float)
 
 #   FULL DAY
 #
-rows=[range(0,69) ]              
-cols=[*range(0,len(datex))]     
+rows = np.array(range(0, 70))  # Change 69 to 70 and convert to NumPy array
+cols = np.array(range(0, len(datex)))  # Convert to NumPy array
+
 
 #   AM calc
 #
 for j in cols:
-    for i in rows:
-        w=wy_am1[i,j]
-        l=liters_am1[i,j]
-        idx_am[w,j]=l
+    w = wy_am1[rows, j]
+    l = liters_am1[rows, j]
+    idx_am[w, j] = l
 
 #   PM calc
 #
 for j in cols:
-    for i in rows:
-        w=wy_pm1[i,j]
-        l=liters_pm1[i,j]
-        idx_pm[w,j]=l 
+    w=wy_pm1[rows,j]
+    l=liters_pm1[rows,j]
+    idx_pm[w,j]=l 
         
         
 #
