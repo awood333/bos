@@ -1,6 +1,9 @@
 import subprocess
 import pandas as pd
 from datetime import datetime
+# import sys
+# print("sys exec  ",sys.executable)
+# print("sys path",sys.path)
 # 
 # 
 dmAM_liters=pd.read_excel ('F:\\COWS\\data\\daily_milk.xlsm',     sheet_name='AM_liters', skiprows=2,index_col=0,header=0)
