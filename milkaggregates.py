@@ -23,10 +23,10 @@ alive1  = bd['death_date'].isnull()
 alive   = wy.loc[alive1].copy()
 alive.reset_index(drop=True,inplace=True)
 #
-wy_am=wy1_am.           fillna(0).copy()
-wy_pm=wy1_pm.           fillna(0).copy()
-liters_am=liters1_am.   fillna(0).copy()
-liters_pm=liters1_pm.   fillna(0).copy()
+wy_am =     wy1_am.       fillna(0).copy()
+wy_pm =     wy1_pm.       fillna(0).copy()
+liters_am = liters1_am.   fillna(0).copy()
+liters_pm = liters1_pm.   fillna(0).copy()
 #
 datex       = pd.Series(list(liters_am.columns.values ))
 datex.name  = 'datex'
@@ -39,15 +39,17 @@ idx     = np.zeros((maxrows,maxcols))                   #creates basic array of 
 idx_am  = idx.copy()
 idx_pm  = idx.copy()
 #
-# Numpyization
-wy_am1 = wy_am.to_numpy(dtype=int)
-wy_pm1 = wy_pm.to_numpy(dtype=int)
-liters_am1=liters_am.to_numpy(dtype=float)
-liters_pm1=liters_pm.to_numpy(dtype=float)
+# Numpyzation
+wy_am1 =    wy_am.      to_numpy(dtype=int)
+wy_pm1 =    wy_pm.      to_numpy(dtype=int)
+liters_am1= liters_am.  to_numpy(dtype=float)
+liters_pm1= liters_pm.  to_numpy(dtype=float)
+
+
 
 #   AM calc
 #
-rows = np.array(range(0, 70))  # Change 69 to 70 and convert to NumPy array
+rows = np.array(range(0, 70))  
 cols = np.array(range(0, len(datex)))  # Convert to NumPy array
 # 
 w = wy_am1[rows    [:, np.newaxis],    cols]     #array 70,1813
@@ -170,6 +172,10 @@ milk.           to_csv('F:\\COWS\data\\milk_data\\fullday\\milk.csv')
 tenday.         to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\ten day.csv')
 tenday1.        to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\ten day1.csv')
 all2.           to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\ten day2.csv')
-
-
+# 
+with pd.ExcelWriter('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\output.xlsx') as writer:
+    tenday.      to_excel(writer, sheet_name='tenday')
+    tenday1.     to_excel(writer, sheet_name='tenday2')
+    all2.        to_excel(writer, sheet_name='all')
+# 
 
