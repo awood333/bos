@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import datetime 
+import openpyxl
 # import rawmilkupdate as rm
 # import birthdeath as bd
 # import insem_ultra as iu 
@@ -115,9 +116,9 @@ tenday.loc['total'] = tenday.sum(axis=0)
 # 
 allcols = ['WY_id','age last calf','i_date','age last insem','u_date','readex','days left']
 all1    = all.loc[:,allcols].copy()
-all2    = all1.merge(status['status'],how='left',left_on='WY_id',right_on='WY_id')
+all2    = all1.merge(status,how='left',left_on='WY_id',right_on='WY_id')
  
-
+# all2    = all1.merge(status['status'],how='left',left_on='WY_id',right_on='WY_id')
 
 # sum and nonzero count for entire milk df
 #
@@ -142,16 +143,17 @@ milk['week']=milk.index.isocalendar().week
 milk_monthly=   milk.groupby(['year','month'],          as_index=False).mean()     
 milk_weekly=    milk.groupby(['year','month','week'],   as_index=False).mean() 
 #
-milk_monthly.   set_index(['year','month'],             drop=True,inplace=True)
+# milk_monthly.   set_index(['year','month'],             drop=True,inplace=True)
 milk_weekly.    set_index(['year','month','week'],      drop=True,inplace=True)
 #
-milk_monthly.   drop(milk_monthly.iloc[:,0:-3]  ,       axis=1,inplace=True)
-milk_monthly.   drop(milk_monthly.iloc[:,-1:]  ,        axis=1,inplace=True)        #gets rid of 'week'
+# milk_monthly.   drop(milk_monthly.iloc[:,0:-3]  ,       axis=1,inplace=True)
+# milk_monthly.   drop(milk_monthly.iloc[:,-1:]  ,        axis=1,inplace=True)        #gets rid of 'week'
 #
 milk_weekly=    milk.groupby(['year','month','week'],   as_index=False).mean() 
 milk_weekly.    drop(milk_weekly .iloc[:,0:-2]   ,      axis=1,inplace=True)
 #
-monthly =   milk_monthly.iloc[-12:,:]
+mm = milk_monthly.loc[(milk_monthly['year'] == 2023)].round().astype(int).copy()
+monthly = mm.iloc[:,[0,1,-3,-2]].round().astype(int).copy()
 weekly  =   milk_weekly.iloc[-26:,:]
 
 # WRITE TO CSV
@@ -178,4 +180,4 @@ with pd.ExcelWriter('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\output.
     tenday1.     to_excel(writer, sheet_name='tenday2')
     all2.        to_excel(writer, sheet_name='all')
 # 
-
+print(tenday.iloc[:1,:])
