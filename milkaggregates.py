@@ -125,36 +125,41 @@ all2    = all1.merge(status,how='left',left_on='WY_id',right_on='WY_id')
 milk = fullday
 fullday.replace(np.nan,0,inplace=True)
 #
-milkrowcount=   milk.astype(bool).sum(axis=1)
-milkrowsum=     milk.sum(axis=1,skipna=True)
-milkcolsum=     milk.sum(axis=0,skipna=True)
-milk['avg']=    milkrowsum
-milk['count']=  milkrowcount
-milk.index=datex
+milkrowcount =   milk.astype(bool).sum(axis=1)
+milkrowsum =     milk.sum(axis=1,skipna=True)    #sum for that day, all cows
+milkcolsum =     milk.sum(axis=0,skipna=True)    #sum for that cow for all days
+milk['avg'] =    milkrowsum                      #blank col sets up the group agg
+milk['count'] =  milkrowcount
+milk.index =datex
 milk.index.name = 'datex'
-milk.index=pd.to_datetime(milk.index)
+milk.index =pd.to_datetime(milk.index)
 
 # monthly and weekly
 #
+
 milk['year']=milk.index.year
 milk['month']=milk.index.month
 milk['week']=milk.index.isocalendar().week
 #  the as_index=False leaves the new columns accessible for .loc, otherwise they become part of a multi-index
-milk_monthly=   milk.groupby(['year','month'],          as_index=False).mean()     
-milk_weekly=    milk.groupby(['year','month','week'],   as_index=False).mean() 
-#
-# milk_monthly.   set_index(['year','month'],             drop=True,inplace=True)
-milk_weekly.    set_index(['year','month','week'],      drop=True,inplace=True)
-#
-# milk_monthly.   drop(milk_monthly.iloc[:,0:-3]  ,       axis=1,inplace=True)
-# milk_monthly.   drop(milk_monthly.iloc[:,-1:]  ,        axis=1,inplace=True)        #gets rid of 'week'
-#
-milk_weekly=    milk.groupby(['year','month','week'],   as_index=False).mean() 
-milk_weekly.    drop(milk_weekly .iloc[:,0:-2]   ,      axis=1,inplace=True)
-#
-mm = milk_monthly.loc[(milk_monthly['year'] == 2023)].round().astype(int).copy()
-monthly = mm.iloc[:,[0,1,-3,-2]].round().astype(int).copy()
-weekly  =   milk_weekly.iloc[-26:,:]
+milk_monthly_sum   =   milk.groupby(['year','month'],          as_index=False).sum()    
+milk_monthly_mean1  =   milk.groupby(['year','month'],          as_index=False).mean()     
+weekly         =   milk.groupby(['year','month','week'],   as_index=False).mean() 
+# 
+# 
+# change names because 'sum' will eventually mean the monthly total vs the avg
+milk_monthly_mean1.rename(columns={'avg':'avg sum','count':'avg count'},inplace=True)
+# cuts out the middle cols
+monthly1       = milk_monthly_mean1.iloc[-12:,[0,1,-2,-3]].copy()
+# 
+monthly1['total'] = milk_monthly_sum['avg']
+# 
+def format_num(num):
+    return '{:,.0f}'.format(num)
+# 
+monthly1[['avg count', 'avg sum', 'total']] = monthly1[['avg count', 'avg sum', 'total']].applymap(format_num)
+monthly = monthly1.reset_index(drop=True)
+
+
 
 # WRITE TO CSV
 #
