@@ -19,11 +19,13 @@ d1 = dmAM_liters.columns[-1]
 d2 = AM_liters.columns[-1]
 
 #  ['rawmilkupdate.py', 'milkaggregates.py']
-script_names = ['D:/Git_repos/bos/rawmilkupdate.py',
-                'D:/Git_repos/bos/milkaggregates.py',
-                # 'D:/Git_repos/bos/lactations.py',
-                # 'D:/Git_repos/bos/status.py',
-                # 'D:/Git_repos/bos/wet_dry.py'                
+script_names = [
+                'D:/Git_repos/bos/insem_ultra.py',
+                'D:/Git_repos/bos/rawmilkupdate.py',
+                'D:/Git_repos/bos/milkaggregates.py',              
+                    # 'D:/Git_repos/bos/status.py',
+                    # 'D:/Git_repos/bos/status2.py',
+                    # 'D:/Git_repos/bos/wet_dry.py'              
                 ]
 # 'D:/Git_repos/bos/status_prep.py'
 

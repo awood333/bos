@@ -165,7 +165,7 @@ all1['next bdate']=nextcalf_bdate
 #  
 all2 = all1
 #
-all2['age cow']             =((today - all2['cow bdate'])/np.timedelta64(1,'M'))
+all2['age cow']             =((today - all2['cow bdate'])/np.timedelta64(1,'m'))
 all2['age last calf']  =(today - all2['lastcalf bdate']).dt.days
 all2['age last insem']      =(today - all2['i_date']).dt.days
 all2['age last ultra']      =(today - all2['u_date']).dt.days
