@@ -86,11 +86,35 @@ def create_milkers_ids(milkers_mask, date_range_cols):
     return milkers_ids_df
 
 milkers_ids_df = create_milkers_ids(milkers_mask, date_range_cols)
-milkers_count_df = milkers_mask.sum().to_frame()
+milkers_count_df = milkers_mask.sum(axis=1).to_frame()
+
+
+alive_masknp = alive_mask.to_numpy()
+milkers_masknp = milkers_mask.to_numpy()
+dry_mask = alive_masknp ^ milkers_masknp
+
+
+
+
+def create_dry_ids(dry_mask, date_range_cols):
+    result = dry_mask.copy()
+    for col in dry_mask.columns:
+        result[col] = np.where(dry_mask[col], col, np.nan)
+    
+    dry_ids_df = pd.DataFrame(result, columns=dry_mask.columns, index=date_range_cols)
+    return dry_ids_df
+
+dry_ids_df   = create_dry_ids(dry_mask, date_range_cols)
+dry_count_df = dry_mask.sum(axis=1).to_frame() 
 
 # write to csv
-alive_count_df .to_csv('F:\\COWS\\data\\status\\alive_count.csv', index=False)
-alive_ids_df  .to_csv('F:\\COWS\\data\\status\\alive_ids.csv', index=False)
-milkers_ids_df .to_csv('F:\\COWS\\data\\status\\milkers_ids.csv')
+alive_count_df  .to_csv('F:\\COWS\\data\\status\\alive_count.csv', index=False)
+alive_ids_df    .to_csv('F:\\COWS\\data\\status\\alive_ids.csv', index=False)
+milkers_ids_df  .to_csv('F:\\COWS\\data\\status\\milkers_ids.csv')
 milkers_count_df.to_csv('F:\\COWS\\data\\status\\milkers_count.csv')
+dry_ids_df      .to_csv('F:\\COWS\\data\\status\\dry_ids.csv')
+dry_count_df    .to_csv(('F:\\COWS\\data\\status\\dry_count.csv'))
+
+dry_count_df    .to_csv(('F:\\COWS\\data\\status\\alive1df.csv'))
+milkers1df    .to_csv(('F:\\COWS\\data\\status\\milkers1df.csv'))
 
