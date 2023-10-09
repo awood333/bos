@@ -21,14 +21,8 @@ len_date_range = len(date_range.tolist())
 fullday = fullday1.loc[date_range,:]
 print(fullday.iloc[:4,:6])
 
-
-
-
 milkers_mask = fullday>0
 lastcalf = lb_last[milkers_mask]
-
-
-
 
 days= []
 fullday_data = []
@@ -53,8 +47,6 @@ for index, row in milkers_mask.iterrows():
     
     for col in truecols:
         fullday_data[col] = [fullday.loc[index, col] for index in date_range]
-
-        
 
 days_df     = pd.DataFrame(days,            index=milkers_mask.index)
 fullday_df  = pd.DataFrame(fullday_data,    index=date_range)
