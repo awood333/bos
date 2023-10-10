@@ -4,54 +4,90 @@ feed_cost.py
 import pandas as pd
 import numpy as np
 import datetime
-from status import alive_count_df
+from status import create_date_range
 
-bunkers1    = pd.read_csv('F:\\COWS\\data\\csv_files\\feed_csv\\bunkers1.csv',      header=0, index_col=None, parse_dates=['datex'])
-bunkers2    = pd.read_csv('F:\\COWS\\data\\csv_files\\feed_csv\\bunkers2.csv',      header=0, index_col=None, parse_dates=['datex'])
+f  = pd.read_csv('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv')
+f.set_index('datex', inplace=True)
+f.index = pd.to_datetime(f.index)
+
+
+bunker1    = pd.read_csv('F:\\COWS\\data\\csv_files\\feed_csv\\bunker1.csv',      header=0, index_col=None, parse_dates=['datex'])
+bunker2    = pd.read_csv('F:\\COWS\\data\\csv_files\\feed_csv\\bunker2.csv',      header=0, index_col=None, parse_dates=['datex'])
 tapioca     = pd.read_csv('F:\\COWS\\data\\csv_files\\feed_csv\\tapioca.csv',       header=0, index_col=None, parse_dates=['datex'])
-bag1        = pd.read_csv('F:\\COWS\\data\\csv_files\\feed_csv\\bag1.csv',          header=0, index_col=None, parse_dates=['datex'])
-bag2        = pd.read_csv('F:\\COWS\\data\\csv_files\\feed_csv\\bag2.csv',          header=0, index_col=None, parse_dates=['datex'])
+# bag1        = pd.read_csv('F:\\COWS\\data\\csv_files\\feed_csv\\bag1.csv',          header=0, index_col=None, parse_dates=['datex'])
+# bag2        = pd.read_csv('F:\\COWS\\data\\csv_files\\feed_csv\\bag2.csv',          header=0, index_col=None, parse_dates=['datex'])
 beans       = pd.read_csv('F:\\COWS\\data\\csv_files\\feed_csv\\yellow_beans.csv',  header=0, index_col=None, parse_dates=['datex'])
+
+
 
 amt_tapioca = pd.read_csv('F:\\COWS\\data\\csv_files\\feed_csv\\amt_tapioca.csv',  header=0, index_col=None, parse_dates=['datex'])
 
-b1  = pd.DataFrame(bunkers1)
-b2  = pd.DataFrame(bunkers2)
+b1  = pd.DataFrame(bunker1)
+b2  = pd.DataFrame(bunker2)
 bf  = pd.DataFrame(tapioca)
 
 
-start_date = '4/1/2023'
-end_date   = pd.to_datetime(datetime.date.today())
-date_range  = pd.date_range(start=start_date, end=end_date, freq='D')
+startdate  = '2023-4-15'
+maxdate = f.index.max()
+stopdate    = pd.to_datetime(datetime.date.today())
+date_range  = pd.date_range(startdate, maxdate, freq='D')
 
-df_corn = pd.DataFrame(index=date_range)
-# the value of the last expression in the interpreter to a particular variable called "_."
+colnames = bunker1.columns.tolist()
 
-for _, row in bunkers2.iterrows():
-    if not pd.isna(row['price']):
-        lop = row['price']              # Last Observed Price
-        last_sequence = row['sequence']
-        last_bunker = row['bunker#']
-        last_weight = row['weight']
-    
-    if last_sequence is not None: 
-        start_date = row['datex']
-        stop_date = bunkers2.iloc[_ + 1]['datex'] if _ + 1 < len(bunkers2) else end_date
-        date_range_chunk = pd.date_range(start=start_date, end=stop_date, freq='D')
-        
-        price_series    = pd.concat([price_series,      pd.Series([lop] *               len(date_range_chunk), index=date_range_chunk)])
-        sequence_series = pd.concat([sequence_series,   pd.Series([last_sequence] *     len(date_range_chunk), index=date_range_chunk)])
-        bunker_series   = pd.concat([bunker_series,     pd.Series([last_bunker] *       len(date_range_chunk), index=date_range_chunk)])
-        weight_series   = pd.concat([weight_series,     pd.Series([last_weight] *       len(date_range_chunk), index=date_range_chunk)])
+df_corn         = pd.DataFrame(columns=colnames)
+
+
+# Iterate through the date range and fill in the values from bunker1
+for date in date_range:
+    row = bunker1[bunker1['datex'] <= date].iloc[-1]
+    df_corn = pd.concat([df_corn, pd.DataFrame(row).transpose()], ignore_index=True)
+# Reset the index and set the 'datex' column to the date range
+df_corn.reset_index(drop=True, inplace=True)
+df_corn['datex'] = date_range
+
+# Fill NaN values with appropriate default values
+# df_corn['sequence'].fillna(1, inplace=True)
+# df_corn['event'] = df_corn.apply(lambda row: 'start' if row['datex'] == row['datex'].date() else '',axis=1)
+# df_corn['bunker#'].fillna(2, inplace=True)
+
+
+
+print(df_corn.iloc[:10,:])
+
+
+#             sequence    typex      event  bunker#      datex
+# 2023-04-01       1.0    start   duration      2.0 2023-04-15
+# 2023-04-02       1.0    start   duration      2.0 2023-04-15
+# 2023-04-03       1.0    start   duration      2.0 2023-04-15
+# 2023-04-04       1.0    start   duration      2.0 2023-04-15
+# 2023-04-05       1.0    start   duration      2.0 2023-04-15
+# 2023-04-06       1.0    start   duration      2.0 2023-04-15
+# 2023-04-07       1.0    start   duration      2.0 2023-04-15
+# 2023-04-08       1.0    start   duration      2.0 2023-04-15
+# 2023-04-09       1.0    start   duration      2.0 2023-04-15
+# 2023-04-10       1.0    start   duration      2.0 2023-04-15
+# ...
+# 2023-07-22       1.0    start   duration      2.0 2023-04-15
+# 2023-07-23       1.0     stop   duration      2.0 2023-07-23
+# 2023-07-24       2.0    start   duration      1.0 2023-07-24
+# 2023-07-25       2.0    start   duration      1.0 2023-07-24
+# ...
+# 2023-09-23       2.0    start   duration      1.0 2023-07-24
+# 2023-09-24       2.0     stop   duration      1.0 2023-09-24
+# ...
+# 2023-10-06       2.0     stop   duration      1.0 2023-09-24
+
+
+
+
+
+
+
+
+
+
+
+
+
      
-for _, row in bunkers1.iterrows():
-    if row['event'] == 'start':
-        start_date = row['datex']
-    elif row['event'] == 'stop':
-        stop_date = row['datex']
-        df_corn.loc[start_date:stop_date, 'bunker#'] = row['bunker#']
-        
-df_corn = pd.concat([sequence_series, bunker_series, price_series, weight_series,], axis=1)
-        
-print(df_corn[:3])
-x=1
+
