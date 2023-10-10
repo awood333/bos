@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-# from status import create_milkers_ids as cmi
+
 
 lb_last = pd.read_csv('F:\\COWS\\data\\insem_data\\lb_last.csv',
     parse_dates=['lastcalf bdate'],
@@ -19,7 +19,6 @@ date_range_cols = date_range.strftime('%Y-%m-%d').to_list()
 len_date_range = len(date_range.tolist())
 
 fullday = fullday1.loc[date_range,:]
-print(fullday.iloc[:4,:6])
 
 milkers_mask = fullday>0
 lastcalf = lb_last[milkers_mask]
@@ -51,7 +50,20 @@ for index, row in milkers_mask.iterrows():
 days_df     = pd.DataFrame(days,            index=milkers_mask.index)
 fullday_df  = pd.DataFrame(fullday_data,    index=date_range)
 
-x=1
+days_df['group A'] = 0
+days_df['group B'] = 0
+
+for index, row in days_df.iterrows():
+    days_df.at[index, 'group B'] = (row >  200).sum()
+    days_df.at[index, 'group A'] = (row <= 200).sum()
+# print (days_df)
+    
+
+ 
+
+
+
+
 days_df.to_csv('F:\\COWS\\data\\status\\days_milking.csv')
 fullday_df.to_csv('F:\\COWS\\data\\status\\liters_milking.csv')
  
