@@ -165,8 +165,8 @@ all1['next bdate']=nextcalf_bdate
 #  
 all2 = all1
 #
-all2['age cow']             =((today - all2['cow bdate'])/np.timedelta64(1,'m'))
-all2['age last calf']  =(today - all2['lastcalf bdate']).dt.days
+all2['age cow']             =((today - all2['cow bdate'])/np.timedelta64(1,'D') / (365.25/12)).round(0)
+all2['age last calf']       =(today - all2['lastcalf bdate']).dt.days
 all2['age last insem']      =(today - all2['i_date']).dt.days
 all2['age last ultra']      =(today - all2['u_date']).dt.days
 #
@@ -189,6 +189,11 @@ all2intlist=['insem-ultra'
 # ,'death_date'   because these are only the live cows
 ]
 
+# NEW COLUMNS
+# all['cow bdate']=bd['birth_date']
+# all['death_date']=bd['death_date']
+
+
 # re-order columns
 #
 all=all2.loc[:,[
@@ -204,9 +209,7 @@ all=all2.loc[:,[
 all_list=list(all.index)
 
 
-# NEW COLUMNS
-all['cow bdate']=bd['birth_date']
-all['death_date']=bd['death_date']
+
 
 # Pregnant
 #
