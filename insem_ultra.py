@@ -122,7 +122,7 @@ x_insem = x4.loc[ (x4['i_calf#'] > x4['last calf#'])   ]
 x_insem_list    = list(x_insem.index)
 #u_calf# is bigger than last calf# and, u_date is after stop_last / i_date
 x_ultra = x4.loc[ ((x4['u_calf#'] > x4['last calf#'])  
-    &  (x4['u_date'] > x4['stop_last'])
+    &  ((x4['u_date'] > x4['stop_last'])     |  ( x4['sl_calf#'] == 0 ))
     &  (x4['u_date'] > x4['i_date'])
     ) ]
 x_ultra_list    = list(x_ultra.index)
