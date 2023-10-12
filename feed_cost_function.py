@@ -3,56 +3,62 @@
 import pandas as pd
 import numpy as np
 import datetime
+import status 
 
-def process_feed_data(var1, var2, var3, var4, var5):
-    bunkers1    = pd.read_csv('F:\\COWS\\data\\csv_files\\feed_csv\\bunkers1.csv',      header=0, index_col=None, parse_dates=['datex'])
-    bunkers2    = pd.read_csv('F:\\COWS\\data\\csv_files\\feed_csv\\bunkers2.csv',      header=0, index_col=None, parse_dates=['datex'])
-    tapioca     = pd.read_csv('F:\\COWS\\data\\csv_files\\feed_csv\\tapioca.csv',       header=0, index_col=None, parse_dates=['datex'])
-    bag1        = pd.read_csv('F:\\COWS\\data\\csv_files\\feed_csv\\bag1.csv',          header=0, index_col=None, parse_dates=['datex'])
-    bag2        = pd.read_csv('F:\\COWS\\data\\csv_files\\feed_csv\\bag2.csv',          header=0, index_col=None, parse_dates=['datex'])
+
+
+def create_feed_data_timeline(price, sequence,bunker_lot, weight, event):
+    corn        = pd.read_csv('F:\\COWS\\data\\csv_files\\feed_csv\\corn.csv',      header=0, index_col=None, parse_dates=['datex'])
+    cassava     = pd.read_csv('F:\\COWS\\data\\csv_files\\feed_csv\\cassava.csv',       header=0, index_col=None, parse_dates=['datex'])
     beans       = pd.read_csv('F:\\COWS\\data\\csv_files\\feed_csv\\yellow_beans.csv',  header=0, index_col=None, parse_dates=['datex'])
-    amt_tapioca = pd.read_csv('F:\\COWS\\data\\csv_files\\feed_csv\\amt_tapioca.csv',   header=0, index_col=None, parse_dates=['datex'])
+    
+    amt_cassava = pd.read_csv('F:\\COWS\\data\\csv_files\\feed_csv\\cassava_amount.csv',   header=0, index_col=None, parse_dates=['datex'])
+    amt_yellow_bean = pd.read_csv('F:\\COWS\\data\\csv_files\\feed_csv\\yellow_bean_amount.csv',   header=0, index_col=None, parse_dates=['datex'])
 
-    start_date  = '4/1/2023'
-    end_date    = pd.to_datetime(datetime.date.today())
-    date_range  = pd.date_range(start=start_date, end=end_date, freq='D')
+    feed = corn
 
-    lop = None  # Last Observed Price
-    var1_series = pd.DataFrame()
-    var2_series = pd.DataFrame()
-    var3_series = pd.DataFrame()
-    var4_series = pd.DataFrame()
-    var5_series = pd.DataFrame()
+    startdate   = '7/1/2023'
+    stopdate    = '10/1/2023'
 
-    df_corn = pd.DataFrame(index=date_range)
+    date_range = status.create_date_range(startdate, stopdate)
 
-    for _, row in bunkers2.iterrows():
-        if not pd.isna(row[var1]):
-            lop             = row[var1]             #Last Observed Price
-            last_sequence   = row[var2]
-            last_bunker     = row[var3]
-            last_weight     = row[var4]
+
+    # lop = None  # Last Observed Price
+    price       = pd.DataFrame()
+    sequence    = pd.DataFrame()
+    bunker_lot  = pd.DataFrame()
+    weight      = pd.DataFrame()
+    event       = pd.DataFrame()
+
+    timeline    = pd.DataFrame(index=date_range)
+
+    for index, row in feed.iterrows():
+        if not pd.isna(row['price']):
+            lop             = row['price']             #Last Observed Price
+            last_sequence   = row['sequence']
+            last_bunker     = row['bunker_lot']
+            last_weight     = row['weight']
 
         if last_sequence is not None:
             start_date  = row['datex']
-            stop_date   = bunkers2.iloc[_ + 1]['datex'] if _ + 1 < len(bunkers2) else end_date
+            stop_date   = corn.iloc[index + 1]['datex'] if index + 1 < len(corn) else stopdate
             date_range_chunk = pd.date_range(start=start_date, end=stop_date, freq='D')
 
-            var1_series = pd.concat([var1_series, pd.Series([lop] * len(date_range_chunk), index=date_range_chunk)])
-            var2_series = pd.concat([var2_series, pd.Series([last_sequence] * len(date_range_chunk), index=date_range_chunk)])
-            var3_series = pd.concat([var3_series, pd.Series([last_bunker] * len(date_range_chunk), index=date_range_chunk)])
-            var4_series = pd.concat([var4_series, pd.Series([last_weight] * len(date_range_chunk), index=date_range_chunk)])
+            price = pd.concat([price, pd.Series([lop] * len(date_range_chunk), index=date_range_chunk)])
+            sequence = pd.concat([sequence, pd.Series([last_sequence] * len(date_range_chunk), index=date_range_chunk)])
+            bunker_lot = pd.concat([bunker_lot, pd.Series([last_bunker] * len(date_range_chunk), index=date_range_chunk)])
+            weight = pd.concat([weight, pd.Series([last_weight] * len(date_range_chunk), index=date_range_chunk)])
 
-    for _, row in bunkers1.iterrows():
-        if row['event'] == 'start':
-            start_date = row['datex']
-        elif row['event'] == 'stop':
-            stop_date = row['datex']
-            df_corn.loc[start_date:stop_date, var5] = row[var5]
+    for index, row in corn.iterrows():
+        if row['event']     == 'start':
+            start_date      =   row['datex']
+        elif row['event']   == 'stop':
+            stop_date       =   row['datex']
+            timeline.loc[start_date:stop_date, event] = row[event]
 
-    df_corn = pd.concat([var2_series, var3_series, var1_series, var4_series], axis=1)
+    timeline = pd.concat([sequence,bunker_lot, price, weight, event], axis=1)
 
-    return df_corn
+    return timeline
 
-result = process_feed_data('price','sequence','bunker#','weight','event')
-print(result)
+feed_data_timeline = create_feed_data_timeline('sequence','bunker_lot', 'price', 'weight', 'event')
+print(feed_data_timeline)
