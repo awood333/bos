@@ -13,14 +13,15 @@ PM_wy   = pd.read_csv       ('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_wy.csv',  
 bd      = pd.read_csv       ('F:\\COWS\\data\\csv_files\\birth_death.csv',                        header=0)
 all     = pd.read_csv       ('F:\\COWS\\data\\insem_data\\all.csv',                               header=0)
 status  = pd.read_csv       ('F:\\COWS\\data\status\\status_column.csv',             index_col=0, header=0)       
-# 
-lag = -365   # this sets the size of the slice
+
+lag= -365
+print('lag = ', lag)
 
 liters1_am  = AM_liters .iloc[:,lag:]
 wy1_am      = AM_wy     .iloc[:,lag:]
 liters1_pm  = PM_liters .iloc[:,lag:]
 wy1_pm      = PM_wy     .iloc[:,lag:]
-# 
+
 wy      = bd['WY_id']
 alive1  = bd['death_date'].isnull()
 alive   = wy.loc[alive1].copy()
