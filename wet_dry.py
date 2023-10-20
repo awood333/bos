@@ -2,88 +2,77 @@ import pandas as pd
 import numpy as np
 from datetime import datetime as dt
 from datetime import timedelta as td
-#
-today=pd.Timestamp.today()
-lb=pd.read_csv ('F:\\COWS\\data\\csv_files\\live_births.csv',       parse_dates=['b_date'],header=0)
-stop=pd.read_csv  ('F:\\COWS\\data\\csv_files\\stop_dates.csv',     parse_dates=['stop'],header=0)
-bd=pd.read_csv    ('F:\\COWS\\data\\csv_files\\birth_death.csv',    parse_dates=['birth_date','death_date'],header=0,index_col='WY_id')
-start=pd.read_csv    ('F:\\COWS\\data\\csv_files\\live_births.csv', parse_dates=['b_date'],header=0)
-# 
-milk1 = pd.read_csv  ('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv',parse_dates=['datex'],header=0,index_col=0)
-milk  = milk1.iloc[:,:-5].copy()
-# milk.index=       pd.to_datetime(milk.index)
-#
-startpivot=start.pivot(index='WY_id',columns='calf#',values='b_date')           #shape 127,6
-stoppivot=stop.pivot  (index='WY_id',columns='lact_num',values='stop')
-lbpivot=lb.pivot      (index='WY_id',columns='calf#',values='b_date')
-# 
-# stoppivot.astype      ('datetime64[ns]')
-# 
-not_heifers1=lbpivot.index.values.tolist()  #bool mask to eliminate heifers
-#
-rng1=[int(i) for i in list(milk.columns)]
-rng=pd.DataFrame(rng1,columns=['rng'])
-rng.index+=1
+
+lb      = pd.read_csv ('F:\\COWS\\data\\csv_files\\live_births.csv', parse_dates=['b_date'], header=0)
+stop    = pd.read_csv ('F:\\COWS\\data\\csv_files\\stop_dates.csv',  parse_dates=['stop'], header=0)
+bd      = pd.read_csv ('F:\\COWS\\data\\csv_files\\birth_death.csv', parse_dates=['birth_date','death_date'], header=0, index_col='WY_id')
+start   = pd.read_csv ('F:\\COWS\\data\\csv_files\\live_births.csv', parse_dates=['b_date'],header=0)
+
+milk   = pd.read_csv  ('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv', parse_dates=['datex'], header=0, index_col=0)
+
+startpivot = start.pivot(index='WY_id', columns='calf#',    values='b_date')           #shape 127,6
+stoppivot = stop.pivot  (index='WY_id', columns='lact_num', values='stop')
+lbpivot = lb.pivot      (index='WY_id', columns='calf#',    values='b_date')
+
+not_heifers1=lbpivot.index.values.tolist()  #bool mask to eliminate heifers - only contains cows that have calved
+
+rng1    = [int(i) for i in list(milk.columns)]
+rng     = pd.DataFrame(rng1, columns=['rng'])
+rng.index += 1
+
 #merge both start and stop with the blank array (rng) to make the columns of start and stop identical
-start2=startpivot.merge(right=rng,how='right',left_index=True,right_index=True)   
-stop2=stoppivot.merge(right=rng,how='right',left_index=True,right_index=True)
-#
-start2.index.name='WY_id'
-start2.drop(['rng'],axis=1,inplace=True)
-stop2.index.name='WY_id'
-stop2.drop(['rng'],axis=1,inplace=True)
-#
-start1=start2.T    #.astype(dtype='datetime64[ns]')  #shouldn't need these - dates are timestamp from read_csv
-stop1 =stop2.T      #.astype(dtype='datetime64[ns]')
-#
-wy=startpivot.index.tolist()            #list contains no heifers. . . .
-last_stop=stop1.max(axis=0)
-#
-diff_last_stop_deathdate=bd.death_date-last_stop        # integer days between last stop and death
-diff_last_stop_deathdate=diff_last_stop_deathdate.dt.days
-cowBdate=bd['birth_date']
-cowDdate=bd['death_date']
+start2 = startpivot.merge   (right=rng,how='right',left_index=True,right_index=True)   
+stop2  = stoppivot.merge    (right=rng,how='right',left_index=True,right_index=True)
+
+start2.index.name = 'WY_id'
+start2.drop(['rng'], axis=1, inplace=True)
+stop2.index.name  = 'WY_id'
+stop2.drop(['rng'],axis = 1, inplace=True)
+
+start1 = start2.T
+stop1  = stop2.T
+
+wy          = startpivot.index.tolist()            #list contains no heifers. . . .
+last_stop   = stop1.max(axis=0)
+
+diff_last_stop_deathdate = bd.death_date - last_stop        # integer days between last stop and death
+diff_last_stop_deathdate = diff_last_stop_deathdate.dt.days
+
+cowBdate = bd['birth_date']
+cowDdate = bd['death_date']
 
 # create array for milk
-#
-r=len(milk)                            
-L1=len(milk.columns)
-L=L1
-#
-headx='9/8/2018'
-heady='9/1/2016'
-headx1= pd.to_datetime(headx,format='%m/%d/%Y')    #create date column for blank array
-heady1= pd.to_datetime(heady,format='%m/%d/%Y')     #NOTE that the format=%%% only pertains to the incoming dates. the head1 date will be formatted as a timestamp
-datex=  pd.date_range(start=heady1,end=headx1,freq='d',name='datex')
-#
-headz1=(headx1-heady1)                      #days between 9/1/2016 and 8/10/2018 in timedelta
-headz2=headz1.days                          #converts days to integer
-head=headz2+1
-#
-milkfill=np.zeros([head,L])                #shape 708,201
-milkfill1=pd.DataFrame(milkfill,index=datex)
-#
-col_list1 = rng['rng'].apply(str)
-milkfill1.columns=col_list1             
-milkfill1.index=pd.to_datetime(milkfill1.index)                  
-milkx=pd.concat((milkfill1,milk),axis=0)            #blank array from 9/1/2016 joined to 2018/8/10 to most recent milk day (len
+r  = len(milk)                            
 
-# WET + STILL MILKING
+headx   = '9/8/2018'
+heady   = '9/1/2016'
+head    = ((pd.to_datetime(headx, format='%m/%d/%Y')) - (pd.to_datetime(heady, format='%m/%d/%Y'))).days + 1
+datex   =   pd.date_range (heady, headx, freq='d', name='datex')
+
+milkfill  = np.zeros([head,len(milk.columns)])                #shape 708,201
+milkfill1 = pd.DataFrame(milkfill,index=datex)
+
+milkfill1.columns   = rng['rng'].apply(str)     #rng is an integer list of milk_cols (wy_ids)           
+milkfill1.index     = pd.to_datetime(milkfill1.index)                  
+milkx               = pd.concat((milkfill1 ,milk), axis=0)  #blank array from 9/1/2016 joined to 2018/8/10 to most recent milk day (len
+
+# WET (completed lactation) + STILL MILKING
 #
-wet1,milking1=0,0
-wet2,wet3,milking2,milking3 =[],[],[],[]
-today=pd.Timestamp.today()
+wet1, milking1 = 0, 0
+wet2, wet3, milking2, milking3 = [], [], [], []
+today =  pd.Timestamp.today()
 #
-rows=stop1.index            #integers
-cols=rng1                    #integers    comes from line25 in section 1
+rows = stop1.index            #integers
+cols = rng1                    #integers    comes from line25 in section 1
 #
 for j in cols: 
     for i in rows:
-        start=start1.loc [i,j]
-        stop=stop1.loc[i,j]
-        maxstart=start1.loc[:,j].max()
-        maxstop=stop1.loc[:,j].max()
-        dd=pd.to_datetime(bd['death_date'][j],format='%m/%d/%Y')
+        start = start1.   loc[i,j]
+        stop = stop1.     loc[i,j]
+        maxstart = start1.loc[:,j].max()
+        maxstop = stop1.  loc[:,j].max()
+        # dd = pd.to_datetime(bd['death_date'][j],format='%m/%d/%Y')
+        dd = bd['death_date'][j]
 #
         if( ( pd.isnull(start) == False)                  #if start and stop both exist 
             &   ( pd.isnull(stop) == False)
@@ -119,58 +108,58 @@ milking4.columns +=1
 wet4=pd.DataFrame(wet3)
 wet4.index +=1
 #
-z=[]
-j=0
+z = []
+j = 0
 for j in cols:                                            #eliminates the 'None' from the lists
-    x=milking4.T.loc[:,j]
-    y=list(filter(None,x))
+    x = milking4.T.loc[:,j]
+    y = list(filter(None,x))
     z.append(y)
-milking=pd.DataFrame(z,columns=['milking'])
-milking.index +=1
+milking = pd.DataFrame(z,columns=['milking'])
+milking.index += 1
 #
-wet4['milking']=milking
-wetsum=wet4.sum(axis=1)
-wet4['wetsum']=wetsum
-wet4_short=wet4['wetsum']
-wet4.rename(columns={0:'w1',1:'w2',2:'w3',3:'w4',4:'w5',5:'w6'},inplace=True)
-wet4.index.name='WY_id'
+wet4['milking']     = milking
+wetsum              = wet4.sum(axis=1)
+wet4['wetsum']      = wetsum
+wet4_short          = wet4['wetsum']
+wet4.rename(columns ={0:'w1', 1:'w2', 2:'w3', 3:'w4', 4:'w5', 5:'w6'},inplace=True)
+wet4.index.name     = 'WY_id'
 
 # WAITING :  this is different from dry because it is the maxstop - not between lactations
 #
-waiting1=0
-waiting2,waiting3 =[],[]
-#
-for j in cols:
-    for i in rows:
-        start=start1.loc [i,j]
-        stop=stop1.loc[i,j]
-        maxstart=start1.loc[:,j].max()
-        maxstop=stop1.loc[:,j].max()
-#  
-        if((        pd.isnull(start) == False)          #start exists
-            &   (   pd.isnull(stop ) == False)          #stop exists
-            &   (   pd.isnull(cowDdate[j]) == True)     #cow not dead yet
-            &   (   stop   == maxstop)                  #this stop IS the last one so far
-            &   (   start   == maxstart)                #means both start and stop are  their last values
-            &   (   maxstop > maxstart)                 #keeps out the 'still milking' cows
-            ): 
-            waiting1 =   (today - stop)/np.timedelta64(1,'D')                                                            
-            waiting2.append(waiting1) 
-            waiting1=0
-#
-    waiting3.append(waiting2)
-    waiting2=[]
-#   
-waiting4=pd.DataFrame(waiting3)
-waiting4.index +=1
-#
-wait2=[]                 
-for j in cols:
-    wait1=[x for x in waiting4.T.loc[:,j]  if x !=[]]
-    wait2.append(wait1)
-waiting=pd.DataFrame(wait2)
-waiting.index +=1
-waiting.rename(columns = {0:'waiting'},inplace=True)
+# waiting1 = 0
+# waiting2,waiting3 = [], []
+# #
+# for j in cols:
+#     for i in rows:
+#         start       = start1.loc[i,j]
+#         stop        = stop1. loc[i,j]
+#         maxstart    = start1.loc[:,j].max()
+#         maxstop     = stop1. loc[:,j].max()
+# #  
+#         if((        pd.isnull(start) == False)          #start exists
+#             &   (   pd.isnull(stop ) == False)          #stop exists
+#             &   (   pd.isnull(cowDdate[j]) == True)     #cow not dead yet
+#             &   (   stop   == maxstop)                  #this stop IS the last one so far
+#             &   (   start   == maxstart)                #means both start and stop are  their last values
+#             &   (   maxstop > maxstart)                 #keeps out the 'still milking' cows
+#             ): 
+#             waiting1 =   (today - stop)/np.timedelta64(1,'D')                                                            
+#             waiting2.append(waiting1) 
+#             waiting1 = 0
+# #
+#     waiting3.append(waiting2)
+#     waiting2 = []
+# #   
+# waiting4 = pd.DataFrame(waiting3)
+# waiting4.index += 1
+# #
+# wait2 = []                 
+# for j in cols:
+#     wait1=[x for x in waiting4.T.loc[:,j]  if x !=[]]
+#     wait2.append(wait1)
+# waiting=pd.DataFrame(wait2)
+# waiting.index +=1
+# waiting.rename(columns = {0:'waiting'},inplace=True)
 
 # DRY
 #
@@ -198,7 +187,7 @@ dry4=pd.DataFrame(dry3)
 dry4.index +=1
 dry4.columns +=1
 dry4['last stop']=diff_last_stop_deathdate
-dry4['waiting']=waiting
+# dry4['waiting']=waiting
 drysum=dry4.sum(axis=1)
 dry4['drysum']=drysum
 dry4_short=dry4['drysum']
