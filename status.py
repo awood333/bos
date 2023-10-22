@@ -5,10 +5,7 @@ import pandas as pd
 import numpy as np
 
 
-f1  = pd.read_csv('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv',
-                  index_col=0,
-                  header=0,
-                  parse_dates=['datex'])
+f1  = pd.read_csv('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv', index_col=0,  header=0, parse_dates=['datex'])
 
 date_format = '%Y-%m-%d'
 maxdate     = f1.index.max()    
@@ -30,7 +27,7 @@ def create_date_range(startdate, stopdate):
 
 
 
-def create_alive_mask():   
+def create_alive_mask(startdate, stopdate):   
     date_range = pd.date_range(startdate, stopdate, freq='D')
     date_range_cols = date_range.strftime(date_format).to_list()
     
@@ -85,7 +82,7 @@ def create_alive_mask():
 
 
 
-def create_alive_ids(alive_mask):      #get col headers (WY_ids) for each live cow
+def create_alive_ids(alive_mask, startdate, stopdate):      #get col headers (WY_ids) for each live cow
     date_range = pd.date_range(startdate, stopdate, freq='D')
     date_range_cols = date_range.strftime(date_format).to_list()
     
@@ -94,17 +91,15 @@ def create_alive_ids(alive_mask):      #get col headers (WY_ids) for each live c
         alive_ids_df[col] = np.where(alive_mask[col], col, np.nan)
     return alive_ids_df
 
-# alive_ids = create_alive_ids(alive_mask)
+
 
 
 
 def create_milkers_mask(startdate, stopdate):
-    f1  = pd.read_csv('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv')
+    f1          = pd.read_csv('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv')
+
     f1.set_index('datex', inplace=True)
-    f1.index = pd.to_datetime(f1.index)
-    # maxdate     = f1.index.max()    
-    # startdate   = '2023-4-1'
-    # stopdate    = maxdate
+    f1.index    = pd.to_datetime(f1.index)
     date_range  = pd.date_range(startdate, stopdate, freq='D')
     f           = f1.loc[date_range].copy()    #partition the milk dbase
     
@@ -134,14 +129,14 @@ def create_milkers_ids(milkers_mask, startdate, stopdate):      # WY_id headers
 
 
 
-def create_days(milkers_mask):  
+def create_days(milkers_mask, startdate, stopdate):  
     
-    f1  = pd.read_csv('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv')
-    f1.set_index('datex', inplace=True)
-    f1.index = pd.to_datetime(f1.index)
-    maxdate     = f1.index.max()    
-    startdate   = startdate
-    stopdate    = stopdate
+    f1  = pd.read_csv('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv' ,index_col='datex',   header=0,  parse_dates=['datex'])
+    # f1.set_index('datex', inplace=True)
+    # f1.index = pd.to_datetime(f1.index)
+    # maxdate     = f1.index.max()    
+    # startdate   = startdate
+    # stopdate    = stopdate
     date_range  = pd.date_range(startdate, stopdate, freq='D')
     f           = f1.loc[date_range].copy()    #partition the milk dbase
     
@@ -172,7 +167,7 @@ def create_days(milkers_mask):
 
 
 
-def create_group_a(days_milking_df):
+def create_group_a(days_milking_df, startdate, stopdate):
     date_range = pd.date_range(startdate, stopdate, freq='D')
     days_df        = days_milking_df.copy()
     group_a        = days_df < 140          #create mask
@@ -186,7 +181,7 @@ def create_group_a(days_milking_df):
 
 
     
-def create_group_b(days_milking_df):
+def create_group_b(days_milking_df, startdate, stopdate):
     date_range = pd.date_range(startdate, stopdate, freq='D')
     days_df        = days_milking_df.copy()
     group_b        = days_df >= 140          #create mask (df)
@@ -198,7 +193,7 @@ def create_group_b(days_milking_df):
 
 
 
-def create_group_a_ids(group_a):      # WY_id headers
+def create_group_a_ids(group_a, startdate, stopdate):      # WY_id headers
     date_range = pd.date_range(startdate, stopdate, freq='D')
     date_range_cols = date_range.strftime(date_format).to_list()
     
@@ -213,7 +208,7 @@ def create_group_a_ids(group_a):      # WY_id headers
 
 
 
-def create_group_b_ids(group_b):      # WY_id headers
+def create_group_b_ids(group_b, startdate, stopdate):      # WY_id headers
     date_range = pd.date_range(startdate, stopdate, freq='D')
     date_range_cols = date_range.strftime(date_format).to_list()
     
@@ -225,11 +220,11 @@ def create_group_b_ids(group_b):      # WY_id headers
     return group_b_ids_df
 
 
-def create_dry_ids(alive_mask):
+def create_dry_ids(alive_mask, startdate, stopdate):
 
-    f1  = pd.read_csv('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv')
-    f1.set_index('datex', inplace=True)
-    f1.index = pd.to_datetime(f1.index)
+    f1  = pd.read_csv('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv', index_col=0, header=0, parse_dates=['datex'])
+    # f1.set_index('datex', inplace=True)
+    # f1.index = pd.to_datetime(f1.index)
     # maxdate     = f1.index.max()    
     # startdate   = '2023-4-1'
     # stopdate    = maxdate
@@ -261,13 +256,13 @@ def check_group_sums(allcows, group_a_count, group_b_count, milkers_count_df, dr
     groups_sum = (group_a_count.join(group_b_count)).sum(axis=1)
     active_cows = (milkers_count_df.join(dry_count_df)).sum(axis=1)
 
-    allcows['group_a_count']  = group_a_count
-    allcows['group_b_count']  = group_b_count
-    allcows['group_sum']  = groups_sum
-    allcows['milkers']  = milkers_count_df
-    allcows['dry_count']      = dry_count_df
-    allcows['millk+dry'] = active_cows
-    allcows.index.name = 'datex'
+    allcows['group_a_count']    = group_a_count
+    allcows['group_b_count']    = group_b_count
+    allcows['group_sum']        = groups_sum
+    allcows['milkers']          = milkers_count_df
+    allcows['dry_count']        = dry_count_df
+    allcows['milk+dry']         = active_cows
+    allcows.index.name          = 'datex'
     return allcows
     
 
@@ -275,15 +270,15 @@ def check_group_sums(allcows, group_a_count, group_b_count, milkers_count_df, dr
 # call functions
 
 date_range, date_range_cols = create_date_range(startdate, stopdate)
-alive_mask, alive_count_df, gone_mask, gone_count_df,  nby_count_df,  ungone, allcows   = create_alive_mask()
+alive_mask, alive_count_df, gone_mask, gone_count_df,  nby_count_df,  ungone, allcows   = create_alive_mask(startdate, stopdate)
 milkers_mask, milkers_mask_df, milkers_count_df = create_milkers_mask(startdate, stopdate)
-days_milking_df             = create_days(milkers_mask)
+days_milking_df             = create_days(milkers_mask, startdate, stopdate)
 milkers_ids                 = create_milkers_ids(milkers_mask, startdate, stopdate)
-group_a, group_a_count      = create_group_a(days_milking_df)
-group_b, group_b_count      = create_group_b(days_milking_df)
-group_a_ids_df              = create_group_a_ids(group_a)
-group_b_ids_df              = create_group_b_ids(group_b)
-dry_ids_df, dry_count_df    = create_dry_ids(alive_mask)
+group_a, group_a_count      = create_group_a(days_milking_df, startdate, stopdate)
+group_b, group_b_count      = create_group_b(days_milking_df, startdate, stopdate)
+group_a_ids_df              = create_group_a_ids(group_a, startdate, stopdate)
+group_b_ids_df              = create_group_b_ids(group_b, startdate, stopdate)
+dry_ids_df, dry_count_df    = create_dry_ids(alive_mask, startdate, stopdate)
 allcows                     = check_group_sums(allcows, group_a_count, group_b_count, milkers_count_df, dry_count_df)
 
 
