@@ -42,6 +42,8 @@ class InsemUltraData:
         
         self.df2             = self.merge_insem_ultra()
         self.df3             = self.create_expected_bdate()
+        self.all            = self.merge_df3_with_status_col()
+        
         self.create_write_to_csv()
 
         
@@ -151,7 +153,7 @@ class InsemUltraData:
     # combines all insem: last, valid, and age 
     def create_insem_df(self):  
         age_insem1 = self.valid_insem_df.loc[(self.valid_insem_df['i_date'].notnull())].copy()
-        age_insem1['age_insem'] =  (self.today - age_insem1['i_date']).dt.days
+        age_insem1['age insem'] =  (self.today - age_insem1['i_date']).dt.days
         insem_df = self.valid_insem_df.merge(right=age_insem1, on='WY_id', how='outer', suffixes=('', "_right"))
         
         insem_df.drop([i for i in insem_df.columns if '_right' in i], axis=1, inplace=True)
@@ -174,7 +176,7 @@ class InsemUltraData:
     # combines all ultra:  last, valid and age
     def create_ultra_df(self)    :
         age_ultra1 = self.valid_ultra_df.loc[(self.valid_ultra_df['u_date'].notnull())].copy()
-        age_ultra1['age_ultra'] =  (self.today - age_ultra1['u_date']).dt.days
+        age_ultra1['age ultra'] =  (self.today - age_ultra1['u_date']).dt.days
         ultra_df = self.valid_insem_df.merge(right=age_ultra1, on='WY_id', how='outer', suffixes=('', "_right"))
         
         ultra_df.drop([i for i in ultra_df.columns if '_right' in i], axis=1, inplace=True)
@@ -205,20 +207,15 @@ class InsemUltraData:
         df3  = self.df2.merge(right=bde1, on='WY_id', how='outer', suffixes=('', "_right"))
         df3.drop([i for i in df3.columns if '_right' in i], axis=1, inplace=True)
         df3.drop(columns= 'adj_bdate', inplace=True)
-        df3['status'] = self.sd.status_col['status']
         return df3
     
+    def merge_df3_with_status_col(self):
+        all = self.df3.merge(self.sd.status_col['status'], left_index=True, right_index=True, how='outer', suffixes=('', "_right") )
+        all.drop([i for i in all.columns if '_right' in i], axis=1, inplace=True)
+        return all
+        
+           
+    
     def create_write_to_csv(self):
-        self.df3.to_csv('F:\\COWS\\data\\insem_data\\df3.csv')
-    
-    
-    
-    
-
-
-
-
-
-
-     
+        self.all.to_csv('F:\\COWS\\data\\insem_data\\all.csv')
 
