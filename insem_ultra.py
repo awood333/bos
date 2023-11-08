@@ -203,10 +203,12 @@ class InsemUltraData:
         
         valid_insem_mask1   =  (self.last_insem['i_calf#'] > self.df['last calf#']) 
         valid_insem_mask    =  self.last_insem['i_date'][valid_insem_mask1].to_frame()
-        valid_insem_mask.index.name = "WY_id"  
         
-        valid_insem_df      = self.last_insem.merge(valid_insem_mask, how='left', 
-            left_index=True, right_on='WY_id', suffixes=('', "_right"))
+        valid_insem_mask.reset_index(drop=True, inplace=True)
+        valid_insem_df1 = self.last_insem[valid_insem_mask1].copy()
+        
+        valid_insem_df = self.bd.merge(right=valid_insem_df1, how='left', 
+                            left_index=True, right_on='WY_id', suffixes=('', "_right")  )
         
         valid_insem_df.drop([i for i in valid_insem_df.columns if '_right' in i], axis=1, inplace=True)
         
@@ -229,11 +231,21 @@ class InsemUltraData:
 
        
     def create_valid_ultra_df(self):
-        valid_ultra_mask = (self.last_ultra['u_date'] > self.valid_insem_df['i_date'])
+        valid_ultra_mask = ((self.last_ultra['u_date'] > self.valid_insem_df['i_date']) &
+                            ((self.valid_insem_df['i_date'].notnull())) | 
+                            (self.valid_insem_df['i_date'].notna()) )   # for all cows incl dead
         
-        valid_ultra_mask = self.last_ultra['u_date'][valid_ultra_mask]  
-        valid_ultra_mask.index.name = 'WY_id'
-        valid_ultra_df   = self.last_ultra.merge(right=valid_ultra_mask, on='WY_id', how='right', suffixes=('_left', ""))
+        valid_ultra_mask_df1 = self.last_ultra[['u_date', 'u_read']][valid_ultra_mask]                  # filters and attaches date
+        valid_ultra_mask_df1.index +=1 
+        
+        valid_ultra_mask_df = self.bd.merge(valid_ultra_mask_df1, left_index=True, right_index=True, 
+                                how='left', suffixes=('_left', "__right") )
+        
+        valid_ultra_df   = self.last_ultra.merge(right=valid_ultra_mask_df, on='WY_id', 
+                                how='left', suffixes=('_left', ""))
+        
+        valid_ultra_df.reset_index(drop=True, inplace=True)
+        
         valid_ultra_df.drop([i for i in valid_ultra_df.columns if '_left' in i], axis=1, inplace=True)
         return valid_ultra_df
     
@@ -244,7 +256,7 @@ class InsemUltraData:
         age_ultra1 = self.valid_ultra_df.loc[(self.valid_ultra_df['u_date'].notnull())].copy()
         age_ultra1['age ultra'] =  (self.today - age_ultra1['u_date']).dt.days
         
-        ultra_df = self.valid_insem_df.merge(right=age_ultra1, on='WY_id', how='left', 
+        ultra_df = self.valid_ultra_df.merge(right=age_ultra1, on='WY_id', how='left', 
             suffixes=('', "_right"))
         
         ultra_df.drop([i for i in ultra_df.columns if '_right' in i], axis=1, inplace=True)
@@ -256,7 +268,7 @@ class InsemUltraData:
         insem_cols = list(self.insem_df.columns)
         ultra_cols = list(self.ultra_df.columns)
 
-        df2a =pd.merge( self.insem_df, self.ultra_df, on='WY_id',  suffixes=('', "_right"))
+        df2a =pd.merge( self.insem_df, self.ultra_df, on='WY_id', how='outer', suffixes=('', "_right"))
         
         df2a.drop([i for i in df2a.columns if '_right' in i], axis=1, inplace=True)
         
@@ -269,17 +281,25 @@ class InsemUltraData:
                                         # expected bdate and merge with status_col from status module
     def create_expected_bdate(self):
         
-        bde1 = self.df2.loc[ 
-                            ((self.df2['u_date'].notnull())  
-                            & (self.df2['u_read'] == 'ok'))].copy()
+        bdemask =  (
+            (self.df2['u_date'].notnull())  & 
+            (self.df2['u_read'] == 'ok')    &
+            (self.df2['death_date'].isnull())
+            )
+                            
         
-        bde1['expected bdate'] = bde1['u_date'] + pd.to_timedelta(282, unit='D')
+        bde1 = self.df2[bdemask].copy()
         
-        df3  = self.df2.merge(right=bde1, on='WY_id', how='left', 
-            suffixes=('', "_right"))
+        bde1['expected bdate'] = bde1['i_date'] + pd.to_timedelta(282, unit='D')
+        bde = bde1[['WY_id', 'expected bdate']]
+        bde.set_index('WY_id', inplace=True)
         
-        df3.drop([i for i in df3.columns if '_right' in i], axis=1, inplace=True)
+        
+        df3  = self.df2.merge(right=bde, on='WY_id', how='left' )
+        
+        # df3.drop([i for i in df3.columns if '_left' in i], axis=1, inplace=True)
         df3.drop(columns= 'adj_bdate', inplace=True)
+        df3.set_index('WY_id', inplace=True)
         all1 = df3
         return all1
 
@@ -290,12 +310,16 @@ class InsemUltraData:
         self.last_calf      .to_csv('F:\\COWS\\data\\insem_data\\lb_last.csv')
         self.bd             .to_csv('F:\\COWS\\data\\insem_data\\bd.csv')
   
-        self.valid_ultra_df .to_csv('F:\\COWS\\data\\insem_data\\valid_ultra.csv')
+        self.valid_ultra_df .to_csv('F:\\COWS\\data\\insem_data\\valid_ultra_df.csv')
         self.last_ultra     .to_csv('F:\\COWS\\data\\insem_data\\last_ultra.csv')
+        self.ultra_df       .to_csv('F:\\COWS\\data\\insem_data\\ultra_df.csv')
         
         self.last_insem     .to_csv('F:\\COWS\\data\\insem_data\\last_insem.csv')       
         self.valid_insem_df .to_csv('F:\\COWS\\data\\insem_data\\valid_insem.csv')
         
+        self.df2       .to_csv('F:\\COWS\\data\\insem_data\\df2.csv')
+        
+        
         self.last_ultra_insem.to_csv('F:\\COWS\\data\\insem_data\\last_ultra_insem.csv')
-        self.all1           .to_csv('F:\\COWS\\data\\insem_data\\all1.csv')
+        self.all1           .to_csv('F:\\COWS\\data\\insem_data\\all.csv')
 
