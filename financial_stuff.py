@@ -2,6 +2,7 @@
 financial_stuff.py
 '''
 import pandas as pd
+# import numpy as np
 from IPython.display import display
 from feed_cost import FeedCost 
 from startdate_funct import CreateStartdate
@@ -16,34 +17,40 @@ class FinancialStuff:
         
         
         self.f1      = pd.read_csv('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv',   index_col='datex',header=0,  parse_dates=['datex'])
-        self.income1  = pd.read_csv('F:\\COWS\\data\\csv_files\\milk_income.csv',       index_col='datex',header=0,  parse_dates=['datex'])
+        self.monthly_income  = pd.read_csv('F:\\COWS\\data\\PL_data\\milk_income\\milk_income.csv',       index_col='datex',header=0,  parse_dates=['datex'])
         self.bkk1        = pd.read_excel('F:\\COWS\\data\\BKKBankFarmAccount.xlsm',      index_col='datex',header=0,
                                         parse_dates=['datex'], sheet_name='consol statement')
         self.bkk1.index = pd.to_datetime(self.bkk1.index, format=self.sdf.date_format)
         
         self.maxdate     = self.f1.index.max()  
-        # stopdate    = '2023-10-20'
+        self.startdate        = self.sdf.startdate 
         self.stopdate    = self.maxdate
         
+        self.idx        = pd.date_range(self.startdate, self.stopdate, freq='D')
+      
+
   
 
         # functions
+
+        self.bkk_feed, self.bkk_all, self.bkk_all_xFeed = self.create_monthly_feedcost_actual()
         
-        # self.monthly_income         = self.create_monthly_income() 
-        # self.gross_income           = self.create_gross_income()
-        self.bkk_feed, self.bkk_all    = self.create_monthly_cost()
-        
-        # self.create_write_to_csv() 
+        self.monthly_income             = self.adjust_bimonthly_income()
+        self.net_revenue                = self.create_net_revenue()
+        self.create_write_to_csv() 
         
         
-    def create_monthly_cost(self):
-                
+    def create_monthly_feedcost_actual(self):
+        
         bkk2023 = self.bkk1[   ( 
               (self.bkk1['year'] == 2023 )
             & (self.bkk1['month'] >= 6)
+            & (self.bkk1['capex'].isnull() )
+            & (self.bkk1['brahman'].isnull())   
             )  ]
         
-        bkk2 = bkk2023.reset_index(drop=True)
+        bkk2023 = bkk2023.set_index(['year', 'month'])
+        bkk2    = bkk2023.reset_index()
         
         
         bkk3 = bkk2.drop(columns=['day','transaction',
@@ -58,6 +65,7 @@ class FinancialStuff:
             columns= 'descr 2',
             aggfunc= 'sum')
 
+        bkk_feed = bkk_feed.reset_index()
         
         bkk_all = pd.pivot_table(
             bkk3, 
@@ -67,67 +75,54 @@ class FinancialStuff:
             aggfunc= 'sum'
             )
         
-        bkk_all1 = bkk_all.drop(columns=['sale', 'nonfarm']) 
+        bkk_all = bkk_all.reset_index()
+        
+        bkk_all1 = bkk_all.drop(columns=['sale', 'nonfarm', '?']) 
+        bkk_all_xFeed =  bkk_all.drop(columns=['sale', 'nonfarm', 'feed']) 
 
-        bkk_all1.loc[:,'total cost']    = bkk_all1.sum(axis = 1)    # last col
-        bkk_all1.loc['sum']             = bkk_all1.sum(axis = 0)    # last row
+        bkk_all1.loc     [:,'total cost']    = bkk_all1.sum(axis = 1)    # last col
+        bkk_all_xFeed.loc[:,'total xfeed cost']    = bkk_all_xFeed.sum(axis = 1)
+        # bkk_all1.loc['sum']             = bkk_all1.sum(axis = 0)    # last row
 
         bkk_all = bkk_all1
         
-        return bkk_feed, bkk_all
+        return bkk_feed, bkk_all, bkk_all_xFeed
+    
+   
+    def adjust_bimonthly_income(self):
+        minc1 = self.monthly_income.groupby(['year', 'month']).sum() 
+        minc2 = minc1['net_baht']
+        minc = pd.DataFrame(minc2)
+        minc.reset_index()
+        monthly_income = minc2
+        return monthly_income
+    
+   
+
+    def create_net_revenue(self):      # revenue after
         
-
+        feed1 = self.fc.monthly_feedcost.reset_index()
+        feed = feed1[['month','year','total feed cost']]
+        # revenue = self.monthly_income[['month','year','net_baht']]  
+        net = feed.merge(self.monthly_income, on=['month', 'year'], how='outer')
         
+        net['net revenue']  = (net['net_baht'] -  net['total feed cost'])
+        net_revenue = pd.DataFrame(net)
+        net_revenue = net_revenue.sort_values(by=['year', 'month'])
+        net_revenue.rename(columns={'net_baht': 'revenue', 'total feed cost': 'feed cost'}, inplace=True)
         
+        return net_revenue
 
 
-    # def create_monthly_income(self):
-    #     new_data = {
-    #         'datex': ['2023-7-15','2023-9-30'],
-    #         'liters': [4250.4, 7833],
-    #         'gross_baht': [85008, 156660],
-    #         'net_baht': [84000, 155000] ,
-    #         'per_liter': [20, 20]      
-    #         }
+    # def create_gross_profit(self):
+    #     other = self.bkk_all_xFeed['total xfeed cost']
+    
+    def create_write_to_csv(self):
         
-    #     new_rows = pd.DataFrame(new_data)
-    #     new_rows['datex'] = pd.to_datetime(new_rows['datex'], format=self.sdf.date_format)
-    #     new_rows.set_index('datex', inplace=True)
-
-    #     adj_income = pd.concat([self.income1, new_rows])
-    #     adj_income.sort_index(inplace=True)
-    #     adj_income['year']  = adj_income.index.year
-    #     adj_income['month'] = adj_income.index.month
-    #     adj_income.drop('per_liter', axis=1, inplace=True)
-
-    #     monthly_milk_income1     = adj_income.groupby(['year','month']).sum()
-    #     monthly_milk_income1.reset_index( inplace=True)
-    #     monthly_milk_income = pd.DataFrame(monthly_milk_income1)
-    #     return monthly_milk_income
-
-
-
-
-
-    # def create_gross_income(self):
+        self.net_revenue.to_csv('F:\\COWS\\data\\PL_data\\net_revenue.csv')
+        self.bkk_all_xFeed.to_csv('F:\\COWS\\data\\PL_data\\bkk_all_xFeed.csv')
+        self.bkk_all.to_csv('F:\\COWS\\data\\PL_data\\bkk_all.csv')
+        self.bkk_feed.to_csv('F:\\COWS\\data\\PL_data\\bkk_feed.csv')
+        self.monthly_income.to_csv('F:\\COWS\\data\\PL_data\\adj_monthly_income.csv')
         
-    #     feed1 = self.fc.monthly_feedcost.reset_index()
-    #     feed = feed1[['month','year','total feed cost']]
-    #     income = self.monthly_income[['month','year','net_baht']]
-    #     gross = income.merge(feed, on=['month', 'year'], how='outer')
-        
-    #     gross['gross income']  = (gross['net_baht'] -  gross['total feed cost'])
-    #     gross_income = pd.DataFrame(gross)
-    #     gross_income = gross_income.sort_values(by=['year', 'month'])
-    #     gross_income.rename(columns={'net_baht': 'income', 'total feed cost': 'feed cost'}, inplace=True)
-        
-    #     return gross_income
-
-
-
-
-
-    # def create_write_to_csv(self):
-        
-        # self.gross_income.to_csv('F:\\COWS\\data\\PL_data\\gross_income.csv')
 

@@ -8,53 +8,44 @@ from startdate_funct import CreateStartdate
 class StatusData:
     
     def __init__(self):
-        self.f1             = pd.read_csv('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv',
-                                    index_col=0,  header=0, parse_dates=['datex'])
-        self.bd        = pd.read_csv('F:\\COWS\\data\\csv_files\\birth_death.csv', index_col=0, header=0,
-                                    parse_dates=['birth_date','death_date','arrived', 'adj_bdate'])
-        self.lb_last   = pd.read_csv('F:\\COWS\\data\\insem_data\\lb_last.csv',
-                                    parse_dates=['lastcalf bdate'], index_col=0, header=0)
+        self.f1        = pd.read_csv('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv', index_col=0,  header=0, 
+                            parse_dates=['datex'])
         
-     
- 
+        self.bd        = pd.read_csv('F:\\COWS\\data\\csv_files\\birth_death.csv',      index_col=0, header=0,
+                            parse_dates=['birth_date','death_date','arrived', 'adj_bdate'])
+        
+        self.lb_last   = pd.read_csv('F:\\COWS\\data\\insem_data\\lb_last.csv',         index_col=0, header=0,
+                            parse_dates=['last calf bdate'])
+        
         self.maxdate        = self.f1.index.max() 
         self.stopdate       = self.maxdate 
         self.bdmax          = len(self.bd)
         self.wy_series      = pd.Series(list(range(1, self.bdmax + 1)), name='WY_id', index=range(1, self.bdmax + 1))
         
-        self.startdate,  self.date_format = self.import_startdate()
-
-        self.date_range         = pd.date_range(self.startdate, self.stopdate, freq='D')
-        self.y                  = self.create_stack_df()
-        
-        self.f                  = self.f1.loc[self.date_range, :]
-        self.datex          = self.f.index.to_list()
-        self.rshape         = self.f.shape[1]
-        self.stackresult    = np.full((0, self.rshape), np.nan)
-        
-        self.date_range_cols    = self.date_range.strftime(self.date_format).to_list()
-        
-        
-        
         
         # functions
+
+        self.startdate,  self.date_format, self.date_range, self.date_range_cols,           = self.import_startdate()
         
-        self.d                                      = self.create_stack_df(None)
+        self.f, self.datex, self.rshape, self.stackresult                                   = self.create_partition_milk_df()
+                
+        self.y                                      = self.create_stack_df(None)
         self.alive_mask, self.alive_count_df, self.gone_mask, self.gone_count_df,self.nby_count_df,   self.ungone, self.allcows = self.create_alive_mask()
-        self.alive_ids                           = self.create_alive_ids()
-        self.gone_ids                            = self.create_gone_ids()           
+        
+        self.alive_ids                              = self.create_alive_ids()
+        self.gone_ids                               = self.create_gone_ids()           
         
         self.milkers_mask,  self.milkers_count      = self.create_milkers_mask()
         self.milkers_ids                            = self.create_milkers_ids()
         
-        self.days_milking_df                        = self.create_days()
+        self.days_milking_df, self.days_mean        = self.create_days()
         self.group_a ,  self.group_a_count          = self.create_group_a()
         self.group_b ,  self.group_b_count          = self.create_group_b()
          
         self.group_a_ids                            = self.create_group_a_ids()
         self.group_b_ids                            = self.create_group_b_ids()
         
-        self.dry_ids, self.dry_count, self.dry_mask   = self.create_dry_ids()
+        self.dry_ids, self.dry_count, self.dry_mask = self.create_dry_ids()
         
         self.allcows                                = self.allcows_summary()
         self.status_col                             = self.create_status_col()
@@ -63,24 +54,29 @@ class StatusData:
         
     def import_startdate(self):
         create_startdate_instance = CreateStartdate()
-        return create_startdate_instance.startdate, create_startdate_instance.date_format
+        startdate =  create_startdate_instance.startdate
+        date_format = create_startdate_instance.date_format
         
+        date_range      = pd.date_range(startdate, self.stopdate, freq='D')     #stopdate comes from maxdate above
+        date_range_cols = date_range.strftime(date_format).to_list()
         
-        
-
-    def create_date_range(self):
-        self.date_range      = pd.date_range(self.startdate, self.stopdate, freq='D')
-        self.date_range_cols = self.date_range.strftime(self.date_format).to_list()
-        return self.date_range, self.date_range_cols
+        return startdate, date_format, date_range, date_range_cols
     
+    
+    def create_partition_milk_df(self):
+        f = self.f1.loc[self.date_range, :]     # partitions the milk df
+        datex          = f.index.to_list()
+        rshape         = f.shape[1]
+        stackresult    = np.full((0, rshape), np.nan)  #creates the empty array for 'results'
+        
+        return f, datex, rshape, stackresult
+        
     
     
     def create_stack_df(self, x=None):
-        
+        y1=[]
         if x is None:
             return pd.DataFrame()
-        
-        y1=[]
         
         for index, row in x.iterrows():
             
@@ -88,9 +84,7 @@ class StatusData:
             padsize = self.rshape - len(x_series)  #rshape is the cols of f, len(x) is the rows of one slice
             
             x2 = pd.Series(x_series.fillna(0).values)
-            
             y1.append(np.pad(x2, (0, padsize)))
-           
         y = np.vstack(y1)
 
         return y
@@ -196,12 +190,17 @@ class StatusData:
             for cols in truecols:
                 for col in cols:
                     if row[col] == True:        
-                        lastcalf_bdate  = self.lb_last.loc[int(col), 'lastcalf bdate'  ]
+                        lastcalf_bdate  = self.lb_last.loc[int(col), 'last calf bdate'  ]
                         date_diff       = (index - lastcalf_bdate).days
                         days_result[col]    = date_diff
             days1.append(days_result)
         days_milking_df = pd.DataFrame(days1, index=self.date_range_cols)
-        return days_milking_df  
+        days_milking_df.index.name = 'datex'
+        
+        days_mean       = days_milking_df.mean(axis=1)
+        days_mean.index.name = 'datex'
+        
+        return days_milking_df, days_mean  
 
 
 
@@ -320,16 +319,24 @@ class StatusData:
         g2['status'] = 'G'
         
         status_col = pd.concat([m2, d2, g2], axis=0)
-        status_col.sort_index(inplace=True)
+        status_col.reset_index(drop=True, inplace=True)
+        # status_col.sort_index(inplace=True)
         
         return status_col
+    
+    
+    
     
     def create_write_to_csv(self):
         
         self.allcows    .to_csv('F:\\COWS\\data\\status\\allcows.csv')
         self.status_col .to_csv('F:\\COWS\\data\\status\\status_col.csv')
         self.milkers_ids.to_csv('F:\\COWS\\data\\status\\milkers_ids.csv')
+        
         self.gone_ids   .to_csv('F:\\COWS\\data\\status\\gone_ids.csv')
         self.alive_ids  .to_csv('F:\\COWS\\data\\status\\alive_ids.csv')
         self.dry_ids    .to_csv('F:\\COWS\\data\\status\\dry_ids.csv')
+
+        self.days_milking_df  .to_csv('F:\\COWS\\data\\status\\days_milking.csv')    
+        self.days_mean  .to_csv('F:\\COWS\\data\\status\\days_mean.csv')
         
