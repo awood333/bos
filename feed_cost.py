@@ -2,183 +2,195 @@
 feed_cost.py
 '''
 import pandas as pd
-import numpy as np
-import status
-
-# allcows = pd.read_csv('F:\\COWS\\data\\status\\status_all.csv')
-
-f1  = pd.read_csv('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv',
-                  index_col=0,
-                  header=0,
-                  parse_dates=['datex'])
-
-# date_format = '%m/%d/%Y'
-# date_format = '%Y-%m-%d'
-
-maxdate     = f1.index.max()  
-# stopdate    = '2023-10-20' 
-stopdate    = maxdate
-startdate   = '2023-6-1'
-
-date_range, date_range_cols                     = status.create_date_range(startdate, stopdate)
-alive_mask, alive_count_df, gone_mask, gone_count_df,  nby_count_df,   ungone, allcows = status.create_alive_mask(startdate, stopdate)
-live_ids_df                                     = status.create_alive_ids(alive_mask, startdate, stopdate)
-milkers_mask, milkers_mask_df, milkers_count_df = status.create_milkers_mask(startdate, stopdate)
-milkers_ids                                     = status.create_milkers_ids(milkers_mask, startdate, stopdate)
-days_milking_df                                 = status.create_days(milkers_mask, startdate, stopdate)
-
-group_a, group_a_count  = status.create_group_a(days_milking_df, startdate, stopdate)
-group_b, group_b_count  = status.create_group_b(days_milking_df, startdate, stopdate)
-group_a_ids_df          = status.create_group_a_ids(group_a, startdate, stopdate)
-groupb_ids_df           = status.create_group_b_ids(group_b, startdate, stopdate)
-dry_ids_df, dry_count_df= status.create_dry_ids(alive_mask, startdate, stopdate)
-allcows                 = status.check_group_sums(allcows, group_a_count, group_b_count, milkers_count_df, dry_count_df)
-
-f = f1.loc[date_range].copy()    #partition the milk dbase
-
-drop_col_names = [
-'feed_type_y',
-'weight'    ,
-'alive'     ,
-'nby'       ,
-'gone'      ,
-'sum'       ,
-'group_sum' ,
-'milkers'   ,
-'milk+dry'  
-]
-
-rename_mask = {'feed_type_x':'feed type', 'group_a_kg':'group_a kg',
-               'group_b_kg':'group_b kg', 'dry_kg':'dry kg' ,
-               'lot_sequence':'lot#', 'group_a_count':'group_a count',
-               'group_b_count':'group_b count','dry_count':'dry count',
-               'group_a_dailycost':'group_a daily cost', 
-               'group_b_dailycost':'group_b daily cost',
-               'dry_daily cost':'dry daily cost',
-               'total_daily_cost':'total daily cost'
-               }
+# import numpy as np
+from status import StatusData
+from startdate_funct import CreateStartdate
 
 
-
-def create_cassava_cost(date_range):
-    
-    price_seq = pd.read_csv('F:\\COWS\\data\\feed_data\\feed_csv\\cassava_price_seq.csv',  header=0, index_col=0, parse_dates=['datex'])  
-    daily_amt  = pd.read_csv('F:\\COWS\\data\\feed_data\\feed_csv\\cassava_daily_amt.csv', header=0, index_col=0, parse_dates=['datex'])  
-    
-    price_seq = price_seq.reindex(date_range, method='ffill')
-    price_seq.index.name = 'datex'
+class FeedCost:
+    def __init__(self):
+            
+        self.status = StatusData()
+        self.csd = CreateStartdate()
         
-    daily_amt = daily_amt.reindex(date_range, method='ffill')
-    daily_amt.index.name = 'datex'
+        self.f1  = pd.read_csv('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv',
+                        index_col=0, header=0, parse_dates=['datex'])
 
-    p1 = pd.merge(daily_amt, price_seq, left_index=True, right_index=True) 
-    p  = p1.merge(status.allcows, left_index=True, right_index=True) 
-    
-    p['group_a dailycost']  = p['group_a_kg']    * p['unit_price'] * p['group_a_count']
-    p['group_b dailycost']  = p['group_b_kg']    * p['unit_price'] * p['group_b_count']
-    p['dry daily cost']    = p['dry_kg']           * p['unit_price'] * p['dry_count']
-    p['total daily cost']   = p['group_a dailycost'] + p['group_b dailycost'] + p['dry daily cost']
-    
-    cassava_cost = pd.DataFrame(p)
-    cassava_cost.drop(columns=drop_col_names, axis=1, inplace=True)
-    cassava_cost.rename(columns=rename_mask, inplace=True)
-    
-    return cassava_cost
-cassava_cost = create_cassava_cost(date_range)
+        self.maxdate     = self.f1.index.max()   
+        self.stopdate    = self.maxdate
+        self.startdate   = self.csd.startdate
+        self.date_format = self.csd.date_format
+        self.date_range  = pd.date_range(self.startdate, self.stopdate, freq='D')
 
-
-
-def create_beans_cost(date_range):
+        self.f = self.f1.loc[self.date_range].copy()    #partition the milk dbase
     
-    price_seq  = pd.read_csv('F:\\COWS\\data\\feed_data\\feed_csv\\beans_price_seq.csv', header=0, index_col=0, parse_dates=['datex'])  
-    daily_amt  = pd.read_csv('F:\\COWS\\data\\feed_data\\feed_csv\\beans_daily_amt.csv', header=0, index_col=0, parse_dates=['datex'])  
-    
-    price_seq = price_seq.reindex(date_range, method='ffill')
-    price_seq.index.name = 'datex'
+        #functions
+        self.cassava_cost                       = self.create_cassava_cost()
+        self.bean_cost                          = self.create_beans_cost()
+        self.corn_cost                          = self.create_corn_cost()
+        self.total_feedcost                     = self.create_total_feedcost()
+        self.monthly_feedcost                   = self.create_monthly_feedcost()
+        self.weekly_feedcost                    = self.create_weekly_feedcost()
+        self.create_write_to_csv()
+                                        
         
-    daily_amt = daily_amt.reindex(date_range, method='ffill')
-    daily_amt.index.name = 'datex'
-
-    p1 = pd.merge(daily_amt, price_seq, left_index=True, right_index=True) 
-    p  = p1.merge(status.allcows, left_index=True, right_index=True) 
-    
-    p['group_a dailycost']  = p['group_a_kg']    * p['unit_price'] * p['group_a_count']
-    p['group_b dailycost']  = p['group_b_kg']    * p['unit_price'] * p['group_b_count']
-    p['dry daily cost']    = p['dry_kg']           * p['unit_price'] * p['dry_count']
-    p['total daily cost']   = p['group_a dailycost'] + p['group_b dailycost'] + p['dry daily cost']
-    
-    bean_cost = pd.DataFrame(p)
-    bean_cost.drop(columns=drop_col_names, axis=1, inplace=True)
-    bean_cost.rename(columns=rename_mask, inplace=True)
-    
-    return bean_cost
-beans_cost = create_beans_cost(date_range)
-
-
-
-
-def create_corn_cost(date_range):
-    
-    price_seq = pd.read_csv('F:\\COWS\\data\\feed_data\\feed_csv\\corn_price_seq.csv',  header=0, index_col=0, parse_dates=['datex'])  
-    daily_amt  = pd.read_csv('F:\\COWS\\data\\feed_data\\feed_csv\\corn_daily_amt.csv', header=0, index_col=0, parse_dates=['datex'])  
-    
-    price_seq = price_seq.reindex(date_range, method='ffill')
-    price_seq.index.name = 'datex'
+    def create_cassava_cost(self):
         
-    daily_amt = daily_amt.reindex(date_range, method='ffill')
-    daily_amt.index.name = 'datex'
+        price_seq = pd.read_csv('F:\\COWS\\data\\feed_data\\feed_csv\\cassava_price_seq.csv',  header=0, index_col=0, parse_dates=['datex'])  
+        daily_amt  = pd.read_csv('F:\\COWS\\data\\feed_data\\feed_csv\\cassava_daily_amt.csv', header=0, index_col=0, parse_dates=['datex'])  
+        
+        
+                            # create price sequence on new index 'date_range'
+        price_seq = price_seq.reindex(self.date_range, method='ffill')
+        price_seq.index.name = 'datex'
+                            # same thing for daily amt
+        daily_amt = daily_amt.reindex(self.date_range, method='ffill')
+        daily_amt.index.name = 'datex'
 
-    p1 = pd.merge(daily_amt, price_seq, left_index=True, right_index=True) 
-    p  = p1.merge(status.allcows, left_index=True, right_index=True) 
+        p1 = pd.merge(daily_amt, price_seq, left_index=True, right_index=True) 
+        p  = p1.merge(self.status.allcows,  left_index=True, right_index=True) 
+        
+        p['group_a dailycost']  = p['group_a_kg']    * p['unit_price'] * p['group_a_count']
+        p['group_b dailycost']  = p['group_b_kg']    * p['unit_price'] * p['group_b_count']
+        p['dry daily cost']     = p['dry_kg']           * p['unit_price'] * p['dry_count']
+        p['total daily cost']   = p['group_a dailycost'] + p['group_b dailycost'] + p['dry daily cost']
+        
+        cassava_cost = pd.DataFrame(p)
+        return cassava_cost
+
+
+
+
+    def create_beans_cost(self):
+        
+        price_seq  = pd.read_csv('F:\\COWS\\data\\feed_data\\feed_csv\\beans_price_seq.csv', header=0, index_col=0, parse_dates=['datex'])  
+        daily_amt  = pd.read_csv('F:\\COWS\\data\\feed_data\\feed_csv\\beans_daily_amt.csv', header=0, index_col=0, parse_dates=['datex'])  
+        
+        price_seq = price_seq.reindex(self.date_range, method='ffill')
+        price_seq.index.name = 'datex'
+            
+        daily_amt = daily_amt.reindex(self.date_range, method='ffill')
+        daily_amt.index.name = 'datex'
+
+        p1 = pd.merge(daily_amt, price_seq, left_index=True, right_index=True) 
+        p  = p1.merge(self.status.allcows,  left_index=True, right_index=True) 
+        
+        p['group_a dailycost']  = p['group_a_kg']    * p['unit_price'] * p['group_a_count']
+        p['group_b dailycost']  = p['group_b_kg']    * p['unit_price'] * p['group_b_count']
+        p['dry daily cost']     = p['dry_kg']           * p['unit_price'] * p['dry_count']
+        p['total daily cost']   = p['group_a dailycost'] + p['group_b dailycost'] + p['dry daily cost']
+        
+        bean_cost = pd.DataFrame(p)
+        return bean_cost
+
+
+
+
+
+    def create_corn_cost(self):
+        
+        price_seq = pd.read_csv('F:\\COWS\\data\\feed_data\\feed_csv\\corn_price_seq.csv',  header=0, index_col=0, parse_dates=['datex'])  
+        daily_amt  = pd.read_csv('F:\\COWS\\data\\feed_data\\feed_csv\\corn_daily_amt.csv', header=0, index_col=0, parse_dates=['datex'])  
+        
+        price_seq = price_seq.reindex (self.date_range, method='ffill')
+        price_seq.index.name = 'datex'
+            
+        daily_amt = daily_amt.reindex(self.date_range, method='ffill')
+        daily_amt.index.name = 'datex'
+
+        p1 = pd.merge(daily_amt, price_seq, left_index=True, right_index=True) 
+        p  = p1.merge(self.status.allcows,  left_index=True, right_index=True) 
+        
+        p['group_a dailycost']  = p['group_a_kg']    * p['unit_price'] * p['group_a_count']
+        p['group_b dailycost']  = p['group_b_kg']    * p['unit_price'] * p['group_b_count']
+        p['dry daily cost']     = p['dry_kg']           * p['unit_price'] * p['dry_count']
+        p['total daily cost']   = p['group_a dailycost'] + p['group_b dailycost'] + p['dry daily cost']
+        
+        corn_cost = pd.DataFrame(p)
+        return corn_cost
+
+
+
+
+
+    def create_total_feedcost(self):
+        tfc = pd.DataFrame()
+        tfc['beans']    = self.bean_cost    ['total daily cost']
+        tfc['cassava']  = self.cassava_cost ['total daily cost']
+        tfc['corn']     = self.corn_cost    ['total daily cost']
+        tfc['total feed cost'] = (self.bean_cost['total daily cost'] + self.cassava_cost['total daily cost'] + self.corn_cost['total daily cost'])
+        tfc['year']     = tfc.index.year
+        tfc['month']    = tfc.index.month
+        
+        total_feedcost = pd.DataFrame(tfc)
+        return total_feedcost
+
+
+
+    def create_monthly_feedcost(self):
+        tfc = self.total_feedcost.copy()
+        tfc_m = tfc.groupby(['year', 'month']).agg({
+            'beans'     : 'sum', 
+            'cassava'   : 'sum',
+            'corn'      : 'sum',
+            'total feed cost': 'sum'
+
+        })
+
+        monthly_feedcost = tfc_m
+        return monthly_feedcost
     
-    p['group_a dailycost']  = p['group_a_kg']    * p['unit_price'] * p['group_a_count']
-    p['group_b dailycost']  = p['group_b_kg']    * p['unit_price'] * p['group_b_count']
-    p['dry daily cost']    = p['dry_kg']           * p['unit_price'] * p['dry_count']
-    p['total daily cost']   = p['group_a dailycost'] + p['group_b dailycost'] + p['dry daily cost']
     
-    corn_cost = pd.DataFrame(p)
-    corn_cost.drop(columns=drop_col_names, axis=1, inplace=True)
-    corn_cost.rename(columns=rename_mask, inplace=True)
-    return corn_cost
-
-corn_cost=create_corn_cost(date_range)
-
-
-
-
-
-
-
-
-def create_total_feed_cost(date_range, corn_cost, cassava_cost, beans_cost):
-    tfc = pd.DataFrame()
-    tfc['beans']    = beans_cost['total daily cost']
-    tfc['cassava']  = cassava_cost['total daily cost']
-    tfc['corn']     = corn_cost['total daily cost']
-    tfc['total feed cost'] = (beans_cost['total daily cost'] + cassava_cost['total daily cost'] + corn_cost['total daily cost'])
     
-    total_feed_cost = pd.DataFrame(tfc)
-    return total_feed_cost
+    
+    def create_weekly_feedcost(self):
+                
+        bean1           = self.bean_cost.copy()
+        cassava1        = self.cassava_cost.copy()
+        corn1           = self.corn_cost.copy()
 
-total_feed_cost = create_total_feed_cost(date_range, corn_cost, cassava_cost, beans_cost)
-# print(total_feed_cost.head(2))
-
-def create_monthly_feedcost(total_feed_cost):
-    tfc = total_feed_cost
-    tfc['year'] = tfc.index.year
-    tfc['month'] = tfc.index.month
-    tfc_m = tfc.groupby(by=['year', 'month']).sum()
-
-    total_monthly_feed_cost = tfc_m.reset_index()
-    return total_monthly_feed_cost
-
-monthly_feedcost = create_monthly_feedcost(total_feed_cost)
-# print('total_monthly_feed_cost', monthly_feedcost)
+        bean1['year']   = bean1.index.year
+        bean1['month']  = bean1.index.month
+        bean1['week']   = bean1.index.isocalendar().week
 
 
-# # write to csv
-corn_cost.to_csv('F:\\COWS\\data\\feed_data\\corn_cost.csv')
-cassava_cost.to_csv('F:\\COWS\\data\\feed_data\\cassava_cost.csv')
+        cassava1['year']    = cassava1.index.year
+        cassava1['month']   = cassava1.index.month
+        cassava1['week']    = cassava1.index.isocalendar().week
 
-beans_cost.to_csv('F:\\COWS\\data\\feed_data\\beans_cost.csv')
-monthly_feedcost.to_csv('F:\\COWS\\data\\feed_data\\monthly_feed_cost.csv')
+
+        corn1['year']   = corn1.index.year
+        corn1['month']  = corn1.index.month
+        corn1['week']   = corn1.index.isocalendar().week
+
+        bean2       = bean1.    drop(columns=['feed_type_x', 'feed_type_y'])
+        cassava2    = cassava1. drop(columns=['feed_type_x', 'feed_type_y'])
+        corn2       = corn1.    drop(columns=['feed_type_x', 'feed_type_y'])
+
+
+        bean3       = bean2.    groupby(['year','month','week'],   as_index=False).mean()
+        cassava3    = cassava2. groupby(['year','month','week'],   as_index=False).mean()
+        corn3       = corn2.    groupby(['year','month','week'],   as_index=False).mean()
+
+        bean4       = bean3     [['milkers', 'dry_count', 'milk+dry','total daily cost']]
+        cassava4    = cassava3  ['total daily cost']
+        corn4       = corn3     ['total daily cost']
+
+        all_feed1   = bean4.merge(   cassava4, how='left', left_index=True, right_index=True, suffixes=['_bean', '_cassava'])
+        all_feed    = all_feed1.merge(  corn4, how='left', left_index=True, right_index=True)
+        all_feed.rename(columns={'total daily cost_bean': 'cost beans', 'total daily cost_cassava' : 'cost cassava', 'total daily cost' : 'cost corn'}, inplace=True)
+        all_feed['total feed cost'] = all_feed['cost beans'] + all_feed['cost cassava'] + all_feed['cost corn']
+        weekly_feedcost = all_feed
+
+        return weekly_feedcost
+
+
+
+    def create_write_to_csv(self):
+        self.corn_cost.to_csv('F:\\COWS\\data\\feed_data\\corn_cost.csv')
+        self.cassava_cost.to_csv('F:\\COWS\\data\\feed_data\\cassava_cost.csv')
+
+        self.bean_cost.to_csv('F:\\COWS\\data\\feed_data\\beans_cost.csv')
+        self.monthly_feedcost.to_csv('F:\\COWS\\data\\feed_data\\feed_monthly_weekly\\monthly_feedcost.csv')
+        # self.total_feedcost.to_csv
+        self.weekly_feedcost.to_csv('F:\\COWS\\data\\feed_data\\feed_monthly_weekly\\weekly_feedcost.csv')
