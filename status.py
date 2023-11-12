@@ -30,10 +30,11 @@ class StatusData:
         self.f, self.datex, self.rshape, self.stackresult                                   = self.create_partition_milk_df()
                 
         self.y                                      = self.create_stack_df(None)
-        self.alive_mask, self.alive_count_df, self.gone_mask, self.gone_count_df,self.nby_count_df,   self.ungone, self.allcows = self.create_alive_mask()
+        self.alive_mask, self.alive_count_df, self.gone_mask, self.gone_count_df,  self.nby_mask, self.nby_count_df,   self.ungone, self.allcows = self.create_alive_mask()
         
         self.alive_ids                              = self.create_alive_ids()
-        self.gone_ids                               = self.create_gone_ids()           
+        self.gone_ids                               = self.create_gone_ids()     
+        self.nby_ids                                = self.create_nby_ids()
         
         self.milkers_mask,  self.milkers_count      = self.create_milkers_mask()
         self.milkers_ids                            = self.create_milkers_ids()
@@ -130,14 +131,14 @@ class StatusData:
         ungone = alive_count_df.join(nby_count_df)
         allcows= ungone.join(gone_count_df)
         allcows['sum']=allcows.sum(axis=1)
-        return alive_mask, alive_count_df,   gone_mask, gone_count_df,  nby_count_df,   ungone, allcows
+        return alive_mask, alive_count_df,   gone_mask, gone_count_df, nby_mask , nby_count_df,   ungone, allcows
 
  
 
     def create_alive_ids(self):     
         alive_ids1 = self.alive_mask.copy(deep=True)                
         for col in self.alive_mask.columns: 
-            alive_ids1[col] = np.where(self.alive_mask[col], col, np.nan)
+            alive_ids1[col] = np.where(self.alive_mask[col], 'arr', '')
             
         x           = alive_ids1
         alive_ids2  = self.create_stack_df(x)  # this passes x as an argument
@@ -150,12 +151,27 @@ class StatusData:
     def create_gone_ids(self):     
         gone_ids1 = self.gone_mask.copy(deep=True)                
         for col in self.gone_mask.columns: 
-            gone_ids1[col] = np.where(self.gone_mask[col], col, np.nan)
+            gone_ids1[col] = np.where(self.gone_mask[col], 'gone', '')
             
         x           = gone_ids1    
         gone_ids2   = self.create_stack_df(x)
         gone_ids    = pd.DataFrame(gone_ids2, index=[self.datex])
         return gone_ids
+    
+    
+    
+    def create_nby_ids(self):
+        nby_ids1 = self.nby_mask.copy(deep=True)                
+        for col in self.nby_mask.columns: 
+            nby_ids1[col] = np.where(self.nby_mask[col], 'nby', '')
+            
+        x           = nby_ids1    
+        nby_ids2   = self.create_stack_df(x)
+        nby_ids    = pd.DataFrame(nby_ids2, index=[self.datex])
+        return nby_ids
+    
+
+
 
     def create_milkers_mask(self):
         milkers_mask        = self.f > 0   
@@ -167,7 +183,7 @@ class StatusData:
     def create_milkers_ids(self):      
         milkers_ids1 = self.milkers_mask.copy(deep=True)
         for col in self.milkers_mask.columns:
-            milkers_ids1[col] = np.where(self.milkers_mask[col], col, np.nan)      #returns the col header where True, or np.nan for the False
+            milkers_ids1[col] = np.where(self.milkers_mask[col], 'M', '')      #returns the col header where True, or np.nan for the False
  
         x = milkers_ids1    
         
@@ -233,9 +249,9 @@ class StatusData:
     def create_group_a_ids(self):     
         result              = self.group_a.copy()
         for col in self.group_a.columns:
-            result[col]     = np.where(self.group_a[col], col, np.nan)      #returns the col header where True, or np.nan for the False
+            result[col]     = np.where(self.group_a[col], 'A', '')      #returns the col header where True, or np.nan for the False
         result.index        = self.date_range
-        group_a_ids      = result #pd.DataFrame(result, columns=group_a.columns, index=self.date_range_cols)
+        group_a_ids      = result
         return group_a_ids
 
 
@@ -245,7 +261,7 @@ class StatusData:
 
         result              = self.group_b
         for col in self.group_b.columns:
-            result[col]     = np.where(self.group_b[col], col, np.nan)      #returns the col header where True, or np.nan for the False
+            result[col]     = np.where(self.group_b[col], 'B', '')      #returns the col header where True, or np.nan for the False
         group_b_ids      = result
         result.index        = self.date_range
         return group_b_ids
@@ -255,11 +271,6 @@ class StatusData:
 
     def create_dry_ids(self):
 
-        # f1  = pd.read_csv('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv', index_col=0, header=0, parse_dates=['datex'])
-    
-        # self.date_range  = pd.date_range(self.startdate, self.stopdate, freq='D')
-        # self.date_range_cols = self.date_range.strftime(self.date_format).to_list()
-    
         alive_masknp = self.alive_mask.copy(deep=True).to_numpy()
         # milkers_masknp = self.milkers_mask.to_numpy()
         dry_mask = np.logical_and(alive_masknp, np.logical_not(self.milkers_mask))
@@ -270,7 +281,7 @@ class StatusData:
         
         dry_ids1 = dry_mask.copy(deep=True)
         for col in dry_mask.columns:
-            dry_ids1[col] = np.where(dry_mask[col], col, np.nan)
+            dry_ids1[col] = np.where(dry_mask[col], 'D', '')
             
         x               = dry_ids1    
         dry_ids2    = self.create_stack_df(x)
@@ -336,6 +347,11 @@ class StatusData:
         self.gone_ids   .to_csv('F:\\COWS\\data\\status\\gone_ids.csv')
         self.alive_ids  .to_csv('F:\\COWS\\data\\status\\alive_ids.csv')
         self.dry_ids    .to_csv('F:\\COWS\\data\\status\\dry_ids.csv')
+        self.nby_ids    .to_csv('F:\\COWS\\data\\status\\nby_ids.csv')
+        
+        self.group_a_ids  .to_csv('F:\\COWS\\data\\status\\group_a_ids.csv')
+        self.group_b_ids  .to_csv('F:\\COWS\\data\\status\\group_b_ids.csv')
+        
 
         self.days_milking_df  .to_csv('F:\\COWS\\data\\status\\days_milking.csv')    
         self.days_mean  .to_csv('F:\\COWS\\data\\status\\days_mean.csv')
