@@ -50,6 +50,7 @@ class StatusData:
         
         self.allcows                                = self.allcows_summary()
         self.status_col                             = self.create_status_col()
+        self.combined_status_cols                   = self.create_combined_status_cols()
         self.create_write_to_csv()      
 
         
@@ -142,7 +143,7 @@ class StatusData:
             
         x           = alive_ids1
         alive_ids2  = self.create_stack_df(x)  # this passes x as an argument
-        alive_ids   = pd.DataFrame(alive_ids2, index=[self.datex])
+        alive_ids   = pd.DataFrame(alive_ids2, index=self.datex)
         
         return alive_ids
     
@@ -167,7 +168,7 @@ class StatusData:
             
         x           = nby_ids1    
         nby_ids2   = self.create_stack_df(x)
-        nby_ids    = pd.DataFrame(nby_ids2, index=[self.datex])
+        nby_ids    = pd.DataFrame(nby_ids2, index=self.datex)
         return nby_ids
     
 
@@ -188,7 +189,7 @@ class StatusData:
         x = milkers_ids1    
         
         milkers_ids2    = self.create_stack_df(x)
-        milkers_ids     = pd.DataFrame(milkers_ids2, index=[self.datex])
+        milkers_ids     = pd.DataFrame(milkers_ids2, index=self.datex)
         return milkers_ids
     
 
@@ -285,7 +286,7 @@ class StatusData:
             
         x               = dry_ids1    
         dry_ids2    = self.create_stack_df(x)
-        dry_ids     = pd.DataFrame(dry_ids2, index=[self.datex])
+        dry_ids     = pd.DataFrame(dry_ids2, index=self.datex)
 
         return  dry_ids, dry_count, dry_mask
     
@@ -338,6 +339,58 @@ class StatusData:
     
     
     
+def create_combined_status_cols(self):
+    
+    arr = self.alive_ids
+    a = self.group_a_ids
+    b = self.group_b_ids
+    d = self.dry_ids
+    g = self.gone_ids
+    nby = self.nby_ids
+
+    common_cols = a.columns.intersection(b.columns)
+    cols1 = d.columns
+    cols2 = cols1 + 1
+    cols_str = cols2.astype(str)
+    d.columns = cols_str
+    g.columns = cols_str
+    nby.columns = cols_str
+    
+    x1 = pd.DataFrame(index = d.index, columns=d.columns)
+    for col in d.columns:
+        x1[col] = np.where(   d[col]      == 'D', 'D',
+                        np.where(   g[col]      == 'gone', 'gone',
+                            np.where(   nby[col]    == 'nby', 'nby', '')))
+    
+    x2 = pd.DataFrame(index=a.index, columns=a.columns)
+    for col in a.columns:
+        x2[col] = np.where(a[col] == 'A', 'A',
+                    np.where(b[col] == 'B', 'B', ''))
+        
+    x2_intcols = [int(i) for i in x2.columns]
+    x2a = x2.copy()
+    x2a.columns = x2_intcols
+    x2t = x2a.T.copy()
+
+    idx = pd.RangeIndex(start=1, stop=257, name='idx')
+    new_x2 = x2t.reindex(index=idx)
+    x3 = new_x2.T
+    x3.columns = x1.columns
+    
+    x4 = pd.DataFrame(index = x3.index, columns=x3.columns)
+    for col in x4.columns:
+        x4[col] = np.where(   x1[col]      == 'D', 'D',
+                        np.where(   x1[col]    == 'gone', 'gone',
+                            np.where(   x1[col]    == 'nby', 'nby',
+                                    np.where(    x3[col] == 'A', 'A',
+                                        np.where(    x3[col] == 'B', 'B',"")
+                                             ) )))
+    combined_status_cols = x4
+    return combined_status_cols
+    
+    
+    
+    
     def create_write_to_csv(self):
         
         self.allcows    .to_csv('F:\\COWS\\data\\status\\allcows.csv')
@@ -355,4 +408,6 @@ class StatusData:
 
         self.days_milking_df  .to_csv('F:\\COWS\\data\\status\\days_milking.csv')    
         self.days_mean  .to_csv('F:\\COWS\\data\\status\\days_mean.csv')
+        
+        self.x4.to_csv(('F:\\COWS\\data\\status\\combined_status_x4.csv'))
         
