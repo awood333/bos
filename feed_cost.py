@@ -31,6 +31,11 @@ class FeedCost:
         self.total_feedcost                     = self.create_total_feedcost()
         self.monthly_feedcost                   = self.create_monthly_feedcost()
         self.weekly_feedcost                    = self.create_weekly_feedcost()
+        
+        self.group_a_daily_feed_costpercow      = self.create_group_a_daily_feed_costpercow()
+        self.group_b_daily_feed_costpercow      = self.create_group_b_daily_feed_costpercow()
+        self.dry_daily_feed_costpercow          = self.create_dry_daily_feed_costpercow()
+        
         self.create_write_to_csv()
                                         
         
@@ -49,6 +54,10 @@ class FeedCost:
 
         p1 = pd.merge(daily_amt, price_seq, left_index=True, right_index=True) 
         p  = p1.merge(self.status.allcows,  left_index=True, right_index=True) 
+        
+        p['group_a_costpercow'] = p['group_a_kg']    * p['unit_price']
+        p['group_b_costpercow'] = p['group_b_kg']    * p['unit_price']
+        p['dry_costpercow']     = p['dry_kg']       * p['unit_price']        
         
         p['group_a dailycost']  = p['group_a_kg']    * p['unit_price'] * p['group_a_count']
         p['group_b dailycost']  = p['group_b_kg']    * p['unit_price'] * p['group_b_count']
@@ -75,6 +84,10 @@ class FeedCost:
         p1 = pd.merge(daily_amt, price_seq, left_index=True, right_index=True) 
         p  = p1.merge(self.status.allcows,  left_index=True, right_index=True) 
         
+        p['group_a_costpercow'] = p['group_a_kg']    * p['unit_price']
+        p['group_b_costpercow'] = p['group_b_kg']    * p['unit_price']
+        p['dry_costpercow']     = p['dry_kg']       * p['unit_price']        
+                
         p['group_a dailycost']  = p['group_a_kg']    * p['unit_price'] * p['group_a_count']
         p['group_b dailycost']  = p['group_b_kg']    * p['unit_price'] * p['group_b_count']
         p['dry daily cost']     = p['dry_kg']           * p['unit_price'] * p['dry_count']
@@ -89,10 +102,10 @@ class FeedCost:
 
     def create_corn_cost(self):
         
-        price_seq = pd.read_csv('F:\\COWS\\data\\feed_data\\feed_csv\\corn_price_seq.csv',  header=0, index_col=0, parse_dates=['datex'])  
-        daily_amt  = pd.read_csv('F:\\COWS\\data\\feed_data\\feed_csv\\corn_daily_amt.csv', header=0, index_col=0, parse_dates=['datex'])  
+        price_seq   = pd.read_csv('F:\\COWS\\data\\feed_data\\feed_csv\\corn_price_seq.csv',  header=0, index_col=0, parse_dates=['datex'])  
+        daily_amt   = pd.read_csv('F:\\COWS\\data\\feed_data\\feed_csv\\corn_daily_amt.csv', header=0, index_col=0, parse_dates=['datex'])  
         
-        price_seq = price_seq.reindex (self.date_range, method='ffill')
+        price_seq   = price_seq.reindex (self.date_range, method='ffill')
         price_seq.index.name = 'datex'
             
         daily_amt = daily_amt.reindex(self.date_range, method='ffill')
@@ -100,6 +113,10 @@ class FeedCost:
 
         p1 = pd.merge(daily_amt, price_seq, left_index=True, right_index=True) 
         p  = p1.merge(self.status.allcows,  left_index=True, right_index=True) 
+        
+        p['group_a_costpercow'] = p['group_a_kg']    * p['unit_price']
+        p['group_b_costpercow'] = p['group_b_kg']    * p['unit_price']
+        p['dry_costpercow']     = p['dry_kg']        * p['unit_price']        
         
         p['group_a dailycost']  = p['group_a_kg']    * p['unit_price'] * p['group_a_count']
         p['group_b dailycost']  = p['group_b_kg']    * p['unit_price'] * p['group_b_count']
@@ -109,6 +126,40 @@ class FeedCost:
         corn_cost = pd.DataFrame(p)
         return corn_cost
 
+
+
+    def create_group_a_daily_feed_costpercow(self):
+        corn1       = self.corn_cost['group_a_costpercow']
+        cassava1    = self.cassava_cost['group_a_costpercow']
+        bean1       = self.bean_cost['group_a_costpercow']
+   
+        group_a_daily_feed_costpercow = pd.DataFrame({'corn':corn1, 'cassava':cassava1, 'bean':bean1})
+        group_a_daily_feed_costpercow['a_total'] =group_a_daily_feed_costpercow.sum(axis=1)
+        
+        return group_a_daily_feed_costpercow
+
+
+    def create_group_b_daily_feed_costpercow(self):
+        corn1       = self.corn_cost['group_b_costpercow']
+        cassava1    = self.cassava_cost['group_b_costpercow']
+        bean1       = self.bean_cost['group_b_costpercow']
+        
+        group_b_daily_feed_costpercow = pd.DataFrame({'corn':corn1, 'cassava':cassava1, 'bean':bean1 })
+        group_b_daily_feed_costpercow['b_total'] =group_b_daily_feed_costpercow.sum(axis=1)
+        
+        return group_b_daily_feed_costpercow
+    
+    
+    
+    def create_dry_daily_feed_costpercow(self):
+        corn1       = self.corn_cost['dry_costpercow']
+        cassava1    = self.cassava_cost['dry_costpercow']
+        bean1       = self.bean_cost['dry_costpercow']
+        
+        dry_daily_feed_costpercow = pd.DataFrame({'corn':corn1, 'cassava':cassava1, 'bean':bean1 })
+        dry_daily_feed_costpercow['dry_total'] =dry_daily_feed_costpercow.sum(axis=1)
+        
+        return dry_daily_feed_costpercow
 
 
 
@@ -187,10 +238,15 @@ class FeedCost:
 
 
     def create_write_to_csv(self):
-        self.corn_cost.to_csv('F:\\COWS\\data\\feed_data\\corn_cost.csv')
-        self.cassava_cost.to_csv('F:\\COWS\\data\\feed_data\\cassava_cost.csv')
-
-        self.bean_cost.to_csv('F:\\COWS\\data\\feed_data\\beans_cost.csv')
-        self.monthly_feedcost.to_csv('F:\\COWS\\data\\feed_data\\feed_monthly_weekly\\monthly_feedcost.csv')
-        # self.total_feedcost.to_csv
-        self.weekly_feedcost.to_csv('F:\\COWS\\data\\feed_data\\feed_monthly_weekly\\weekly_feedcost.csv')
+        self.corn_cost          .to_csv('F:\\COWS\\data\\feed_data\\corn_cost.csv')
+        self.cassava_cost       .to_csv('F:\\COWS\\data\\feed_data\\cassava_cost.csv')
+        self.bean_cost          .to_csv('F:\\COWS\\data\\feed_data\\beans_cost.csv')
+        self.total_feedcost     .to_csv('F:\\COWS\\data\\feed_data\\total_feedcost.csv')
+        
+        
+        self.group_a_daily_feed_costpercow  .to_csv('F:\\COWS\\data\\feed_data\\cost_per_cow\\group_a_daily_feed_costpercow.csv')
+        self.group_b_daily_feed_costpercow  .to_csv('F:\\COWS\\data\\feed_data\\cost_per_cow\\group_b_daily_feed_costpercow.csv')
+        self.dry_daily_feed_costpercow      .to_csv('F:\\COWS\\data\\feed_data\\cost_per_cow\\dry_daily_feed_costpercow.csv')
+        
+        self.monthly_feedcost   .to_csv('F:\\COWS\\data\\feed_data\\feed_monthly_weekly\\monthly_feedcost.csv')
+        self.weekly_feedcost    .to_csv('F:\\COWS\\data\\feed_data\\feed_monthly_weekly\\weekly_feedcost.csv')
