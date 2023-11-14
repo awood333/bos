@@ -8,9 +8,9 @@ import openpyxl
 
 class MilkAggregates:
     def __init__(self):
-        self.bd      = pd.read_csv       ('F:\\COWS\\data\\csv_files\\birth_death.csv',                        header=0)
-        self.all     = pd.read_csv       ('F:\\COWS\\data\\insem_data\\all.csv',                               header=0)
-        self.status  = pd.read_csv       ('F:\\COWS\\data\status\\status_column.csv',             index_col=0, header=0)       
+        self.bd      = pd.read_csv       ('F:\\COWS\\data\\csv_files\\birth_death.csv', header=0, parse_dates=['birth_date', 'death_date'])
+        self.all     = pd.read_csv       ('F:\\COWS\\data\\insem_data\\all.csv',        header=0)
+        self.status  = pd.read_csv       ('F:\\COWS\\data\status\\status_col.csv',      header=0, index_col=0, )       
 
         self.lag     = -365
         print('lag = ', self.lag)
@@ -19,15 +19,15 @@ class MilkAggregates:
         self.am, self.pm, self.fullday    = self.fullday_calc()
         self.tenday, self.tenday1         = self.ten_day()
         self.milk                         = self.create_avg_count()
-        self.monthly, self.weekly         = self.create_monthly_weekly()
+        self.monthly, self.weekly, self. monthly_sum, self.monthly_mean         = self.create_monthly_weekly()
         self.write_to_csv()
     
     def basics(self):
 
-        self.AM_liters = pd.read_csv     ('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_liters.csv',    header=0, dtype=float)
+        self.AM_liters = pd.read_csv     ('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_liters.csv',   header=0, dtype=float)
         self.AM_wy   =   pd.read_csv     ('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_wy.csv',       index_col=0, header=0, dtype=float)
         self.PM_liters = pd.read_csv     ('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_liters.csv',   index_col=0, header=0)
-        self.PM_wy   = pd.read_csv       ('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_wy.csv',       index_col=0, header=0)
+        self.PM_wy   =   pd.read_csv     ('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_wy.csv',       index_col=0, header=0)
        
         self.wy      = self.bd['WY_id']
         self.alive1  = self.bd['death_date'].isnull()
@@ -156,9 +156,12 @@ class MilkAggregates:
 
         tenday.index.name='WY_id'
     
-        sumx = tenday.sum(axis=0).astype(float)
+        # sumx = tenday.sum(axis=0).astype(float)
+        # avgx = tenday.mean(axis=0).astype(float)
         # tenday.loc[''] = sumx.round(0)                   # [''] means 'empty row'
+        tenday.loc['avg']   = tenday.mean(axis=0)
         tenday.loc['total'] = tenday.sum(axis=0)
+        
         
         return tenday, tenday1
         
@@ -205,8 +208,10 @@ class MilkAggregates:
 
         monthly1[['avg count', 'avg sum', 'total']] = monthly1[['avg count', 'avg sum', 'total']].map(format_num)
         monthly = monthly1.reset_index(drop=True)
+        monthly_sum = milk_monthly_sum
+        monthly_mean = milk_monthly_mean1
         
-        return monthly, weekly
+        return monthly, weekly, monthly_sum, monthly_mean
 
 
 
@@ -223,6 +228,9 @@ class MilkAggregates:
         # 
         self.weekly.         to_csv('F:\\COWS\data\\milk_data\\totals\\weekly.csv')
         self.monthly.        to_csv('F:\\COWS\data\\milk_data\\totals\\monthly.csv')
+        self.monthly_sum.        to_csv('F:\\COWS\data\\milk_data\\totals\\monthly_sum.csv')
+        self.monthly_mean.        to_csv('F:\\COWS\data\\milk_data\\totals\\monthly_mean.csv')
+        
         #
         self.milk.           to_csv('F:\\COWS\data\\milk_data\\fullday\\milk.csv')
         self.tenday.         to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\ten day.csv')
