@@ -40,12 +40,12 @@ class InsemUltraData:
         self.insem_df        = self.create_insem_df()
         
         self.valid_ultra_df  = self.create_valid_ultra_df()
-        self.ultra_df       = self.create_ultra_df()
+        self.ultra_df        = self.create_ultra_df()
         
-        self.df2             = self.merge_insem_ultra()
-        self.all1            = self.create_expected_bdate()
+        self.df2            = self.merge_insem_ultra()
+        self.all1           = self.create_expected_bdate()
      
-        
+        self.ipiv           = self.create_last_insem_pivot()
         self.create_write_to_csv()
 
         
@@ -91,7 +91,7 @@ class InsemUltraData:
         
         last_calf.drop([i for i in last_calf.columns if '_right' in i], axis=1, inplace=True)
         
-        last_calf.set_index('WY_id', inplace=True)
+        last_calf.reset_index(drop=True, inplace=True)
         return last_calf
     
 
@@ -302,8 +302,31 @@ class InsemUltraData:
         df3.set_index('WY_id', inplace=True)
         all1 = df3
         return all1
+    
+    
+    def create_last_insem_pivot(self):
+        i2 = self.i.drop(columns=['typex', 'readex'])
+        maxcalf1 = self.last_insem[['WY_id','i_calf#', 'death_date']].copy()
+        maxcalf1.rename(columns={'i_calf#': 'maxcalf#'}, inplace=True)
+        maxcalf1.index = maxcalf1.index +1
+        
+        livemask = maxcalf1['death_date'].isnull()
+        # livemask.index = livemask.index +1
 
+        maxcalf3 = maxcalf1[livemask].fillna(0)
            
+        pivdata1 = i2.merge(maxcalf3, how='right', left_on=['WY_id', 'calf_num'], right_on=['WY_id', 'maxcalf#'])
+        pivdata2 = pivdata1.dropna(subset=['calf_num'])
+        
+        
+        ipiv = pd.pivot_table(pivdata2, 
+                    index=['WY_id', 'calf_num' ], 
+                    columns=['try_num' ],
+                    values='insem_date'  ,
+                    aggfunc= 'max'
+                    )
+        return ipiv
+
     
     def create_write_to_csv(self):
         
@@ -322,4 +345,5 @@ class InsemUltraData:
         
         self.last_ultra_insem.to_csv('F:\\COWS\\data\\insem_data\\last_ultra_insem.csv')
         self.all1           .to_csv('F:\\COWS\\data\\insem_data\\all.csv')
+        self.ipiv           .to_csv ('F:\\COWS\\data\\insem_data\\ipiv.csv')
 
