@@ -23,7 +23,7 @@ class Cow_PL:
         self.f1  = pd.read_csv('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv',index_col=0, header=0, parse_dates=['datex'])
         self.mms = pd.read_csv('F:\\COWS\\data\\milk_data\\totals\\monthly_sum.csv',index_col=None, header=0)
         self.minc =  pd.read_csv('F:\\COWS\\data\\PL_data\\milk_income\\milk_income.csv',index_col=None, header=0, parse_dates=['datex'])
-        self.bd     =  pd.read_csv('F:\\COWS\\data\\csv_data\\birth_death.csv', header=0, index_col='datex' ,
+        self.bd     =  pd.read_csv('F:\\COWS\\data\\csv_files\\birth_death.csv', header=0, index_col='WY_id' ,
                                    parse_dates=['birth_date','death_date','arrived', 'adj_bdate'])
         
         
@@ -98,9 +98,10 @@ class Cow_PL:
             raise ValueError('indices not same')
  
         di = pd.DataFrame(index=self.f.index)
-        for col in self.f.columns:
-            di[col] = self.f[col] * self.daily_price['net_price']
-
+        
+        di = pd.concat([self.f[col] * self.daily_price['net_price'] for col in self.f.columns ], axis=1)
+        di.columns = self.f.columns
+        
         daily_income = di
         return daily_income
 
