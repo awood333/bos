@@ -5,12 +5,12 @@ from datetime import datetime
 tdy1=today=np.datetime64('today','D')
 tdy=str(tdy1)
 
-bd=pd.read_csv  ('F:\\COWS\\data\\csv_files\\birth_death.csv')
-lb=pd.read_csv  ('F:\\COWS\\data\\csv_files\\live_births.csv')
-i=pd.read_csv   ('F:\\COWS\\data\\csv_files\\insem.csv')
-sd=pd.read_csv  ('F:\\COWS\\data\\csv_files\\stop_dates.csv')
-m=pd.read_csv   ('F:\\COWS\\data\\csv_files\\miscarries.csv')
-u=pd.read_csv   ('F:\\COWS\\data\\csv_files\\ultra.csv')
+bd = pd.read_csv  ('F:\\COWS\\data\\csv_files\\birth_death.csv')
+lb = pd.read_csv  ('F:\\COWS\\data\\csv_files\\live_births.csv')
+i  = pd.read_csv  ('F:\\COWS\\data\\csv_files\\insem.csv')
+sd = pd.read_csv  ('F:\\COWS\\data\\csv_files\\stop_dates.csv')
+m  = pd.read_csv  ('F:\\COWS\\data\\csv_files\\miscarries.csv')
+u  = pd.read_csv  ('F:\\COWS\\data\\csv_files\\ultra.csv')
 
 #
 # amliters=   pd.read_csv     ('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_liters.csv')

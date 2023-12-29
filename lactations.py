@@ -20,10 +20,11 @@ class Lactations:
         
         self.ma      = StatusModuleAdjustment()
         self.all    = self.ma.all
+        self.all.set_index('WY_id', inplace=True)
   
         self.max_milking_cownum  = self.milk.T.index.max()    # no heifers
         self.max_bd_cownum       = self.bd.index.max()        # including heifers
-        self.cutoffdate          = pd.to_datetime('2023-04-01',format='%Y-%m-%d')
+        self.cutoffdate          = pd.to_datetime('2023-01-01',format='%Y-%m-%d')
       
         self.maxmilkdate         =  pd.to_datetime(self.milk.index.max(),format='%m/%d/%Y')
     
@@ -34,18 +35,20 @@ class Lactations:
 
         self.milk_df, self.cowlist                  = self.create_milk_df()
         self.lact_np, self.lact_df, self.colnames   = self.create_array()
-        self.lactwk                                 = self.create_weekly()
+        self.lactwk, self.lactwkT                   = self.create_weekly()
         self.create_write_to_csv()      
         
 
      
     def create_lastbirth(self):
+        # filters the rows in the 'last calf bdate' column based on the boolean mask, returning only the rows where the condition is True
         lastcalf = (self.all['last calf bdate'] [ self.all[  'last calf bdate'] > self.cutoffdate] ).to_frame(name='lastcalf')
         laststop = (self.all['last stop date']  [ (self.all['last stop date'])  > self.all['last calf bdate']]).to_frame(name='laststop')
         dd       = (self.all[ 'death_date'   ]  [ (self.all['death_date'])      > self.all['last calf bdate']]).to_frame(name='dd')
 
-        all2 = lastcalf.merge(laststop, how='left', left_index=True, right_index=True)
-        all1 = all2.    merge(dd, how='left', left_index=True, right_index=True)
+        all2  = lastcalf.merge(laststop, how='left', left_index=True, right_index=True, suffixes=('_calf', '_stop'))
+        all1a = all2.    merge(dd, how='left', left_index=True, right_index=True, suffixes=('_all', '_dd'))
+        all1  = all1a.  merge(self.all['last calf#'], left_index=True, right_index=True)
         
         all1['laststop'] = all1['laststop'].fillna(self.maxmilkdate) 
         cows = all1
@@ -54,8 +57,9 @@ class Lactations:
     
     
     def create_milk_df(self):
-        cowlist = list(self.cows.index)
-        milk_df = self.milk.iloc[:,cowlist]
+        cowlist1 = list(self.cows.index)
+        cowlist = [str(i) for i in cowlist1]
+        milk_df = self.milk.loc[:,cowlist]
         return milk_df, cowlist
 
 
@@ -97,11 +101,16 @@ class Lactations:
     def create_weekly(self):
         grouping_key    = (self.lact_df.index // 7) # the //7 creates the 7 row grouping
         lactwk          = self.lact_df.groupby(grouping_key).mean()
-        return lactwk
+        lactwkT1         = lactwk.T
+        lactwkT1.index = lactwkT1.index.astype(int)
+        
+        lactwkT         = pd.concat([lactwkT1, self.all1['last calf#']], axis=1, join='outer')
+        return lactwk, lactwkT
          
     
     def create_write_to_csv(self):
         self.lact_df.to_csv('F:\\COWS\\data\\milk_data\\lactations\\lact_daily.csv')
         self.lactwk .to_csv('F:\\COWS\\data\\milk_data\\lactations\\lact_wk.csv')
+        self.lactwkT.to_csv('F:\\COWS\\data\\milk_data\\lactations\\lact_wkT.csv')
 
 

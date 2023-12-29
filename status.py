@@ -143,7 +143,7 @@ class StatusData:
             
         x           = alive_ids1
         alive_ids2  = self.create_stack_df(x)  # this passes x as an argument
-        alive_ids   = pd.DataFrame(alive_ids2, index=self.datex)
+        alive_ids   = pd.DataFrame(alive_ids2, index=self.datex, columns=alive_ids1.columns)
         
         return alive_ids
     
@@ -189,7 +189,7 @@ class StatusData:
         x = milkers_ids1    
         
         milkers_ids2    = self.create_stack_df(x)
-        milkers_ids     = pd.DataFrame(milkers_ids2, index=self.datex)
+        milkers_ids     = pd.DataFrame(milkers_ids2, index=self.datex, columns=milkers_ids1.columns)
         return milkers_ids
     
 

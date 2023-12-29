@@ -3,7 +3,7 @@ financial_stuff.py
 '''
 import pandas as pd
 # import numpy as np
-from IPython.display import display
+# from IPython.display import display
 from feed_cost import FeedCost 
 from startdate_funct import CreateStartdate
 

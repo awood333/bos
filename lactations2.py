@@ -3,8 +3,8 @@ import pandas as pd
 import numpy as np
 lb = pd.read_csv('F:\\COWS\\data\\csv_files\\live_births.csv',header=0,parse_dates=['b_date'])
 bd = pd.read_csv('F:\\COWS\\data\\csv_files\\birth_death.csv',header=0,parse_dates=['birth_date','death_date'])
+
 cutoffdate = pd.to_datetime('9/1/2022',format='%m/%d/%Y')
-# 
 
 newcows1 = (lb.loc[(
     lb['calf#'] == 1

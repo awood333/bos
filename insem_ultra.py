@@ -91,7 +91,7 @@ class InsemUltraData:
         
         last_calf.drop([i for i in last_calf.columns if '_right' in i], axis=1, inplace=True)
         
-        last_calf.reset_index(drop=True, inplace=True)
+        last_calf.set_index('WY_id', inplace=True)
         return last_calf
     
 
@@ -111,7 +111,7 @@ class InsemUltraData:
         
         last_stop.drop([i for i in last_stop.columns if '_right' in i], axis=1, inplace=True)
         
-        last_stop.reset_index(drop=True, inplace=True)
+        last_stop.set_index('WY_id', inplace=True)
         last_stop['last stop date'].fillna(np.nan, inplace=True)
         return last_stop
     
@@ -130,7 +130,7 @@ class InsemUltraData:
             suffixes=('', "_right"))
         
         df.drop([i for i in df.columns if '_right' in i], axis=1, inplace=True)
-        df.reset_index( drop=True, inplace=True)
+        # index is WY_id
         return df
 
 
@@ -153,7 +153,7 @@ class InsemUltraData:
         
         last_insem.drop([i for i in last_insem.columns if '_right' in i], axis=1, inplace=True)
         
-        last_insem.reset_index(drop=True, inplace=True)
+        last_insem.set_index('WY_id', inplace=True)
         last_insem['i_date'].fillna(np.nan, inplace=True)
         return last_insem
     
@@ -182,7 +182,7 @@ class InsemUltraData:
         
         last_ultra.drop([i for i in last_ultra.columns if '_right' in i], axis=1, inplace=True)
         
-        last_ultra.reset_index(drop=True, inplace=True)
+        last_ultra.set_index('WY_id', inplace=True)
         last_ultra['u_date'].fillna(np.nan, inplace=True)
         return last_ultra
     
@@ -195,6 +195,7 @@ class InsemUltraData:
                                     # keep values from both df's with 'outer'          
         last_ultra_insem = self.last_insem.merge(self.last_ultra, on='WY_id', how='outer', 
             suffixes=('_insem', '_ultra'))
+        # last_ultra_insem.set_index('WY_id', inplace=True)
         return last_ultra_insem
     
 
@@ -212,7 +213,7 @@ class InsemUltraData:
         
         valid_insem_df.drop([i for i in valid_insem_df.columns if '_right' in i], axis=1, inplace=True)
         
-        valid_insem_df.reset_index(drop=True, inplace=True)
+        valid_insem_df.set_index('WY_id', inplace=True)
         return valid_insem_df
 
 
@@ -226,6 +227,7 @@ class InsemUltraData:
             suffixes=('', "_right"))
         
         insem_df.drop([i for i in insem_df.columns if '_right' in i], axis=1, inplace=True)
+        # insem_df.set_index('WY_id', inplace=True)  WY_id is already the index
         return insem_df
 
 
@@ -244,7 +246,7 @@ class InsemUltraData:
         valid_ultra_df   = self.last_ultra.merge(right=valid_ultra_mask_df, on='WY_id', 
                                 how='left', suffixes=('_left', ""))
         
-        valid_ultra_df.reset_index(drop=True, inplace=True)
+        # valid_ultra_df.set_index('WY_id', inplace=True)
         
         valid_ultra_df.drop([i for i in valid_ultra_df.columns if '_left' in i], axis=1, inplace=True)
         return valid_ultra_df
@@ -260,6 +262,8 @@ class InsemUltraData:
             suffixes=('', "_right"))
         
         ultra_df.drop([i for i in ultra_df.columns if '_right' in i], axis=1, inplace=True)
+        # ultra_df.set_index('WY_id', inplace=True)
+        
         return ultra_df
     
     
@@ -274,6 +278,7 @@ class InsemUltraData:
         
         df2 = pd.merge(self.df, df2a, on='WY_id',  suffixes=('', "_right") )
         df2.drop([i for i in df2.columns if '_right' in i], axis=1, inplace=True)
+        # df2.set_index('WY_id', inplace=True)
         
         return df2
     
@@ -291,33 +296,31 @@ class InsemUltraData:
         bde1 = self.df2[bdemask].copy()
         
         bde1['expected bdate'] = bde1['i_date'] + pd.to_timedelta(282, unit='D')
-        bde = bde1[['WY_id', 'expected bdate']]
-        bde.set_index('WY_id', inplace=True)
+        bde = bde1['expected bdate']
+        # bde.set_index('WY_id', inplace=True)
         
         
         df3  = self.df2.merge(right=bde, on='WY_id', how='left' )
         
         # df3.drop([i for i in df3.columns if '_left' in i], axis=1, inplace=True)
         df3.drop(columns= 'adj_bdate', inplace=True)
-        df3.set_index('WY_id', inplace=True)
+        # df3.set_index('WY_id', inplace=True)
         all1 = df3
         return all1
     
     
     def create_last_insem_pivot(self):
         i2 = self.i.drop(columns=['typex', 'readex'])
-        maxcalf1 = self.last_insem[['WY_id','i_calf#', 'death_date']].copy()
+    
+        maxcalf1 = self.last_insem[['i_calf#', 'death_date']].copy()
         maxcalf1.rename(columns={'i_calf#': 'maxcalf#'}, inplace=True)
-        maxcalf1.index = maxcalf1.index +1
         
         livemask = maxcalf1['death_date'].isnull()
-        # livemask.index = livemask.index +1
 
         maxcalf3 = maxcalf1[livemask].fillna(0)
            
         pivdata1 = i2.merge(maxcalf3, how='right', left_on=['WY_id', 'calf_num'], right_on=['WY_id', 'maxcalf#'])
         pivdata2 = pivdata1.dropna(subset=['calf_num'])
-        
         
         ipiv = pd.pivot_table(pivdata2, 
                     index=['WY_id', 'calf_num' ], 
