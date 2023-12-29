@@ -25,6 +25,7 @@ class FeedCost:
         self.f = self.f1.loc[self.date_range].copy()    #partition the milk dbase
     
         #functions
+       
         self.cassava_cost                       = self.create_cassava_cost()
         self.bean_cost                          = self.create_beans_cost()
         self.corn_cost                          = self.create_corn_cost()
@@ -38,8 +39,12 @@ class FeedCost:
         self.group_b_daily_feed_costpercow      = self.create_group_b_daily_feed_costpercow()
         self.dry_daily_feed_costpercow          = self.create_dry_daily_feed_costpercow()
         self.latest_daily_feed_costpercow       = self.create_latest_daily_feed_costpercow()
+
+        # self.create_feed_cost()
         self.create_write_to_csv()
         
+        
+
     def create_cassava_cost(self):
         return create_feed_cost(self, 'cassava')
     
@@ -52,6 +57,7 @@ class FeedCost:
     def create_straw_cost(self):
         return create_feed_cost(self, 'straw')                              
 
+
         
     def create_group_a_daily_feed_costpercow(self):
         group_a_daily_feed_costpercow = pd.DataFrame({
@@ -61,7 +67,7 @@ class FeedCost:
              'straw'    : self.straw_cost   ['group_a_costpercow']
              })
         
-        group_a_daily_feed_costpercow['b_total'] =group_a_daily_feed_costpercow.sum(axis=1)
+        group_a_daily_feed_costpercow['A total'] =group_a_daily_feed_costpercow.sum(axis=1)
         return group_a_daily_feed_costpercow
     
     
@@ -75,7 +81,7 @@ class FeedCost:
              'straw'    : self.straw_cost['group_b_costpercow']
              })
         
-        group_b_daily_feed_costpercow['b_total'] =group_b_daily_feed_costpercow.sum(axis=1)
+        group_b_daily_feed_costpercow['B total'] =group_b_daily_feed_costpercow.sum(axis=1)
         return group_b_daily_feed_costpercow
     
     
@@ -88,7 +94,7 @@ class FeedCost:
             'straw'     : self.straw_cost['dry_costpercow']
             })
         
-        dry_daily_feed_costpercow['dry_total'] =dry_daily_feed_costpercow.sum(axis=1)
+        dry_daily_feed_costpercow['dry total'] =dry_daily_feed_costpercow.sum(axis=1)
         # ddfc = dry_daily_feed_costpercow.iloc[-1:,:]
         return dry_daily_feed_costpercow
 
@@ -158,12 +164,12 @@ class FeedCost:
         bean2       = bean1.    drop(columns=['feed_type_x', 'feed_type_y'])
         cassava2    = cassava1. drop(columns=['feed_type_x', 'feed_type_y'])
         corn2       = corn1.    drop(columns=['feed_type_x', 'feed_type_y'])
-        straw2      = straw1.    drop(columns=['feed_type_x','feed_type_y'])
+        straw2      = straw1.   drop(columns=['feed_type_x', 'feed_type_y'])
 
         bean3       = bean2.    groupby(['year','month','week'],   as_index=False).mean()
         cassava3    = cassava2. groupby(['year','month','week'],   as_index=False).mean()
         corn3       = corn2.    groupby(['year','month','week'],   as_index=False).mean()
-        straw3      = straw2.    groupby(['year','month','week'],  as_index=False).mean()
+        straw3      = straw2.   groupby(['year','month','week'],   as_index=False).mean()
 
         bean4       = bean3     ['total daily cost'].to_frame()        # [['milkers', 'dry_count', 'milk+dry','total daily cost']]
         cassava4    = cassava3  ['total daily cost'].to_frame()
@@ -190,23 +196,29 @@ class FeedCost:
     
     def create_latest_daily_feed_costpercow(self):
         ddfc = self.dry_daily_feed_costpercow.iloc[-1:,:].copy()
-        ddfc.rename(columns={'dry_total': 'total'}, inplace=True)
+        ddfc.rename(columns={'dry total': 'total'}, inplace=True)
+        ddfc.reset_index(inplace=True)
+        ddfc.drop(columns=['datex'],inplace=True)
+
+        adfc = self.group_a_daily_feed_costpercow.iloc[-1:,:].copy()
+        adfc.rename(columns={'A total': 'total'}, inplace=True)
+        adfc.reset_index(inplace=True)
+        adfc.drop(columns=['datex'],inplace=True)
+       
+        bdfc = self.group_b_daily_feed_costpercow.iloc[-1:,:].copy()
+        bdfc.rename(columns={'B total': 'total'}, inplace=True)
+        bdfc.reset_index(inplace=True)
+        bdfc.drop(columns=['datex'],inplace=True)
         
+        name_col = [ 'group a', 'group b', 'dry' ]
         
-        ddga = self.group_a_daily_feed_costpercow.iloc[-1:,:].copy()
-        ddga.rename(columns={'a_total': 'total'}, inplace=True)
-        
-        ddgb = self.group_b_daily_feed_costpercow.iloc[-1:,:].copy()
-        ddgb.rename(columns={'b_total': 'total'}, inplace=True)
-        
-        
-        name_col = ['dry', 'group a', 'group b']
-        
-        latest_daily_feed_costpercow = pd.concat([ddfc, ddga, ddgb])
-        latest_daily_feed_costpercow['group'] = name_col
-        latest_daily_feed_costpercow['liter equiv'] = latest_daily_feed_costpercow['total'] / 21.25
+        latest_daily_feed_costpercow = pd.concat([ddfc.T, adfc.T, bdfc.T], axis=1)
+        latest_daily_feed_costpercow.columns = name_col 
+        # latest_daily_feed_costpercow['liter equiv'] = latest_daily_feed_costpercow['total'] / 21
         
         return latest_daily_feed_costpercow
+    
+
     
     
 
@@ -229,11 +241,10 @@ class FeedCost:
         self.weekly_feedcost    .to_csv('F:\\COWS\\data\\feed_data\\feed_monthly_weekly\\weekly_feedcost.csv')
         
         
-        
-        
+        #   note: must stay outside the class
 
-def create_feed_cost(self, feed_type)    :
-    
+def create_feed_cost(self, feed_type):
+        
     base_path = 'F:/COWS/data/feed_data/feed_csv'
     self.price_seq_path = os.path.join(base_path, f'{feed_type}_price_seq.csv')
     self.daily_amt_path = os.path.join(base_path, f'{feed_type}_daily_amt.csv')
@@ -276,3 +287,4 @@ def create_feed_cost(self, feed_type)    :
     varname = pd.DataFrame(p)
         
     return varname
+
