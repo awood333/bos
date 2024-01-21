@@ -1,3 +1,5 @@
+'''wet_dry.py'''
+
 import pandas as pd
 import numpy as np
 from datetime import datetime as dt
@@ -34,20 +36,25 @@ class WetDry:
 
 
       #functions
-        (self.today,        self.not_heifers1, 
-        self.start_1,    self.stop_1, 
-        self.start_2,    self.stop_2,         
+        (self.today,    self.not_heifers1, 
+        self.start_1,   self.stop_1, 
+        self.start_2,   self.stop_2,         
         self.cowBdate,  self.cowDdate,
         self.max_start, self.max_stop,
         self.diff_last_stop_deathdate)              = self.create_basics()
         
         self.milk_array                             = self.create_array_for_milk()
-        
-        (self.wet, self.cols, self.rows,)            = self.create_wet()
-        
-        self.dry                                    = self.create_dry()
 
-        (self.stop_death_gap)             = self.create_days_laststop_death()
+        ( self.cols,        self.rows, 
+        self.wet3,          self.wet4,
+        self.milking3,      self.milking4,
+    
+        )        = self.create_wet()
+        
+        
+        self.dry, self.drysum                       = self.create_dry()
+
+        (self.stop_death_gap)                       = self.create_days_laststop_death()
 
         (self.wetdry_dates, self.wetdry_duration,
         self.wetdry_sum)                            = self.merge_wet_dry_intervals_in_sequence()
@@ -68,11 +75,11 @@ class WetDry:
         start_2 = self.startpivot.reindex(self.milk.T.index.astype(np.int64))
         stop_2  = self.stoppivot .reindex(self.milk.T.index.astype(np.int64))
 
-        start_2.rename_axis( 'WY_id', inplace=True)
-        stop_2 .rename_axis( 'WY_id', inplace=True)
-
         start_1 = start_2.T
         stop_1  = stop_2.T
+        
+        start_1.rename_axis( 'WY_id', inplace=True)
+        stop_1 .rename_axis( 'WY_id', inplace=True)
 
         cowBdate = bd['birth_date']
         cowDdate = bd['death_date']
@@ -92,13 +99,10 @@ class WetDry:
             max_start, max_stop,   diff_last_stop_deathdate
 
 
-
-
-
     def create_array_for_milk(self):
         r  = len(self.milk)                            
 
-        headx   = '9/8/2018'
+        headx   = '8/9/2018'
         heady   = '9/1/2016'
         head    = ((pd.to_datetime(headx, format='%m/%d/%Y')) - (pd.to_datetime(heady, format='%m/%d/%Y'))).days + 1
         # head is number of days betwee headx and heady
@@ -110,7 +114,8 @@ class WetDry:
 
         milkfill1.columns   = self.milk.columns
         milkfill1.index     = pd.to_datetime(milkfill1.index)                  
-        milk_array          = pd.concat((milkfill1 ,milk), axis=0)  #blank array from 9/1/2016 joined to 2018/8/10 to most recent milk day (len
+        milk_array          = pd.concat((milkfill1 ,milk), axis=0).sort_index()  #blank array from 9/1/2016 joined to 2018/8/10 to most recent milk day (len
+        milk_array.replace(0, "", inplace=True )
 
         return milk_array
     
@@ -119,11 +124,11 @@ class WetDry:
  
     def create_wet(self):           # WET (completed lactation) + STILL MILKING
 
-        wet1, milking1 = 0, 0
-        wet2, wet3, milking2, milking3 = [], [], [], []
-
-
-
+        ( wet2,         wet3, 
+        milking1,       milking2,
+         milking3     
+)       = [], [], [], [],[]
+        
         rows = list( self.stop_1.index)      #integers
         cols = self.start_1.columns  #integers decremented by 1
         
@@ -131,59 +136,68 @@ class WetDry:
             for i in rows:
                 start       = self.start_1          .loc[i,j]
                 stop        = self.stop_1           .loc[i,j]
-                max_start_x    = self.max_start [j]
-                max_stop_x      = self.max_stop  [j]
+                max_start_x = self.max_start [j]
+                max_stop_x  = self.max_stop  [j]
                 dd          = bd['death_date'][j]
+               
         
                 if( ( pd.isnull(start) == False)                  #if start and stop both exist 
                     &   ( pd.isnull(stop) == False)
                     &   ((dd >= max_start_x) | pd.isnull(dd)==True)  # and cow is bd_alive
                     ):           
-                    wet1=(stop-start)/np.timedelta64(1,'D')       #this is a completed lactation  
+                    wet1=(stop-start)/np.timedelta64(1,'D')       #this is a completed lactation
+                    milking1 = ''
           
         
                 elif( (pd.isnull(start) == False)                 #if start exists ...
                     &   (pd.isnull(stop)==True)                   #and stop does NOT, 
                     &   (start==max_start_x)                         #and this is the last start
-                    &   ((dd > max_start_x) | pd.isnull(dd)==True)   #and cow is still bd_alive
+                    &   (((dd > max_start_x) | pd.isnull(dd)==True))
                     ):
+
                     milking1=(self.today - start)/np.timedelta64(1,'D')     #then it must still be 'milking'
 
-                       
-                milking2    .append(milking1)
-                wet2        .append(wet1)
-                milking1, wet1=0,0
 
-            wet3    .append(wet2)
+                elif( (pd.isnull(start) == True)                 #if neither exists then
+                    &   (pd.isnull(stop)==True)                   # fill with a blank
+                    &   (start==max_start_x)                       
+                ):
+                  milking1, wet1  = "",""
+                  
+                wet2.append(wet1)
+                
+                if 'milking1' in locals():  # use this if the var might not exist eg 'milking'
+                    milking2.append(milking1)
+
+                wet1, milking1 = '', ''
+
+            wet3.append(wet2)
             milking3.append(milking2)
+            wet2, milking2= [],[]
 
-            wet2, milking2 = [],[]
-        
-        milking4    = pd.DataFrame(milking3) #256,6
-        wet4        = pd.DataFrame(wet3)
+            wetnp = np.array(wet3)
+            milkingnp = np.array(milking3)
 
+        wet4        = pd.DataFrame(wetnp, columns=rows)
+        milking4    = pd.DataFrame(milkingnp, columns=rows) 
 
-# 'milking' can only happen in the current lactation, which could be any lactation 
-# -this section puts them all into one column: 'milking'
- 
-        z = []
-        j = 0
+        wetsum = wet4.sum(axis=1)
+        wet4['wetsum'] = wetsum 
+
+        milkingsum = milking4.sum(axis=1)
+        milking4['milking sum'] = milkingsum
+
         milking4.index += 1
-        for j in cols:            
-            x = milking4.T.loc[:,j]
-            y = list(filter(None,x))
-            z.append(y)
-        milking = pd.DataFrame(z,columns=['milking'])
-        
-        wet4['milking']     = milking   #adds the 'milking' col 
-        wetsum              = wet4.sum(axis=1)
-        wet4['wetsum']      = wetsum
-        wet4.rename(columns = {0:'w1', 1:'w2', 2:'w3', 3:'w4', 4:'w5', 5:'w6'},inplace=True)
-        wet4.index.name     = 'WY_id'
+        wet4.index += 1
 
-        wet = wet4
+        return (cols,           rows,     
+                wet3,           wet4, 
+                milking3,       milking4
+                
+                )
+    x=1
+    
 
-        return wet, cols, rows
 
     def create_dry(self):
 
@@ -222,7 +236,7 @@ class WetDry:
         dry4.index.name     = 'WY_id'
 
         dry = dry4
-        return dry
+        return dry, drysum
     
     def create_days_laststop_death(self):
 
@@ -251,7 +265,7 @@ class WetDry:
 
 
     def merge_wet_dry_intervals_in_sequence(self):
-        a3,b3,a2,b2={},[],[],[]
+        a3,b3,a2,b2=[],[],[],[]
 
         cols = self.start_1.columns
         i=6
@@ -272,17 +286,17 @@ class WetDry:
                                         axis=1,
                                         ignore_index=False).reindex(columns=wetdry_datenames)  
           
-        wetdry_duration =     pd.concat([self.wet,self.dry],
+        wetdry_duration =     pd.concat([self.wet4,self.dry],
                                         join='outer',
                                         axis=1,
                                         ignore_index=False)
 
-        wetdry_sum =   pd.concat([self.wet['wetsum'], self.dry['drysum']], 
+        wetdry_sum =   pd.concat([self.wetsum, self.drysum], 
                                         join='outer', 
                                         axis=1,  
                                         ignore_index=False)
         
-        wetdry_sum['total days'] = wetdry_sum['wetsum'] + wetdry_sum['drysum']
+        wetdry_sum['total days'] = (self.wetsum + self.drysum)
 
 
 
@@ -324,15 +338,15 @@ class WetDry:
 
 
         wetdry_all['wetdry_sum'] =self.wetdry_sum['total days']
-        wetdry_all['wet']       = self.wet['wetsum']
-        wetdry_all['dry']       = self.dry['drysum']
+        wetdry_all['wet']       = self.wetsum
+        wetdry_all['dry']       = self.drysum
         wetdry_all['gap']       = self.stop_death_gap['gap']
 
 
 
         wetdry_all['comp'] = wetdry_all['possible_days'] - wetdry_all['wetdry_sum']
-        wet_pct1=            self.wet['wetsum'] / wetdry_all['possible_days']
-        dry_pct1=            self.dry['drysum'] / wetdry_all['possible_days']
+        wet_pct1=            self.wetsum / wetdry_all['possible_days']
+        dry_pct1=            self.drysum / wetdry_all['possible_days']
         
         wetdry_all['wet_pct'] = wet_pct1
         wetdry_all['dry_pct'] = dry_pct1
@@ -346,3 +360,10 @@ class WetDry:
         self.wetdry_dates    .to_csv('F:\\COWS\\data\\wet_dry\\wetdrydates.csv')   
         self.wetdry_duration .to_csv('F:\\COWS\\data\\wet_dry\\wetdryduration.csv')   
         self.wetdry_all      .to_csv('F:\\COWS\\data\\wet_dry\\wetdry_all.csv')
+
+
+
+
+
+
+
