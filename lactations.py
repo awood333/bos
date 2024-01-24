@@ -1,116 +1,150 @@
-'''
-lactations.py
-'''
+'''lactations.py'''
  
 import pandas as pd    #123   456
 import numpy as np
-from datetime import datetime as dt
-from datetime import timedelta as td
-from insem_ultra import InsemUltraData
+# from datetime       import datetime as dt
+# from datetime       import timedelta as td
+from wet_dry        import WetDry
+from insem_ultra    import InsemUltraData
+from status         import StatusData
 from status_module_adjustment import StatusModuleAdjustment
+
 
 class Lactations:
     def __init__(self):
 
-        self.start   = pd.read_csv    ('F:\\COWS\\data\\csv_files\\live_births.csv',     header = 0, parse_dates = ['b_date'])
-        self.stop    = pd.read_csv    ('F:\\COWS\\data\\csv_files\\stop_dates.csv',      header = 0, parse_dates = ['stop'])
-        self.milk    = pd.read_csv    ('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv', header = 0, index_col   = 'datex', parse_dates=['datex'])
-        self.bd      = pd.read_csv    ('F:\\COWS\\data\\csv_files\\birth_death.csv',     header = 0, parse_dates = ['birth_date','death_date'])
-        
-        
-        self.ma      = StatusModuleAdjustment()
-        self.all    = self.ma.all
-        self.all.set_index('WY_id', inplace=True)
-  
+        self.start  = pd.read_csv    ('F:\\COWS\\data\\csv_files\\live_births.csv',     header = 0, parse_dates = ['b_date'])
+        self.stop   = pd.read_csv    ('F:\\COWS\\data\\csv_files\\stop_dates.csv',      header = 0, parse_dates = ['stop'])
+        self.milk   = pd.read_csv    ('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv', header = 0, index_col   = 'datex', parse_dates=['datex'])
+        self.bd     = pd.read_csv    ('F:\\COWS\\data\\csv_files\\birth_death.csv',     header = 0, parse_dates = ['birth_date','death_date'])
+
+        self.ma     = StatusModuleAdjustment()
+        self.sd     = StatusData()
+        self.iud    = InsemUltraData()
+        self.wd     = WetDry()
+    
         self.max_milking_cownum  = self.milk.T.index.max()    # no heifers
         self.max_bd_cownum       = self.bd.index.max()        # including heifers
-        self.cutoffdate          = pd.to_datetime('2023-01-01',format='%Y-%m-%d')
-      
-        self.maxmilkdate         =  pd.to_datetime(self.milk.index.max(),format='%m/%d/%Y')
-    
 
-        
         # functions
-        self.cows, self.laststop, self.lastcalf, self.all1, self.all2  = self.create_lastbirth()
+        self.lact4               = self.create_lactations()
+        self.lact_1              = self.create_lactation_1()
+        self.lact_2              = self.create_lactation_2()
+        self.lact_3              = self.create_lactation_3()
 
-        self.milk_df, self.cowlist                  = self.create_milk_df()
-        self.lact_np, self.lact_df, self.colnames   = self.create_array()
-        self.lactwk, self.lactwkT                   = self.create_weekly()
-        self.create_write_to_csv()      
+        self.create_write_to_csv()
+
+    def create_lactations(self):
+        milk_array = self.wd.milk_array
+        rows = list( self.wd.stop_1.index)      #integers
+        cols = self.wd.start_1.columns  #integers decremented by 1
+
+        lact2, lact3, lact4 = [],[],[]
+
+        for j in rows:
+            for i in cols:
+                start       = self.wd.start_1 .loc[j,i]
+                stop        = self.wd.stop_1  .loc[j,i]
+
+                lact1 = milk_array.loc[start:stop,[str(i)]]
+                lact1.reset_index(drop=True, inplace=True)
+                lact2.append(lact1)
+            lact3.append(lact2)
+            lact2 = []
+        lact4.append(lact3)
+        lact3=[]
+        return lact4
+
+
+    def create_lactation_1(self):
+        lact, lact_1, subarray = [],[],[]
+        max_len = 1000
+        subarray1 = self.lact4[0][0]
         
+        for df in subarray1:
+            i= df.iloc[:,0]
 
-     
-    def create_lastbirth(self):
-        # filters the rows in the 'last calf bdate' column based on the boolean mask, returning only the rows where the condition is True
-        lastcalf = (self.all['last calf bdate'] [ self.all[  'last calf bdate'] > self.cutoffdate] ).to_frame(name='lastcalf')
-        laststop = (self.all['last stop date']  [ (self.all['last stop date'])  > self.all['last calf bdate']]).to_frame(name='laststop')
-        dd       = (self.all[ 'death_date'   ]  [ (self.all['death_date'])      > self.all['last calf bdate']]).to_frame(name='dd')
+            if not i.empty:
 
-        all2  = lastcalf.merge(laststop, how='left', left_index=True, right_index=True, suffixes=('_calf', '_stop'))
-        all1a = all2.    merge(dd, how='left', left_index=True, right_index=True, suffixes=('_all', '_dd'))
-        all1  = all1a.  merge(self.all['last calf#'], left_index=True, right_index=True)
-        
-        all1['laststop'] = all1['laststop'].fillna(self.maxmilkdate) 
-        cows = all1
-        return cows, lastcalf, laststop, all1, all2
+                sf = pd.to_numeric(i, errors='coerce')
+                sf = sf.dropna()
+                subarray.append(sf)
+
+        for i in subarray:
+            pad = (max_len - len(i))
+            len_i = len(i)
+            padx = pad+len_i
+            xx = np.pad(i,(0,pad),'constant')
+
+            lact.append(xx)
+        lact_1x = np.vstack(lact)
+        lact_1 = pd.DataFrame(lact_1x)
+
+        return     lact_1
+
+
     
-    
-    
-    def create_milk_df(self):
-        cowlist1 = list(self.cows.index)
-        cowlist = [str(i) for i in cowlist1]
-        milk_df = self.milk.loc[:,cowlist]
-        return milk_df, cowlist
-
-
-    def create_array(self):
-        lactx_list = []
-        maxrows  = 308
-        startcol = self.cows['lastcalf']
-        stopcol  = self.cows['laststop']
+    def create_lactation_2(self):
+        lact, lact_2, subarray = [],[],[]
+        max_len = 1000
+        subarray1 = self.lact4[0][1]
         
-        startcol.index  = startcol.index.astype(str)
-        stopcol.index   = stopcol.index.astype(str)
-        colnames        = self.cows.index.astype(str)
-        
-        for i in self.cows.index:
-            i = str(i) 
-            start1   = startcol.loc[i]
-            stop1    = stopcol.loc[i]
-            date_range1 = pd.date_range(start=start1, end=stop1)
-         
-            lactx = self.milk.loc[date_range1, i]
-            lactx = lactx.reset_index(drop=True)  # Reset the index to a standard numerical index
-            
-            if len(lactx) < maxrows:
-                pad   = maxrows - len(lactx)
-                lactx = pd.concat(([lactx, pd.Series([np.nan] * pad)]))
-                
-            elif len(lactx) >= maxrows:
-                lactx = lactx.iloc[:maxrows]
-            
-            lactx_list.append(lactx.tolist())  # Convert the Series to a list
+        for df in subarray1:
+            i= df.iloc[:,0]
 
-        lact_np1    = np.array(lactx_list)
-        lact_np     = np.transpose(lact_np1)
-        lact_df     = pd.DataFrame(lact_np, columns=colnames)
-        lact_df.index.name = 'weeks'
-        return lact_np, lact_df, colnames
+            if not i.empty:
 
+                sf = pd.to_numeric(i, errors='coerce')
+                sf = sf.dropna()
+                subarray.append(sf)
 
-    def create_weekly(self):
-        grouping_key    = (self.lact_df.index // 7) # the //7 creates the 7 row grouping
-        lactwk          = self.lact_df.groupby(grouping_key).mean()
-        lactwkT1         = lactwk.T
-        lactwkT1.index = lactwkT1.index.astype(int)
-        
-        lactwkT         = pd.concat([lactwkT1, self.all1['last calf#']], axis=1, join='outer')
-        return lactwk, lactwkT
-         
+        for i in subarray:
+            pad = (max_len - len(i))
+            len_i = len(i)
+            padx = pad+len_i
+            xx = np.pad(i,(0,pad),'constant')
+
+            lact.append(xx)
+        lact_2x = np.vstack(lact)
+        lact_2 = pd.DataFrame(lact_2x)
+
+        return     lact_2        
     
+
+
+    
+    def create_lactation_3(self):
+        lact, lact_3, subarray = [],[],[]
+        max_len = 1000
+        subarray1 = self.lact4[0][1]
+        
+        for df in subarray1:
+            i= df.iloc[:,0]
+
+            if not i.empty:
+
+                sf = pd.to_numeric(i, errors='coerce')
+                sf = sf.dropna()
+                subarray.append(sf)
+
+        for i in subarray:
+            pad = (max_len - len(i))
+            len_i = len(i)
+            padx = pad+len_i
+            xx = np.pad(i,(0,pad),'constant')
+
+            lact.append(xx)
+        lact_3x = np.vstack(lact)
+        lact_3 = pd.DataFrame(lact_3x)
+
+        return     lact_3    
+    
+
+
+
     def create_write_to_csv(self):
-        self.lact_df.to_csv('F:\\COWS\\data\\milk_data\\lactations\\lact_daily.csv')
-        self.lactwk .to_csv('F:\\COWS\\data\\milk_data\\lactations\\lact_wk.csv')
-        self.lactwkT.to_csv('F:\\COWS\\data\\milk_data\\lactations\\lact_wkT.csv')
 
-
+        self.lact_1.T.to_csv('F:\\COWS\\data\\milk_data\\lactations\\lact_1.csv')
+        self.lact_2.T.to_csv('F:\\COWS\\data\\milk_data\\lactations\\lact_2.csv')
+        self.lact_3.T.to_csv('F:\\COWS\\data\\milk_data\\lactations\\lact_3.csv')
+        return None
