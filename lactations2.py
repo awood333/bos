@@ -1,38 +1,86 @@
-import lactations as lac
+'''lactations2.py'''
 import pandas as pd
 import numpy as np
-lb = pd.read_csv('F:\\COWS\\data\\csv_files\\live_births.csv',header=0,parse_dates=['b_date'])
-bd = pd.read_csv('F:\\COWS\\data\\csv_files\\birth_death.csv',header=0,parse_dates=['birth_date','death_date'])
 
-cutoffdate = pd.to_datetime('9/1/2022',format='%m/%d/%Y')
+from lactations import Lactations
+from insem_ultra import InsemUltraData
 
-newcows1 = (lb.loc[(
-    lb['calf#'] == 1
-    & (lb['b_date'] > cutoffdate)
-    )])
-newcowlist = list(newcows1['WY_id'])
-# 
+iud = InsemUltraData()
+lac = Lactations()
 
-l1 = lac.lacx1.transpose()
-milking1 = pd.DataFrame(l1)
-newcows2 = milking1.loc[:,newcowlist]
-newcows2T = newcows2.T.sort_index()
-newcows3 = newcows2T.T
-# 
-wk1 = newcows3.merge(lac.step7,left_index = True,right_index = True)
-wk2 = wk1.loc[:307,:].copy()                                #307 is 44 weeks
-wk2.replace(0,np.nan,inplace=True)
-# 
-wk_L1 = wk2.groupby([666],as_index = True).mean()
-wk_L1.drop(['n1','step7'],axis = 1,inplace = True)
-wk_L1.index.name='week#'
-wk_L1a = wk_L1.T
-# 
-wk_L1a.reset_index(drop=False,inplace=True)
-wk_L1a.rename(columns={'index':'WY_id'},inplace=True)
-# 
-wk_L1b = wk_L1a.merge(lac.bd[['WY_id','death_date']],left_on='WY_id',right_on='WY_id')
-dd = wk_L1b.pop('death_date')
-wk_L1b.insert(1,'death date',dd)
-wk_L1b.to_csv('F:\\COWS\\data\\milk_data\\lactations\\newcows.csv')
+lact1a = lac.lact_1.iloc[:,:308].copy()
+lact1 = lact1a.T
+
+lact2a = lac.lact_2.iloc[:,:308].copy()
+lact2 = lact2a.T
+
+lact3a = lac.lact_3.iloc[:,:308].copy()
+lact3 = lact3a.T
+
+lact4a = lac.lact_4.iloc[:,:308].copy()
+lact4 = lact4a.T
+
+lact5a = lac.lact_5.iloc[:,:308].copy()
+lact5 = lact5a.T
+
+
+all     = iud.all1
+
+class WeeklyLactations():
+    def __init__(self):
+        self.wk_lacts            = self.create_weekly()
+
+        (self.lactation_1,
+         self.lactation_2,
+         self.lactation_3,
+         self.lactation_4,
+         self.lactation_5)      = self.create_separate_lactations()
+        
+        self.individual             = self.create_individual_lactations()
+
+
+    def create_weekly(self):
+        var = (lact1, lact2, lact3, lact4, lact5    )
+        wk_lacts = []
+        j = 0
+        for i in var:
+
+            grouping_key    = (i.index // 7) # the //7 creates the 7 row grouping
+            var2       = i.groupby(grouping_key).mean()
+            var2.index = var2.index.astype(int)
+            wk_lacts.append(var[j] + j)
+            j +=1
+
+        return wk_lacts
+
+    def create_separate_lactations(self):
+        wl = self.wk_lacts
+        
+        lactation_1 = wl[0]
+        lactation_2 = wl[1]
+        lactation_3 = wl[2]
+        lactation_4 = wl[3]
+        lactation_5 = wl[4]
+        # lactation_6 = wl[5]
+
+        return     (lactation_1,
+                    lactation_2,
+                    lactation_3,
+                    lactation_4,
+                    lactation_5
+                    # lactation_6
+                    )
+    
+
+    def create_individual_lactations(self):
+
+        i=0
+        cols = self.lactation_1.columns
+        individual_lactations = {}
+        for i in cols:
+
+             individual_lactations.update({'cow_' + str(i + 1): 
+                                           self.lactation_1[i].copy()})
+        return individual_lactations
+
 
