@@ -59,24 +59,17 @@ class Lactations:
 
     def create_lactation_1(self):
         lact, lact_1, subarray = [],[],[]
-        max_len = 1000
+        max_len = 2000
         subarray1 = self.lact4[0][0]
         
         for df in subarray1:
             i= df.iloc[:,0]
-
-            if not i.empty:
-
-                sf = pd.to_numeric(i, errors='coerce')
-                # sf = sf.dropna()
-                subarray.append(sf)
+            sf = pd.to_numeric(i, errors='coerce')
+            subarray.append(sf)
 
         for i in subarray:
             pad = (max_len - len(i))
-            len_i = len(i)
-            # padx = pad+len_i
             xx = np.pad(i,(0,pad),'constant')
-
             lact.append(xx)
         lact_1x = np.vstack(lact)
         lact_1 = pd.DataFrame(lact_1x)
@@ -87,25 +80,19 @@ class Lactations:
     
     def create_lactation_2(self):
         lact, lact_2, subarray = [],[],[]
-        max_len = 1000
+        max_len = 2000
         subarray1 = self.lact4[0][1]
         
         for df in subarray1:
-            i= df.iloc[:,0]
-
-            if not i.empty:
-
+                i= df.iloc[:,0]
                 sf = pd.to_numeric(i, errors='coerce')
-                # sf = sf.dropna()
                 subarray.append(sf)
 
         for i in subarray:
             pad = (max_len - len(i))
-            len_i = len(i)
-            # padx = pad+len_i
             xx = np.pad(i,(0,pad),'constant')
-
             lact.append(xx)
+
         lact_2x = np.vstack(lact)
         lact_2 = pd.DataFrame(lact_2x)
 
@@ -116,25 +103,21 @@ class Lactations:
     
     def create_lactation_3(self):
         lact, lact_3, subarray = [],[],[]
-        max_len = 1000
+        max_len = 2000
         subarray1 = self.lact4[0][2]
         
+        
         for df in subarray1:
-            i= df.iloc[:,0]
-
-            if not i.empty:
-
+                i= df.iloc[:,0]
                 sf = pd.to_numeric(i, errors='coerce')
-                # sf = sf.dropna()
                 subarray.append(sf)
 
         for i in subarray:
             pad = (max_len - len(i))
-            len_i = len(i)
-            # padx = pad+len_i
             xx = np.pad(i,(0,pad),'constant')
-
             lact.append(xx)
+
+
         lact_3x = np.vstack(lact)
         lact_3 = pd.DataFrame(lact_3x)
 
@@ -143,25 +126,21 @@ class Lactations:
 
     def create_lactation_4(self):
         lact, lact_4, subarray = [],[],[]
-        max_len = 1000
+        max_len = 2000
         subarray1 = self.lact4[0][3]
         
+       
         for df in subarray1:
-            i= df.iloc[:,0]
-
-            if not i.empty:
-
+                i= df.iloc[:,0]
                 sf = pd.to_numeric(i, errors='coerce')
-                # sf = sf.dropna()
                 subarray.append(sf)
 
         for i in subarray:
             pad = (max_len - len(i))
-            len_i = len(i)
-            # padx = pad+len_i
             xx = np.pad(i,(0,pad),'constant')
-
             lact.append(xx)
+
+            
         lact_4x = np.vstack(lact)
         lact_4 = pd.DataFrame(lact_4x)
 
@@ -171,25 +150,21 @@ class Lactations:
 
     def create_lactation_5(self):
         lact, lact_5, subarray = [],[],[]
-        max_len = 1000
+        max_len = 2000
         subarray1 = self.lact4[0][4]
         
+        
         for df in subarray1:
-            i= df.iloc[:,0]
-
-            if not i.empty:
-
+                i= df.iloc[:,0]
                 sf = pd.to_numeric(i, errors='coerce')
-                # sf = sf.dropna()
                 subarray.append(sf)
 
         for i in subarray:
             pad = (max_len - len(i))
-            len_i = len(i)
-            # padx = pad+len_i
             xx = np.pad(i,(0,pad),'constant')
-
             lact.append(xx)
+
+
         lact_5x = np.vstack(lact)
         lact_5 = pd.DataFrame(lact_5x)
 
@@ -197,26 +172,22 @@ class Lactations:
 
 
     def create_lactation_6(self):
-            lact, lact_6, subarray = [],[],[]
-            max_len = 1000
-            subarray1 = self.lact5[0][5]
+        lact, lact_6, subarray = [],[],[]
+        max_len = 2000
+        subarray1 = self.lact5[0][5]
             
-            for df in subarray1:
+            
+        for df in subarray1:
                 i= df.iloc[:,0]
+                sf = pd.to_numeric(i, errors='coerce')
+                subarray.append(sf)
 
-                if not i.empty:
+        for i in subarray:
+            pad = (max_len - len(i))
+            xx = np.pad(i,(0,pad),'constant')
+            lact.append(xx)
 
-                    sf = pd.to_numeric(i, errors='coerce')
-                    # sf = sf.dropna()
-                    subarray.append(sf)
 
-            for i in subarray:
-                pad = (max_len - len(i))
-                # len_i = len(i)
-                # padx = pad+len_i
-                xx = np.pad(i,(0,pad),'constant')
-
-                lact.append(xx)
             lact_6x = np.vstack(lact)
             lact_6 = pd.DataFrame(lact_6x)
 
