@@ -1,6 +1,8 @@
-import pandas as pd
+'''data_backup.py'''
+
+import pandas as pd 
 import numpy as np
-from datetime import datetime
+
 #
 tdy1=today=np.datetime64('today','D')
 tdy=str(tdy1)
@@ -13,10 +15,10 @@ m  = pd.read_csv  ('F:\\COWS\\data\\csv_files\\miscarries.csv')
 u  = pd.read_csv  ('F:\\COWS\\data\\csv_files\\ultra.csv')
 
 #
-# amliters=   pd.read_csv     ('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_liters.csv')
-# amwy=       pd.read_csv     ('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_wy.csv')
-# pmliters=   pd.read_csv     ('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_liters.csv')
-# pmwy=       pd.read_csv     ('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_wy.csv')
+amliters=   pd.read_csv     ('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_liters.csv')
+amwy=       pd.read_csv     ('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_wy.csv')
+pmliters=   pd.read_csv     ('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_liters.csv')
+pmwy=       pd.read_csv     ('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_wy.csv')
 #
 
 #write to csv
@@ -30,8 +32,8 @@ u.to_csv        ('D:\\OneDrive\\Cows\\data backup\\insem backup\\ultra\\ultra'  
 
 
 
-# amliters.to_csv ('D:\\OneDrive\\Cows\\data backup\\milk backup\\rawmilk\\AM_liters\\AM_liters_'   +tdy+'.csv')
-# amwy.to_csv     ('D:\\OneDrive\\Cows\\data backup\\milk backup\\rawmilk\\AM_wy\\AM_wy_'       +tdy+'.csv')
-# pmliters.to_csv ('D:\\OneDrive\\Cows\\data backup\\milk backup\\rawmilk\\PM_liters\\PM_liters_'   +tdy+'.csv')
-# pmwy.to_csv     ('D:\\OneDrive\\Cows\\data backup\\milk backup\\rawmilk\\PM_wy\\PM_wy_'       +tdy+'.csv')
+amliters.to_csv ('D:\\OneDrive\\Cows\\data backup\\milk backup\\rawmilk\\AM_liters\\AM_liters_'   +tdy+'.csv')
+amwy.to_csv     ('D:\\OneDrive\\Cows\\data backup\\milk backup\\rawmilk\\AM_wy\\AM_wy_'       +tdy+'.csv')
+pmliters.to_csv ('D:\\OneDrive\\Cows\\data backup\\milk backup\\rawmilk\\PM_liters\\PM_liters_'   +tdy+'.csv')
+pmwy.to_csv     ('D:\\OneDrive\\Cows\\data backup\\milk backup\\rawmilk\\PM_wy\\PM_wy_'       +tdy+'.csv')
 
