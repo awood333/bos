@@ -45,11 +45,10 @@ class WetDry:
         
         self.milk_array                             = self.create_array_for_milk()
 
-        ( self.cols,        self.rows, 
-        self.wet3,          self.wet4,
-        self.milking3,      self.milking4,
-    
-        )        = self.create_wet()
+        ( self.cols,    self.rows, 
+        self.wet3,      self.wet,       self.wetsum,        
+        self.milking3,  self.milking,   self.milkingmax
+        )                                           = self.create_wet()
         
         
         self.dry, self.drysum                       = self.create_dry()
@@ -121,13 +120,11 @@ class WetDry:
     
 
 
- 
     def create_wet(self):           # WET (completed lactation) + STILL MILKING
 
-        ( wet2,         wet3, 
-        milking1,       milking2,
-         milking3     
-)       = [], [], [], [],[]
+        (   wet2,         wet3, 
+            milking2,     milking3,     
+        )    =   [], [], [], []
         
         rows = list( self.stop_1.index)      #integers
         cols = self.start_1.columns  #integers decremented by 1
@@ -146,6 +143,7 @@ class WetDry:
                     &   ((dd >= max_start_x) | pd.isnull(dd)==True)  # and cow is bd_alive
                     ):           
                     wet1=(stop-start)/np.timedelta64(1,'D')       #this is a completed lactation
+
                     milking1 = ''
           
         
@@ -165,35 +163,43 @@ class WetDry:
                   milking1, wet1  = "",""
                   
                 wet2.append(wet1)
+
                 
                 if 'milking1' in locals():  # use this if the var might not exist eg 'milking'
                     milking2.append(milking1)
 
-                wet1, milking1 = '', ''
+                (wet1, milking1) =    '', ''
 
-            wet3.append(wet2)
+            wet3    .append(wet2)
             milking3.append(milking2)
-            wet2, milking2= [],[]
 
-            wetnp = np.array(wet3)
-            milkingnp = np.array(milking3)
+            wet2, milking2 = [],[]
 
-        wet4        = pd.DataFrame(wetnp, columns=rows)
-        milking4    = pd.DataFrame(milkingnp, columns=rows) 
+            wetnp       = np.array(wet3)
+            milkingnp   = np.array(milking3)
 
-        wetsum = wet4.sum(axis=1)
-        wet4['wetsum'] = wetsum 
 
-        milkingsum = milking4.sum(axis=1)
-        milking4['milking sum'] = milkingsum
 
-        milking4.index += 1
-        wet4.index += 1
+        wet        = pd.DataFrame(wetnp, columns=rows)
+        wet.replace('', np.nan, inplace=True)
+        wet = wet.astype(float) 
+
+        milking    = pd.DataFrame(milkingnp, columns=rows) 
+        
+        wetsum     = wet.sum(axis=1)
+        milkingmax = milking.max(axis=1)
+
+        wet['wet sum']   = wetsum
+        wet['milking']  = milkingmax
+
+        wet     .index += 1
+        wetsum  .index += 1
+        milking .index += 1
+    
 
         return (cols,           rows,     
-                wet3,           wet4, 
-                milking3,       milking4
-                
+                wet3,           wet,        wetsum,        
+                milking3,       milking,    milkingmax
                 )
     x=1
     
@@ -259,8 +265,6 @@ class WetDry:
         stop_death_gap = stop_death_gap2.reindex(self.bd.index)
         stop_death_gap.rename(columns={1 : 'max stop'}, inplace=True)
 
-
-
         return stop_death_gap
 
 
@@ -286,7 +290,7 @@ class WetDry:
                                         axis=1,
                                         ignore_index=False).reindex(columns=wetdry_datenames)  
           
-        wetdry_duration =     pd.concat([self.wet4,self.dry],
+        wetdry_duration =     pd.concat([self.wet, self.dry],
                                         join='outer',
                                         axis=1,
                                         ignore_index=False)
@@ -340,6 +344,7 @@ class WetDry:
         wetdry_all['wetdry_sum'] =self.wetdry_sum['total days']
         wetdry_all['wet']       = self.wetsum
         wetdry_all['dry']       = self.drysum
+        wetdry_all['milking']   = self.milkingmax
         wetdry_all['gap']       = self.stop_death_gap['gap']
 
 

@@ -1,11 +1,12 @@
 '''
 rawmilkupdate.py
 '''
-import pandas as pd  
-import numpy as np
+
 import datetime
 from datetime import timedelta, datetime
 import sys
+import pandas as pd  
+import numpy as np
 
 class RawMilkUpdate:
     def __init__(self):
@@ -41,7 +42,7 @@ class RawMilkUpdate:
         
         
     def compare_dates(self):
-        print('dm_str = ',self.dm_str, 'AM_str = ',self.AM_str)    
+        print('last date in daily milk = ',self.dm_str, 'last date in AM liters = ',self.AM_str)    
 
         
     def halt_script(self):
@@ -51,7 +52,7 @@ class RawMilkUpdate:
             
         elif self.dm_str > self.AM_str:
             print('date Ok, proceeding', self.dm_str, self.AM_str)
-        
+         
 
     def create_AM_liters(self):
         dat1=self.AM_liters.columns[-1]                          #the date is a string eg '7/3/2023'
@@ -64,7 +65,7 @@ class RawMilkUpdate:
         amliters=pd.concat([self.AM_liters,newdata],axis=1,join='inner')
         amliters.replace(0,np.nan,inplace=True)
         amliters.dropna(axis='columns', how='all', inplace=True)
-        print(amliters.iloc[:1,-5:])
+        print('AM liters ',amliters.iloc[:1,-5:])
         return amliters
 
     def create_AM_wy(self):

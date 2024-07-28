@@ -15,7 +15,7 @@ class Cow_PL:
         self.csd = CreateStartdate()
         
         
-        self.cp = pd.read_csv('F:\\COWS\\data\\status\\combined_status_col.csv', index_col='datex' , 
+        self.cp = pd.read_csv('F:\\COWS\\data\\status\\combined_status_cols.csv', index_col='datex' , 
                             parse_dates=['datex'])
         self.a  = pd.read_csv('F:\\COWS\\data\\feed_data\\cost_per_cow\\group_a_daily_feed_costpercow.csv', index_col='datex' , 
                             parse_dates=['datex'])

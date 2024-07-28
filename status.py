@@ -30,7 +30,7 @@ class StatusData:
         self.f, self.datex, self.rshape, self.stackresult                                   = self.create_partition_milk_df()
                 
         self.y                                      = self.create_stack_df(None)
-        self.alive_mask, self.alive_count_df, self.gone_mask, self.gone_count_df,  self.nby_mask, self.nby_count_df,   self.ungone, self.allcows = self.create_alive_mask()
+        self.alive_mask, self.alive_count_df, self.gone_mask, self.gone_count_df,  self.nby_mask, self.nby_count_df,   self.ungone, self.statuscows = self.create_alive_mask()
         
         self.alive_ids                              = self.create_alive_ids()
         self.gone_ids                               = self.create_gone_ids()     
@@ -48,10 +48,10 @@ class StatusData:
         
         self.dry_ids, self.dry_count, self.dry_mask = self.create_dry_ids()
         
-        self.allcows                                = self.allcows_summary()
+        self.statuscows                                = self.statuscows_summary()
         self.status_col                             = self.create_status_col()
         self.combined_status_cols                   = self.create_combined_status_cols()
-        self.create_write_to_csv()      
+        self.create_write_to_csv()
 
         
     def import_startdate(self):
@@ -130,9 +130,9 @@ class StatusData:
         nby_count_df   = nby_mask.sum(axis=1)  .to_frame(name='nby')    
         
         ungone = alive_count_df.join(nby_count_df)
-        allcows= ungone.join(gone_count_df)
-        allcows['sum']=allcows.sum(axis=1)
-        return alive_mask, alive_count_df,   gone_mask, gone_count_df, nby_mask , nby_count_df,   ungone, allcows
+        statuscows= ungone.join(gone_count_df)
+        statuscows['sum']=statuscows.sum(axis=1)
+        return alive_mask, alive_count_df,   gone_mask, gone_count_df, nby_mask , nby_count_df,   ungone, statuscows
 
  
 
@@ -293,19 +293,19 @@ class StatusData:
 
             
 
-    def allcows_summary(self):
+    def statuscows_summary(self):
 
         groups_sum = (self.group_a_count.join(self.group_b_count)).sum(axis=1)
         active_cows = (self.milkers_count.join(self.dry_count)).sum(axis=1)
 
-        self.allcows['group_a_count']    = self.group_a_count
-        self.allcows['group_b_count']    = self.group_b_count
-        self.allcows['group_sum']        = groups_sum    
-        self.allcows['milkers']          = self.milkers_count
-        self.allcows['dry_count']        = self.dry_count
-        self.allcows['milk+dry']         = active_cows
-        self.allcows.index.name          = 'datex'
-        return self.allcows
+        self.statuscows['group_a_count']    = self.group_a_count
+        self.statuscows['group_b_count']    = self.group_b_count
+        self.statuscows['group_sum']        = groups_sum    
+        self.statuscows['milkers']          = self.milkers_count
+        self.statuscows['dry_count']        = self.dry_count
+        self.statuscows['milk+dry']         = active_cows
+        self.statuscows.index.name          = 'datex'
+        return self.statuscows
 
 
 
@@ -331,8 +331,8 @@ class StatusData:
         g2['status'] = 'G'
         
         status_col = pd.concat([m2, d2, g2], axis=0)
-        status_col.reset_index(drop=True, inplace=True)
-        # status_col.sort_index(inplace=True)
+        status_col = status_col.set_index('WY_id')
+        status_col.sort_index(inplace=True)
         
         return status_col
     
@@ -371,11 +371,13 @@ class StatusData:
         x2a = x2.copy()
         x2a.columns = x2_intcols
         x2t = x2a.T.copy()
+        
+        
 
-        idx = pd.RangeIndex(start=1, stop=257, name='idx')
+        idx = pd.RangeIndex(start=1, stop=(x1.shape[1] + 1), name='idx')
         new_x2 = x2t.reindex(index=idx)
         x3 = new_x2.T
-        x3.columns = x1.columns
+        x3.columns = x1.columns     #number of cols in x3 must match x1 
         
         x4 = pd.DataFrame(index = x3.index, columns=x3.columns)
         for col in x4.columns:
@@ -393,7 +395,7 @@ class StatusData:
     
     def create_write_to_csv(self):
         
-        self.allcows    .to_csv('F:\\COWS\\data\\status\\allcows.csv')
+        self.statuscows    .to_csv('F:\\COWS\\data\\status\\statuscows.csv')
         self.status_col .to_csv('F:\\COWS\\data\\status\\status_col.csv')
         self.milkers_ids.to_csv('F:\\COWS\\data\\status\\milkers_ids.csv')
         
@@ -406,8 +408,7 @@ class StatusData:
         self.group_b_ids  .to_csv('F:\\COWS\\data\\status\\group_b_ids.csv')
         
 
-        self.days_milking_df  .to_csv('F:\\COWS\\data\\status\\days_milking.csv')    
-        self.days_mean  .to_csv('F:\\COWS\\data\\status\\days_mean.csv')
+        self.days_milking_df    .to_csv('F:\\COWS\\data\\status\\days_milking.csv')    
+        self.days_mean          .to_csv('F:\\COWS\\data\\status\\days_mean.csv')
         
-        self.combined_status_cols.to_csv(('F:\\COWS\\data\\status\\combined_status_col.csv'))
-        
+        self.combined_status_cols.to_csv(('F:\\COWS\\data\\status\\combined_status_cols.csv'))

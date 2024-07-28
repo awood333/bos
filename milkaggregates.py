@@ -10,21 +10,23 @@ class MilkAggregates:
     def __init__(self):
         self.bd      = pd.read_csv       ('F:\\COWS\\data\\csv_files\\birth_death.csv', header=0, parse_dates=['birth_date', 'death_date'])
         self.all     = pd.read_csv       ('F:\\COWS\\data\\insem_data\\all.csv',        header=0)
-        self.status  = pd.read_csv       ('F:\\COWS\\data\status\\status_col.csv',      header=0, index_col=0, )       
+        self.status  = pd.read_csv       ('F:\\COWS\\data\\status\\status_col.csv',      header=0, index_col=0, )       
 
-        self.lag     = -365
+        self.lag     = 0
         print('lag = ', self.lag)
         
         self.basics()
         self.am, self.pm, self.fullday    = self.fullday_calc()
         self.tenday, self.tenday1         = self.ten_day()
         self.milk                         = self.create_avg_count()
-        self.monthly, self.weekly, self. monthly_sum, self.monthly_mean         = self.create_monthly_weekly()
-        self.write_to_csv()
+        self.monthly, self.weekly_sum, self.weekly_mean, self.monthly_sum, self.monthly_mean         = self.create_monthly_weekly()
+        self.create_write_to_csv()
+        # self.tenday_dict, self.cols_json = self.create_write_to_json()
     
+
     def basics(self):
 
-        self.AM_liters = pd.read_csv     ('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_liters.csv',   header=0, dtype=float)
+        self.AM_liters = pd.read_csv     ('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_liters.csv',   index_col=0, header=0, dtype=float)
         self.AM_wy   =   pd.read_csv     ('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_wy.csv',       index_col=0, header=0, dtype=float)
         self.PM_liters = pd.read_csv     ('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_liters.csv',   index_col=0, header=0)
         self.PM_wy   =   pd.read_csv     ('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_wy.csv',       index_col=0, header=0)
@@ -38,6 +40,11 @@ class MilkAggregates:
         self.wy_am      = self.AM_wy     .iloc[:, self.lag:]
         self.liters_pm  = self.PM_liters .iloc[:, self.lag:]
         self.wy_pm      = self.PM_wy     .iloc[:, self.lag:]
+
+        self.liters_am  = self.AM_liters
+        self.wy_am      = self.AM_wy
+        self.liters_pm  = self.PM_liters
+        self.wy_pm      = self.PM_wy
 
         self.datex2      = self.liters_am.T.iloc[:,1:].copy()
         self.datex2.index.name = 'datex'
@@ -69,7 +76,13 @@ class MilkAggregates:
         # target1[index2] = value2
 
         #  AM calc
-        idx_cols1   = [*range(1,self.maxcols)]         #list
+        # idx_cols1   = [*range(1,self.maxcols)]         #list
+        
+        
+        
+        
+        # AM calc
+        
         target_am = []
         i = 0
 
@@ -91,11 +104,11 @@ class MilkAggregates:
         am.columns = self.datex
         am.replace(0,np.nan,inplace=True)
         am.drop(am.iloc[:,0:1],axis=1,inplace=True)
+        print('AM calc ', am)
 
         
 
         #   PM calc
-        idx_cols1   = [*range(1,self.maxcols)]         #list
         target_pm = []
         i = 0
 
@@ -145,7 +158,7 @@ class MilkAggregates:
        
         tenday1 = self.fullday.iloc[-10:,:].copy() # has all wy's
         tenday2 = tenday1.loc[:,ld]           # has milkers only
-        tenday3 = tenday1.iloc[:,ld_nums]      #unnecessary?
+        # tenday3 = tenday1.iloc[:,ld_nums]      #unnecessary?
      
         tendayT=tenday2.T
     
@@ -193,8 +206,10 @@ class MilkAggregates:
         self.milk['week']   = self.milk.index.isocalendar().week
         #  the as_index=False leaves the new columns accessible for .loc, otherwise they become part of a multi-index
         milk_monthly_sum    =   self.milk.groupby(['year','month'],          as_index=False).sum()    
-        milk_monthly_mean1  =   self.milk.groupby(['year','month'],          as_index=False).mean()     
-        weekly              =   self.milk.groupby(['year','month','week'],   as_index=False).mean() 
+        milk_monthly_mean1  =   self.milk.groupby(['year','month'],          as_index=False).mean()
+        weekly_sum     =   self.milk.groupby(['year','month','week'],   as_index=False).sum() 
+        weekly_mean    =   self.milk.groupby(['year','month','week'],   as_index=False).mean()
+        
 
         # change names because 'sum' will eventually mean the monthly total vs the avg
         milk_monthly_mean1.rename(columns={'avg':'avg sum','count':'avg count'},inplace=True)
@@ -211,35 +226,30 @@ class MilkAggregates:
         monthly_sum = milk_monthly_sum
         monthly_mean = milk_monthly_mean1
         
-        return monthly, weekly, monthly_sum, monthly_mean
+        return monthly, weekly_sum, weekly_mean, monthly_sum, monthly_mean
 
 
 
-    def write_to_csv(self):
+    def create_write_to_csv(self):
 
-        self.am.to_csv('F:\\COWS\data\\milk_data\\halfday\\am\\am.csv')  #these are useful to check against daily_milk to see if the data is aligned
-        self.pm.to_csv('F:\\COWS\data\\milk_data\\halfday\\pm\\pm.csv')
+        self.am.to_csv('F:\\COWS\\data\\milk_data\\halfday\\am\\am.csv')  #these are useful to check against daily_milk to see if the data is aligned
+        self.pm.to_csv('F:\\COWS\\data\\milk_data\\halfday\\pm\\pm.csv')
         # 
         fullday_lastdate = pd.DataFrame(index=[self.fullday.index[-1]], columns=['last_date'])
 
         # 
-        self.fullday.        to_csv('F:\\COWS\data\\milk_data\\fullday\\fullday.csv')
-        fullday_lastdate.to_csv('F:\\COWS\data\\milk_data\\fullday\\fullday_lastdate.csv')
+        self.fullday.           to_csv('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv')
+        fullday_lastdate.       to_csv('F:\\COWS\\data\\milk_data\\fullday\\fullday_lastdate.csv')
         # 
-        self.weekly.         to_csv('F:\\COWS\data\\milk_data\\totals\\weekly.csv')
-        self.monthly.        to_csv('F:\\COWS\data\\milk_data\\totals\\monthly.csv')
-        self.monthly_sum.        to_csv('F:\\COWS\data\\milk_data\\totals\\monthly_sum.csv')
-        self.monthly_mean.        to_csv('F:\\COWS\data\\milk_data\\totals\\monthly_mean.csv')
+        self.weekly_sum.            to_csv('F:\\COWS\\data\\milk_data\\totals\\weekly_sum.csv')
+        self.weekly_mean.            to_csv('F:\\COWS\\data\\milk_data\\totals\\weekly_mean.csv')
+        self.monthly.           to_csv('F:\\COWS\\data\\milk_data\\totals\\monthly.csv')
+        self.monthly_sum.       to_csv('F:\\COWS\\data\\milk_data\\totals\\monthly_sum.csv')
+        self.monthly_mean.      to_csv('F:\\COWS\\data\\milk_data\\totals\\monthly_mean.csv')
         
         #
-        self.milk.           to_csv('F:\\COWS\data\\milk_data\\fullday\\milk.csv')
+        self.milk.           to_csv('F:\\COWS\\data\\milk_data\\fullday\\milk.csv')
         self.tenday.         to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\tenday.csv')
         self.tenday1.        to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\tenday1.csv')
-        # self.all2.           to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\ten day2.csv')
-        # 
-        with pd.ExcelWriter('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\output.xlsx') as writer:
-            self.tenday.      to_excel(writer, sheet_name='tenday')
-            self.tenday1.     to_excel(writer, sheet_name='tenday2')
-
-        # 
-        print(self.tenday.iloc[:1,:])
+       
+        print('tenday ',self.tenday.iloc[:1,:])
