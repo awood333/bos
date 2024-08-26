@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-import datetime as dt
+import datetime
 from datetime import date, timedelta
 
 
@@ -43,11 +43,12 @@ class InsemUltraData:
         self.ultra_df        = self.create_ultra_df()
         
         self.df2            = self.merge_insem_ultra()
-        self.all1, self.date_cols = self.create_expected_bdate()
+        self.df3, self.date_cols = self.create_expected_bdate()
+        self.all1           = self.create_all1()
      
         self.ipiv           = self.create_last_insem_pivot()
         self.create_write_to_csv()
-        self.all1_dict, self.cols_json       = self.create_write_to_json()
+
 
         
         
@@ -317,7 +318,7 @@ class InsemUltraData:
         return df2
     
     
-                                        # expected bdate and merge with status_col from status module
+# expected bdate 
     def create_expected_bdate(self):
         
         bdemask =  (
@@ -338,8 +339,22 @@ class InsemUltraData:
         df3.drop(columns= 'adj_bdate', inplace=True)
 
         date_cols = ['death_date','last stop date','last calf bdate','i_date','u_date','expected bdate']
-        all1 = df3
-        return all1, date_cols
+       
+        return df3, date_cols
+    
+    
+    def create_all1(self):
+        lc = self.last_calf
+        tdy = pd.Timestamp.today()
+        lastcalf_age = [(tdy - date).days for date in lc['last calf bdate']]
+        lastcalf_age = [(tdy - date).days for date in lc['last calf bdate']]
+        
+        self.df3['age_calf'] = lastcalf_age
+        all1 = self.df3
+  
+        # all1 = self.df3.merge(self.df3,  how='left', on="WY_id", suffixes=('', "_right"))
+        return all1
+
     
     
     def create_last_insem_pivot(self):

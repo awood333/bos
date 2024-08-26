@@ -7,14 +7,36 @@ from datetime import timedelta, datetime
 import sys
 import pandas as pd  
 import numpy as np
+from pyexcel_ods import get_data
 
 class RawMilkUpdate:
     def __init__(self):
+
+# Load data from LibreOffice Calc .ods file
+        data = get_data('F:\\cows_LO\\daily_milk.ods')
+
+        def convert_to_dataframe(sheet_data):
+            df = pd.DataFrame(sheet_data)
+            # Skip the first row (headers) and set the remaining rows as data
+            df = df.iloc[2:].reset_index(drop=True)
+            # Use the first row of the remaining data as headers
+            df.columns = df.iloc[0]
+            df = df[1:].reset_index(drop=True)
+            df.columns = pd.to_datetime(df.columns, format='%m/%d/%Y', errors='coerce').strftime('%m/%d/%Y')
+            return df
+
+        # Convert each sheet's data to a DataFrame
+        self.dmAM_liters = convert_to_dataframe(data['AM_liters'])
+        self.dmAM_wy = convert_to_dataframe(data['AM_wy'])
+        self.dmPM_liters = convert_to_dataframe(data['PM_liters'])
+        self.dmPM_wy = convert_to_dataframe(data['PM_wy'])
+     
+     
         
-        self.dmAM_liters    = pd.read_excel ('F:\\COWS\\data\\daily_milk.xlsm',     sheet_name='AM_liters', skiprows=2,index_col=0,header=0)
-        self.dmAM_wy        = pd.read_excel ('F:\\COWS\\data\\daily_milk.xlsm',     sheet_name='AM_wy',     skiprows=2,index_col=0,header=0)
-        self.dmPM_liters    = pd.read_excel ('F:\\COWS\\data\\daily_milk.xlsm',     sheet_name='PM_liters', skiprows=2,index_col=0,header=0)
-        self.dmPM_wy        = pd.read_excel ('F:\\COWS\\data\\daily_milk.xlsm',     sheet_name='PM_wy',     skiprows=2,index_col=0,header=0)
+        # self.dmAM_liters    = pd.read_excel ('F:\\COWS\\data\\daily_milk.xlsm',     sheet_name='AM_liters', skiprows=2,index_col=0,header=0)
+        # self.dmAM_wy        = pd.read_excel ('F:\\COWS\\data\\daily_milk.xlsm',     sheet_name='AM_wy',     skiprows=2,index_col=0,header=0)
+        # self.dmPM_liters    = pd.read_excel ('F:\\COWS\\data\\daily_milk.xlsm',     sheet_name='PM_liters', skiprows=2,index_col=0,header=0)
+        # self.dmPM_wy        = pd.read_excel ('F:\\COWS\\data\\daily_milk.xlsm',     sheet_name='PM_wy',     skiprows=2,index_col=0,header=0)
         
         self.AM_liters      = pd.read_csv ('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_liters.csv',          index_col=0,header=0)
         self.AM_wy          = pd.read_csv ('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_wy.csv',              index_col=0,header=0)
@@ -24,11 +46,15 @@ class RawMilkUpdate:
         self.now            = datetime.now()
         self.tdy            = self.now.strftime("%Y_%m_%d %H_%M_%S")      #for the csv file names
  
-        self.dm_lastdate1   = self.dmAM_liters.columns[-1]
-        self.AM_lastdate    = self.AM_liters.columns[-1]
+        self.dm_lastdate    = self.dmAM_liters.columns[-1]
+        
+        self.AM_lastdate1   = self.AM_liters.columns[-1]
+        self.AM_lastdate_dt = datetime.strptime(self.AM_lastdate1, '%m/%d/%Y').date()
+        self.new_AM_lastdate = self.AM_lastdate_dt + timedelta(days=1)
+        self.AM_lastdate    = self.new_AM_lastdate.strftime('%m/%d/%Y')
   
-        self.dm_str              = self.dm_lastdate1.strftime('%Y-%m-%d')
-        self.AM_str              = datetime.strptime(self.AM_lastdate,'%m/%d/%Y').strftime('%Y-%m-%d')
+        self.dm_str_to_date              = datetime.strptime(self.dm_lastdate,'%m/%d/%Y' )
+        self.AM_str_to_date              = datetime.strptime(self.AM_lastdate,'%m/%d/%Y')
         
         self.compare_dates()
         self.halt_script()
@@ -42,25 +68,22 @@ class RawMilkUpdate:
         
         
     def compare_dates(self):
-        print('last date in daily milk = ',self.dm_str, 'last date in AM liters = ',self.AM_str)    
+        print('last date in daily milk = ',self.dm_str_to_date, 'last date in AM liters = ',self.AM_str_to_date)    
 
         
     def halt_script(self):
-        if self.dm_str <= self.AM_str:
-            print('date not Ok, halting', self.dm_str, self.AM_str)
+        if self.dm_str_to_date <= self.AM_str_to_date:
+            print('date not Ok, halting', self.dm_str_to_date, self.AM_str_to_date)
             sys.exit(1) 
             
-        elif self.dm_str > self.AM_str:
-            print('date Ok, proceeding', self.dm_str, self.AM_str)
+        elif self.dm_str_to_date > self.AM_str_to_date:
+            print('date Ok, proceeding', self.dm_str_to_date, self.AM_str_to_date)
          
 
     def create_AM_liters(self):
-        dat1=self.AM_liters.columns[-1]                          #the date is a string eg '7/3/2023'
-        dat1=datetime.strptime(dat1,'%m/%d/%Y').date()      #%H:%M:%S
-        dat = dat1 + timedelta(days=1)
 
-        newdata = self.dmAM_liters.loc[:,dat:].copy()
-        newdata.columns = newdata.columns.strftime('%m/%d/%Y')
+        newdata = self.dmAM_liters.loc[:, self.AM_lastdate:self.dm_lastdate].copy()
+        # newdata.columns = newdata.columns.strftime('%m/%d/%Y')
         
         amliters=pd.concat([self.AM_liters,newdata],axis=1,join='inner')
         amliters.replace(0,np.nan,inplace=True)
@@ -69,12 +92,12 @@ class RawMilkUpdate:
         return amliters
 
     def create_AM_wy(self):
-        dat1=self.AM_wy.columns[-1]                          #the date is a string eg '7/3/2023'
-        dat1=datetime.strptime(dat1,'%m/%d/%Y').date()      #%H:%M:%S
-        dat = dat1 + timedelta(days=1)
+        # dat1=self.AM_wy.columns[-1]                          #the date is a string eg '7/3/2023'
+        # dat1=datetime.strptime(dat1,'%m/%d/%Y').date()      #%H:%M:%S
+        # dat = dat1 + timedelta(days=1)
 
-        newdata = self.dmAM_wy.loc[:,dat:].copy()
-        newdata.columns = newdata.columns.strftime('%m/%d/%Y')
+        newdata = self.dmAM_wy.loc[:,self.AM_lastdate:self.dm_lastdate].copy()
+        # newdata.columns = newdata.columns.strftime('%m/%d/%Y')
 
         amwy=pd.concat([self.AM_wy,newdata],axis=1,join='inner')
         amwy.replace(0,np.nan,inplace=True)
@@ -84,12 +107,12 @@ class RawMilkUpdate:
 #
 
     def create_PM_liters(self):
-        dat1 = self.PM_liters.columns[-1]
-        dat1=datetime.strptime(dat1,'%m/%d/%Y').date()
-        dat = dat1 + timedelta(days=1)    
+        # dat1 = self.PM_liters.columns[-1]
+        # dat1=datetime.strptime(dat1,'%m/%d/%Y').date()
+        # dat = dat1 + timedelta(days=1)    
             
-        newdata = self.dmPM_liters.loc[:,dat:].copy()
-        newdata.columns = newdata.columns.strftime('%m/%d/%Y')
+        newdata = self.dmPM_liters.loc[:,self.AM_lastdate:self.dm_lastdate].copy()
+        # newdata.columns = newdata.columns.strftime('%m/%d/%Y')
 
         pmliters = pd.concat([self.PM_liters,newdata],axis=1,join='inner')
         pmliters.replace(0,np.nan,inplace=True)
@@ -98,12 +121,12 @@ class RawMilkUpdate:
     #
 
     def create_PM_wy(self):
-        dat1 = self.PM_wy.columns[-1]
-        dat1=datetime.strptime(dat1,'%m/%d/%Y').date()
-        dat = dat1 + timedelta(days=1) 
+        # dat1 = self.PM_wy.columns[-1]
+        # dat1=datetime.strptime(dat1,'%m/%d/%Y').date()
+        # dat = dat1 + timedelta(days=1) 
            
-        newdata = self.dmPM_wy.loc[:,dat:].copy()
-        newdata.columns = newdata.columns.strftime('%m/%d/%Y')
+        newdata = self.dmPM_wy.loc[:,self.AM_lastdate:self.dm_lastdate].copy()
+        # newdata.columns = newdata.columns.strftime('%m/%d/%Y')
      
         pmwy=pd.concat([self.PM_wy,newdata],axis=1,join='inner')
         pmwy.replace(0,np.nan,inplace=True)
