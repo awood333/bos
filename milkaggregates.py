@@ -8,12 +8,14 @@ import openpyxl
 
 class MilkAggregates:
     def __init__(self):
-        self.bd      = pd.read_csv       ('F:\\COWS\\data\\csv_files\\birth_death.csv', header=0, parse_dates=['birth_date', 'death_date'])
+        self.bd      = pd.read_csv       ('F:\\COWS\\data\\csv_files\\birth_death.csv', parse_dates=['birth_date', 'death_date'])
         self.all     = pd.read_csv       ('F:\\COWS\\data\\insem_data\\all.csv',        header=0)
-        self.status  = pd.read_csv       ('F:\\COWS\\data\\status\\status_col.csv',      header=0, index_col=0, )       
+        self.status  = pd.read_csv       ('F:\\COWS\\data\\status\\status_col.csv',      index_col=0, )       
 
-        self.lag     = 0
+        self.lag     = -10
         print('lag = ', self.lag)
+        
+        self.date_format='%m/%d/%Y'
         
         self.basics()
         self.am, self.pm, self.fullday    = self.fullday_calc()
@@ -26,10 +28,15 @@ class MilkAggregates:
 
     def basics(self):
 
-        self.AM_liters = pd.read_csv     ('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_liters.csv',   index_col=0, header=0, dtype=float)
-        self.AM_wy   =   pd.read_csv     ('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_wy.csv',       index_col=0, header=0, dtype=float)
-        self.PM_liters = pd.read_csv     ('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_liters.csv',   index_col=0, header=0)
-        self.PM_wy   =   pd.read_csv     ('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_wy.csv',       index_col=0, header=0)
+        self.AM_liters = pd.read_csv     ('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_liters.csv',
+                                          index_col=0, parse_dates=False)
+                
+        self.AM_wy   =   pd.read_csv     ('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_wy.csv',
+                                          index_col=0,  parse_dates=False)
+        self.PM_liters = pd.read_csv     ('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_liters.csv',
+                                          index_col=0,  parse_dates=False)
+        self.PM_wy   =   pd.read_csv     ('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_wy.csv',
+                                          index_col=0,  parse_dates=False)
        
         self.wy      = self.bd['WY_id']
         self.alive1  = self.bd['death_date'].isnull()
@@ -46,10 +53,10 @@ class MilkAggregates:
         self.liters_pm  = self.PM_liters
         self.wy_pm      = self.PM_wy
 
-        self.datex2      = self.liters_am.T.iloc[:,1:].copy()
-        self.datex2.index.name = 'datex'
+        self.datex      = self.liters_am.T.index
+        # self.datex.index.name = 'datex'
         self.date_format = '%m/%d/%Y'
-        self.datex = pd.to_datetime(self.datex2.index, format='%m/%d/%Y') #datetime64[ns]
+        self.last_index_value = self.datex[-1]
 
         self.maxcols     = len(self.datex)             #1575                          #len of dates (col headers for liters - which starts with 'start_date')
         self.maxrows     = len(self.bd['WY_id'])   #201                          #len of groupx - will accomodate new calves - continuous series from 1~200 will be the output col heading 
@@ -80,8 +87,7 @@ class MilkAggregates:
         
         
         
-        
-        # AM calc
+    # AM calc
         
         target_am = []
         i = 0
@@ -107,8 +113,9 @@ class MilkAggregates:
         print('AM calc ', am)
 
         
+        
+#   PM calc
 
-        #   PM calc
         target_pm = []
         i = 0
 
@@ -133,6 +140,8 @@ class MilkAggregates:
         pm.drop(pm.iloc[:,0:1],axis=1,inplace=True)
         
         
+    # fullday calc
+    
         fullday1 = np.add(am1,pm1)  #cols are wy's, index is days
         fullday2 = pd.DataFrame(fullday1)
         fullday2['datex'] = self.datex
