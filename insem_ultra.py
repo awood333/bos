@@ -1,7 +1,11 @@
+'''insem_ultra.py'''
+
 import pandas as pd
 import numpy as np
 import datetime
 from datetime import date, timedelta
+
+from status_2 import StatusData
 
 
 class InsemUltraData:
@@ -14,7 +18,8 @@ class InsemUltraData:
         self.s   = pd.read_csv ('F:\\COWS\\data\\csv_files\\stop_dates.csv', parse_dates= ['stop'])
         self.f   = pd.read_csv ('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv', index_col=0,parse_dates= ['datex']) 
         
-  
+        sd = StatusData()
+        self.status_col = sd.status_col
 
         self.today   = np.datetime64('today','D')
         self.rng     = list(range(1, self.bd1.index.max()+1))
@@ -44,7 +49,8 @@ class InsemUltraData:
         
         self.df2            = self.merge_insem_ultra()
         self.df3, self.date_cols = self.create_expected_bdate()
-        self.all1           = self.create_all1()
+        
+        self.allx           = self.create_allx()
      
         self.ipiv           = self.create_last_insem_pivot()
         self.create_write_to_csv()
@@ -343,17 +349,25 @@ class InsemUltraData:
         return df3, date_cols
     
     
-    def create_all1(self):
+    def create_allx(self):
         lc = self.last_calf
         tdy = pd.Timestamp.today()
         lastcalf_age = [(tdy - date).days for date in lc['last calf bdate']]
-        lastcalf_age = [(tdy - date).days for date in lc['last calf bdate']]
         
-        self.df3['age_calf'] = lastcalf_age
-        all1 = self.df3
-  
-        # all1 = self.df3.merge(self.df3,  how='left', on="WY_id", suffixes=('', "_right"))
-        return all1
+        self.df3['last calf age'] = lastcalf_age
+        
+        df3_reset = self.df3.reset_index()
+        df4 = df3_reset.merge(self.status_col[['ids','status']], how='left', left_index=True, right_on='ids', suffixes=('', '_right'))
+        df4.drop(columns=['ids'], inplace=True)
+        df4.set_index('WY_id', inplace=True)
+        
+        allx = df4
+        
+        return allx
+    
+    # def create_col_arrangement(self):
+        
+    #     self.allx  
 
     
     
@@ -385,31 +399,19 @@ class InsemUltraData:
     
     def create_write_to_csv(self):
         
-        self.last_calf      .to_csv('F:\\COWS\\data\\insem_data\\lb_last.csv')
-        self.bd             .to_csv('F:\\COWS\\data\\insem_data\\bd.csv')
+        # self.last_calf      .to_csv('F:\\COWS\\data\\insem_data\\lb_last.csv')
+        # self.bd             .to_csv('F:\\COWS\\data\\insem_data\\bd.csv')
   
-        self.valid_ultra_df .to_csv('F:\\COWS\\data\\insem_data\\valid_ultra_df.csv')
-        self.last_ultra     .to_csv('F:\\COWS\\data\\insem_data\\last_ultra.csv')
-        self.ultra_df       .to_csv('F:\\COWS\\data\\insem_data\\ultra_df.csv')
+        # self.valid_ultra_df .to_csv('F:\\COWS\\data\\insem_data\\valid_ultra_df.csv')
+        # self.last_ultra     .to_csv('F:\\COWS\\data\\insem_data\\last_ultra.csv')
+        # self.ultra_df       .to_csv('F:\\COWS\\data\\insem_data\\ultra_df.csv')
         
-        self.last_insem     .to_csv('F:\\COWS\\data\\insem_data\\last_insem.csv')       
-        self.valid_insem_df .to_csv('F:\\COWS\\data\\insem_data\\valid_insem.csv')
+        # self.last_insem     .to_csv('F:\\COWS\\data\\insem_data\\last_insem.csv')       
+        # self.valid_insem_df .to_csv('F:\\COWS\\data\\insem_data\\valid_insem.csv')
         
-        self.df2            .to_csv('F:\\COWS\\data\\insem_data\\df2.csv')
+        # self.df2            .to_csv('F:\\COWS\\data\\insem_data\\df2.csv')
         
         
         self.last_ultra_insem   .to_csv('F:\\COWS\\data\\insem_data\\last_ultra_insem.csv')
-        self.all1               .to_csv('F:\\COWS\\data\\insem_data\\all.csv')
+        self.allx               .to_csv('F:\\COWS\\data\\insem_data\\allx.csv')
         self.ipiv               .to_csv ('F:\\COWS\\data\\insem_data\\ipiv.csv')
-
-
-    def create_write_to_json(self):
-        import json
-        all1_json = self.all1.to_json( orient='table', date_format='iso')
-        all1_dict = json.loads(all1_json)
-
-
-        cols_config = [{'title': col} for col in [self.all1.index.name] + self.all1.columns.tolist()]
-        cols_json = {'colsConfig': cols_config}
-
-        return all1_dict, cols_json
