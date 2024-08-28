@@ -17,19 +17,31 @@ class RawMilkUpdate:
 
         def convert_to_dataframe(sheet_data):
             df = pd.DataFrame(sheet_data)
-            # Skip the first row (headers) and set the remaining rows as data
+            
             df = df.iloc[2:].reset_index(drop=True)
-            # Use the first row of the remaining data as headers
+            
             df.columns = df.iloc[0]
+            
             df = df[1:].reset_index(drop=True)
-            df.columns = pd.to_datetime(df.columns, format='%m/%d/%Y', errors='coerce').strftime('%m/%d/%Y')
+             
+            df.set_index(df.columns[0], inplace=True)
+             
+            df.columns = pd.to_datetime(df.columns, format='%m/%d/%Y', errors='coerce')  #.strftime('%m/%d/%Y')
             return df
 
         # Convert each sheet's data to a DataFrame
-        self.dmAM_liters = convert_to_dataframe(data['AM_liters'])
-        self.dmAM_wy = convert_to_dataframe(data['AM_wy'])
-        self.dmPM_liters = convert_to_dataframe(data['PM_liters'])
-        self.dmPM_wy = convert_to_dataframe(data['PM_wy'])
+        self.dmAM_liters1   = convert_to_dataframe(data['AM_liters'])
+        self.dmAM_wy1       = convert_to_dataframe(data['AM_wy'])
+        self.dmPM_liters1   = convert_to_dataframe(data['PM_liters'])
+        self.dmPM_wy1       = convert_to_dataframe(data['PM_wy'])
+        self.stats          = convert_to_dataframe(data['stats'])
+        
+        self.dmAM_liters    = self.dmAM_liters1.iloc[:70, :]
+        self.dmAM_wy        = self.dmAM_wy1.iloc[:70, :]
+        self.dmPM_liters    = self.dmPM_liters1.iloc[:70, :]
+        self.dmPM_wy        = self.dmPM_wy1.iloc[:70, :]
+        # self.stats        = self.stats.iloc[]
+        
      
      
         
@@ -44,17 +56,17 @@ class RawMilkUpdate:
         self.PM_wy          = pd.read_csv ('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_wy.csv',              index_col=0,header=0)
    
         self.now            = datetime.now()
-        self.tdy            = self.now.strftime("%Y_%m_%d %H_%M_%S")      #for the csv file names
- 
-        self.dm_lastdate    = self.dmAM_liters.columns[-1]
+        self.tdy           = self.now.strftime("%Y_%m_%d %H_%M_%S")      #for the csv file names
+    
+        self.AM_lastdate_str    = self.AM_liters.columns[-1]    #string
+        self.AM_lastdate_ts    = pd.to_datetime(self.AM_liters.columns[-1])    # convert string to timestamp
+        self.AM_lastdate_dt      = datetime.strptime(self.AM_lastdate_str, "%m/%d/%Y").date()
+        self.AM_lastdate_dt_adj    = self.AM_lastdate_dt + timedelta (days=1)   #datetime
         
-        self.AM_lastdate1   = self.AM_liters.columns[-1]
-        self.AM_lastdate_dt = datetime.strptime(self.AM_lastdate1, '%m/%d/%Y').date()
-        self.new_AM_lastdate = self.AM_lastdate_dt + timedelta(days=1)
-        self.AM_lastdate    = self.new_AM_lastdate.strftime('%m/%d/%Y')
-  
-        self.dm_str_to_date              = datetime.strptime(self.dm_lastdate,'%m/%d/%Y' )
-        self.AM_str_to_date              = datetime.strptime(self.AM_lastdate,'%m/%d/%Y')
+        
+        self.dm_lastdate_ts    = self.dmAM_liters.columns[-1]  # timestamp   
+        self.dm_lastdate_dt = self.dmAM_liters.columns[-1].to_pydatetime()
+         
         
         self.compare_dates()
         self.halt_script()
@@ -64,90 +76,80 @@ class RawMilkUpdate:
         self.pmwy           = self.create_PM_wy()
         self.write_to_csv()   
         
-        
-        
-        
+    
     def compare_dates(self):
-        print('last date in daily milk = ',self.dm_str_to_date, 'last date in AM liters = ',self.AM_str_to_date)    
+        print('last date in daily milk = ',self.dm_lastdate_ts, 'last date in AM liters = ',self.AM_lastdate_ts)    
 
         
     def halt_script(self):
-        if self.dm_str_to_date <= self.AM_str_to_date:
-            print('date not Ok, halting', self.dm_str_to_date, self.AM_str_to_date)
+        if self.dm_lastdate_ts <= self.AM_lastdate_ts:
+            print('date not Ok, halting', self.dm_lastdate_ts, self.AM_lastdate_ts)
             sys.exit(1) 
             
-        elif self.dm_str_to_date > self.AM_str_to_date:
-            print('date Ok, proceeding', self.dm_str_to_date, self.AM_str_to_date)
+        elif self.dm_lastdate_ts > self.AM_lastdate_ts:
+            print('date Ok, proceeding', 'start= ', self.AM_lastdate_ts, 'end= ', self.dm_lastdate_ts)
          
 
     def create_AM_liters(self):
-
-        newdata = self.dmAM_liters.loc[:, self.AM_lastdate:self.dm_lastdate].copy()
-        # newdata.columns = newdata.columns.strftime('%m/%d/%Y')
         
+        newdata = self.dmAM_liters.loc[:, self.AM_lastdate_dt_adj:self.dm_lastdate_dt].copy()
+        newdata.columns = [col.strftime('%m/%d/%Y') for col in newdata.columns]
         amliters=pd.concat([self.AM_liters,newdata],axis=1,join='inner')
-        amliters.replace(0,np.nan,inplace=True)
-        amliters.dropna(axis='columns', how='all', inplace=True)
-        print('AM liters ',amliters.iloc[:1,-5:])
+        # amliters.replace(0,np.nan,inplace=True)
+        # amliters.dropna(axis='columns', how='all', inplace=True)
+       
         return amliters
 
     def create_AM_wy(self):
-        # dat1=self.AM_wy.columns[-1]                          #the date is a string eg '7/3/2023'
-        # dat1=datetime.strptime(dat1,'%m/%d/%Y').date()      #%H:%M:%S
-        # dat = dat1 + timedelta(days=1)
 
-        newdata = self.dmAM_wy.loc[:,self.AM_lastdate:self.dm_lastdate].copy()
-        # newdata.columns = newdata.columns.strftime('%m/%d/%Y')
+        newdata = self.dmAM_wy.loc[:,self.AM_lastdate_dt_adj:self.dm_lastdate_dt].copy()
+        newdata.columns = [col.strftime('%m/%d/%Y') for col in newdata.columns]
 
         amwy=pd.concat([self.AM_wy,newdata],axis=1,join='inner')
-        amwy.replace(0,np.nan,inplace=True)
-        amwy.dropna(axis='columns', how='all', inplace=True)
+        # amwy.replace(0,np.nan,inplace=True)
+        # amwy.dropna(axis='columns', how='all', inplace=True)
         return amwy
         
-#
 
     def create_PM_liters(self):
-        # dat1 = self.PM_liters.columns[-1]
-        # dat1=datetime.strptime(dat1,'%m/%d/%Y').date()
-        # dat = dat1 + timedelta(days=1)    
-            
-        newdata = self.dmPM_liters.loc[:,self.AM_lastdate:self.dm_lastdate].copy()
-        # newdata.columns = newdata.columns.strftime('%m/%d/%Y')
+
+        newdata = self.dmPM_liters.loc[:,self.AM_lastdate_dt_adj:self.dm_lastdate_dt].copy()
+        newdata.columns = [col.strftime('%m/%d/%Y') for col in newdata.columns]
+
 
         pmliters = pd.concat([self.PM_liters,newdata],axis=1,join='inner')
-        pmliters.replace(0,np.nan,inplace=True)
-        pmliters.dropna(axis='columns', how='all', inplace=True)
+        # pmliters.replace(0,np.nan,inplace=True)
+        # pmliters.dropna(axis='columns', how='all', inplace=True)
         return pmliters
-    #
-
+    
+    
     def create_PM_wy(self):
-        # dat1 = self.PM_wy.columns[-1]
-        # dat1=datetime.strptime(dat1,'%m/%d/%Y').date()
-        # dat = dat1 + timedelta(days=1) 
-           
-        newdata = self.dmPM_wy.loc[:,self.AM_lastdate:self.dm_lastdate].copy()
-        # newdata.columns = newdata.columns.strftime('%m/%d/%Y')
-     
+
+        newdata = self.dmPM_wy.loc[:,self.AM_lastdate_dt_adj:self.dm_lastdate_dt].copy()
+        newdata.columns = [col.strftime('%m/%d/%Y') for col in newdata.columns]
+
+ 
         pmwy=pd.concat([self.PM_wy,newdata],axis=1,join='inner')
-        pmwy.replace(0,np.nan,inplace=True)
-        pmwy.dropna(axis='columns', how='all', inplace=True)
+        # pmwy.replace(0,np.nan,inplace=True)
+        # pmwy.dropna(axis='columns', how='all', inplace=True)
         return pmwy
       
 
     def write_to_csv(self):
-        self.amliters.to_csv(f"D:\\Cows\\data backup\\milk backup\\rawmilk\\AM_liters\\AM_liters_{self.tdy}.csv")
-        self.amliters.to_csv(f"E:\\Cows\\data backup\\milk backup\\rawmilk\\AM_liters\\AM_liters_{self.tdy}.csv")
-        self.amliters.to_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_liters.csv',mode='w',header=True,index=True)
+        print('fuku')
+        # self.amliters.to_csv(f"D:\\Cows\\data backup\\milk backup\\rawmilk\\AM_liters\\AM_liters_{self.tdy}.csv")
+        # self.amliters.to_csv(f"E:\\Cows\\data backup\\milk backup\\rawmilk\\AM_liters\\AM_liters_{self.tdy}.csv")
+        # self.amliters.to_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_liters.csv',mode='w',header=True,index=True)
+        # # # 
+        # self.amwy.to_csv(f"D:\\Cows\\data backup\\milk backup\\rawmilk\\AM_wy\\AM_wy_{self.tdy}.csv")
+        # self.amwy.to_csv(f"E:\\Cows\\data backup\\milk backup\\rawmilk\\AM_wy\\AM_wy_{self.tdy}.csv")
+        # self.amwy.to_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_wy.csv',mode='w',header=True,index=True)
         # # 
-        self.amwy.to_csv(f"D:\\Cows\\data backup\\milk backup\\rawmilk\\AM_wy\\AM_wy_{self.tdy}.csv")
-        self.amwy.to_csv(f"E:\\Cows\\data backup\\milk backup\\rawmilk\\AM_wy\\AM_wy_{self.tdy}.csv")
-        self.amwy.to_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_wy.csv',mode='w',header=True,index=True)
-        # 
-        self.pmliters.to_csv(f"D:\\Cows\\data backup\\milk backup\\rawmilk\\PM_liters\\PM_liters_{self.tdy}.csv")
-        self.pmliters.to_csv(f"E:\\Cows\\data backup\\milk backup\\rawmilk\\PM_liters\\PM_liters_{self.tdy}.csv")
-        self.pmliters.to_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_liters.csv',mode='w',header=True,index=True)
-        # 
-        self.pmwy.to_csv(f"D:\\Cows\\data backup\\milk backup\\rawmilk\\PM_wy\\PM_wy_{self.tdy}.csv")
-        self.pmwy.to_csv(f"E:\\Cows\\data backup\\milk backup\\rawmilk\\PM_wy\\PM_wy_{self.tdy}.csv")
-        self.pmwy.to_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_wy.csv',mode='w',header=True,index=True)
-
+        # self.pmliters.to_csv(f"D:\\Cows\\data backup\\milk backup\\rawmilk\\PM_liters\\PM_liters_{self.tdy}.csv")
+        # self.pmliters.to_csv(f"E:\\Cows\\data backup\\milk backup\\rawmilk\\PM_liters\\PM_liters_{self.tdy}.csv")
+        # self.pmliters.to_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_liters.csv',mode='w',header=True,index=True)
+        # # 
+        # self.pmwy.to_csv(f"D:\\Cows\\data backup\\milk backup\\rawmilk\\PM_wy\\PM_wy_{self.tdy}.csv")
+        # self.pmwy.to_csv(f"E:\\Cows\\data backup\\milk backup\\rawmilk\\PM_wy\\PM_wy_{self.tdy}.csv")
+        # self.pmwy.to_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_wy.csv',mode='w',header=True,index=True)
+        

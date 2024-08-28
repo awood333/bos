@@ -9,8 +9,8 @@ import openpyxl
 class MilkAggregates:
     def __init__(self):
         self.bd      = pd.read_csv       ('F:\\COWS\\data\\csv_files\\birth_death.csv', parse_dates=['birth_date', 'death_date'])
-        self.all     = pd.read_csv       ('F:\\COWS\\data\\insem_data\\all.csv',        header=0)
-        self.status  = pd.read_csv       ('F:\\COWS\\data\\status\\status_col.csv',      index_col=0, )       
+        # self.all     = pd.read_csv       ('F:\\COWS\\data\\insem_data\\allx.csv',        header=0)
+        # self.status  = pd.read_csv       ('F:\\COWS\\data\\status\\status_col.csv',      index_col=0, )       
 
         self.lag     = -10
         print('lag = ', self.lag)
@@ -148,7 +148,7 @@ class MilkAggregates:
         fullday2.set_index('datex', inplace=True)
 
         fullday = fullday2
-        fullday.index=pd.to_datetime(fullday.index).date
+        fullday.index=pd.to_datetime(fullday.index, errors='coerce', format="%m/%d/%Y").date
         fullday.replace(0,np.nan,inplace=True)
 
         fullday.drop(fullday.iloc[:,0:1],axis=1,inplace=True)

@@ -2,11 +2,9 @@
 
 import pandas as pd    #123   456
 import numpy as np
-# from datetime       import datetime as dt
-# from datetime       import timedelta as td
 from wet_dry        import WetDry
 from insem_ultra    import InsemUltraData
-from status         import StatusData
+# from status         import StatusData
 from status_module_adjustment import StatusModuleAdjustment
 
 
@@ -20,7 +18,7 @@ class Lactations:
         self.bd     = pd.read_csv    ('F:\\COWS\\data\\csv_files\\birth_death.csv',     header = 0, parse_dates = ['birth_date','death_date'])
 
         self.ma     = StatusModuleAdjustment()
-        self.sd     = StatusData()
+        # self.sd     = StatusData()
         self.iud    = InsemUltraData()
         self.wd     = WetDry()
 
