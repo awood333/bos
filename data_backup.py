@@ -13,6 +13,7 @@ i  = pd.read_csv  ('F:\\COWS\\data\\csv_files\\insem.csv')
 sd = pd.read_csv  ('F:\\COWS\\data\\csv_files\\stop_dates.csv')
 m  = pd.read_csv  ('F:\\COWS\\data\\csv_files\\miscarries.csv')
 u  = pd.read_csv  ('F:\\COWS\\data\\csv_files\\ultra.csv')
+mi = pd.read_csv  ('F:\\COWS\\data\\PL_data\\milk_income\\milk_income.csv')
 
 #
 amliters=   pd.read_csv     ('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_liters.csv')
@@ -29,6 +30,8 @@ i.to_csv        ('D:\\OneDrive\\Cows\\data backup\\insem backup\\insem\\insem'  
 sd.to_csv       ('D:\\OneDrive\\Cows\\data backup\\insem backup\\stop dates\\stop dates'  +tdy+'.csv')
 m.to_csv        ('D:\\OneDrive\\Cows\\data backup\\insem backup\\miscarries\\miscarries' +tdy+'.csv')
 u.to_csv        ('D:\\OneDrive\\Cows\\data backup\\insem backup\\ultra\\ultra'           +tdy+'.csv')
+
+mi.to_csv       ('D:\\OneDrive\\Cows\\data backup\\finance backup\\milk income\\income'  +tdy+'.csv' )
 
 
 
