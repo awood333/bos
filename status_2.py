@@ -59,7 +59,15 @@ class StatusData:
         
 
     def create_status_col(self):
-        status_col = pd.concat([self.milkers, self.goners, self.dry], axis=0).sort_values(by='ids').reset_index(drop=True)
+        
+        self.milkers = self.milkers.reset_index(drop=True)
+        self.goners = self.goners.reset_index(drop=True)
+        self.dry    = self.dry.reset_index(drop=True)
+        
+        status_col1 = pd.concat([self.milkers, self.goners, self.dry], axis=0)
+        status_col2 = status_col1.sort_values(by='ids')
+        status_col = status_col2.reset_index(drop=True)
+       
         return status_col
     
         
@@ -67,11 +75,8 @@ class StatusData:
         self.status_col .to_csv('F:\\COWS\\data\\status\\status_col.csv')
     
     
-if __name__ == "__main__":
-    status_data = StatusData()
-    # print(status_data.alive_ids)
-    print('milker',status_data.milkers_ids)
-    print('dry',status_data.dry_ids)
-    print('status col',status_data.status_col)
+# if __name__ == "__main__":
+#     status_data = StatusData()
+
 
         

@@ -1,10 +1,6 @@
 import pandas as pd
 import numpy as np
-import datetime 
-import openpyxl
-# import rawmilkupdate as rm
-# import birthdeath as bd
-# import insem_ultra as iu 
+import pyexcel_io
 
 class MilkAggregates:
     def __init__(self):
@@ -29,14 +25,14 @@ class MilkAggregates:
     def basics(self):
 
         self.AM_liters = pd.read_csv     ('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_liters.csv',
-                                          index_col=0, parse_dates=False)
+                                          index_col=0)
                 
         self.AM_wy   =   pd.read_csv     ('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_wy.csv',
-                                          index_col=0,  parse_dates=False)
+                                          index_col=0)
         self.PM_liters = pd.read_csv     ('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_liters.csv',
-                                          index_col=0,  parse_dates=False)
+                                          index_col=0)
         self.PM_wy   =   pd.read_csv     ('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_wy.csv',
-                                          index_col=0,  parse_dates=False)
+                                          index_col=0)
        
         self.wy      = self.bd['WY_id']
         self.alive1  = self.bd['death_date'].isnull()
@@ -53,9 +49,8 @@ class MilkAggregates:
         self.liters_pm  = self.PM_liters
         self.wy_pm      = self.PM_wy
 
-        self.datex      = self.liters_am.T.index
-        # self.datex.index.name = 'datex'
-        self.date_format = '%m/%d/%Y'
+        datex2 = self.liters_am.T.index.astype(int)
+        self.datex = pd.to_datetime(datex2, origin='1899-12-30', unit='D')
         self.last_index_value = self.datex[-1]
 
         self.maxcols     = len(self.datex)             #1575                          #len of dates (col headers for liters - which starts with 'start_date')

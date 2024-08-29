@@ -357,13 +357,13 @@ class InsemUltraData:
         self.df3['last calf age'] = lastcalf_age
         
         df3_reset = self.df3.reset_index()
-        df4 = df3_reset.merge(self.status_col[['ids','status']], how='left', left_index=True, right_on='ids', suffixes=('', '_right'))
+        df4 = df3_reset.merge(self.status_col[['ids','status']], how='left', left_on='WY_id', right_on='ids', suffixes=('', '_right'))
         df4.drop(columns=['ids'], inplace=True)
         df4.set_index('WY_id', inplace=True)
         
-        allx = df4
+        self.allx = df4
         
-        return allx
+        return self.allx
     
     # def create_col_arrangement(self):
         
