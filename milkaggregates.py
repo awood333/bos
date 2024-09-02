@@ -1,9 +1,16 @@
+import time
 import pandas as pd
 import numpy as np
+
+import os
+import subprocess
 import pyexcel_io
+
+from concurrent.futures import ThreadPoolExecutor
 
 class MilkAggregates:
     def __init__(self):
+        
         self.bd      = pd.read_csv       ('F:\\COWS\\data\\csv_files\\birth_death.csv', parse_dates=['birth_date', 'death_date'])
         # self.all     = pd.read_csv       ('F:\\COWS\\data\\insem_data\\allx.csv',        header=0)
         # self.status  = pd.read_csv       ('F:\\COWS\\data\\status\\status_col.csv',      index_col=0, )       
@@ -14,15 +21,13 @@ class MilkAggregates:
         self.date_format='%m/%d/%Y'
         
         self.basics()
-        self.am, self.pm, self.fullday    = self.fullday_calc()
+        self.am, self.pm, self.fullday, self.fullday_lastdate    = self.fullday_calc()
         self.tenday, self.tenday1         = self.ten_day()
         self.milk                         = self.create_avg_count()
         self.monthly, self.weekly_sum, self.weekly_mean, self.monthly_sum, self.monthly_mean         = self.create_monthly_weekly()
-        self.create_write_to_csv()
-        # self.tenday_dict, self.cols_json = self.create_write_to_json()
-    
+        # self.create_write_to_csv()
 
-    def basics(self):
+    def basics(self):       
 
         self.AM_liters = pd.read_csv     ('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_liters.csv',
                                           index_col=0)
@@ -39,10 +44,12 @@ class MilkAggregates:
         self.alive   = self.wy.loc[self.alive1].copy()
         self.alive.reset_index(drop=True,inplace=True)
 
-        self.liters_am  = self.AM_liters .iloc[:, self.lag:]
-        self.wy_am      = self.AM_wy     .iloc[:, self.lag:]
-        self.liters_pm  = self.PM_liters .iloc[:, self.lag:]
-        self.wy_pm      = self.PM_wy     .iloc[:, self.lag:]
+        self.liters_am  = self.AM_liters .iloc[:, self.lag:].copy()
+        self.wy_am      = self.AM_wy     .iloc[:, self.lag:].copy()
+        self.liters_pm  = self.PM_liters .iloc[:, self.lag:].copy()
+        self.wy_pm      = self.PM_wy     .iloc[:, self.lag:].copy()
+        
+        
 
         self.liters_am  = self.AM_liters
         self.wy_am      = self.AM_wy
@@ -66,24 +73,11 @@ class MilkAggregates:
         self.liters_am_np= self.liters_am.  to_numpy(dtype=float)
         self.liters_pm_np= self.liters_pm.  to_numpy(dtype=float)
 
+
     def fullday_calc(self):
-
-        # static example -- don't erase
-        # index1 = wy_am1[:,1]    #70,1869
-        # index2 = index1[~np.isnan(index1)].astype(int)
-
-        # value1 = liters_am1[:,1]   #70 1869
-        # value2 = value1[~np.isnan(value1)].astype(float)
-        # target1 = idx_am[:,1]      #243 1869
-        # target1[index2] = value2
-
-        #  AM calc
-        # idx_cols1   = [*range(1,self.maxcols)]         #list
-        
-        
         
     # AM calc
-        
+
         target_am = []
         i = 0
 
@@ -100,14 +94,11 @@ class MilkAggregates:
             i += 1
         am1 = pd.DataFrame(target_am)
 
-        am2 = pd.DataFrame(am1)
-        am = am2.T
+        am = am1.T
         am.columns = self.datex
         am.replace(0,np.nan,inplace=True)
-        am.drop(am.iloc[:,0:1],axis=1,inplace=True)
-        print('AM calc ', am)
+        am.drop(am.columns[0], axis=1, inplace=True)
 
-        
         
 #   PM calc
 
@@ -128,12 +119,13 @@ class MilkAggregates:
         pm1 = pd.DataFrame(target_pm)
 
 
-        pm2 = pd.DataFrame(pm1)
-        pm = pm2.T
+        # pm2 = pd.DataFrame(pm1)
+        pm = pm1.T
         pm.columns = self.datex
         pm.replace(0,np.nan,inplace=True)
-        pm.drop(pm.iloc[:,0:1],axis=1,inplace=True)
-        
+        # pm.drop(pm.iloc[:,0:1],axis=1,inplace=True)
+        pm.drop(pm.columns[0], axis=1, inplace=True)
+
         
     # fullday calc
     
@@ -142,14 +134,16 @@ class MilkAggregates:
         fullday2['datex'] = self.datex
         fullday2.set_index('datex', inplace=True)
 
-        fullday = fullday2
-        fullday.index=pd.to_datetime(fullday.index, errors='coerce', format="%m/%d/%Y").date
-        fullday.replace(0,np.nan,inplace=True)
+        self.fullday = fullday2
+        self.fullday.index=pd.to_datetime(self.fullday.index, errors='coerce', format="%m/%d/%Y").date
+        self.fullday.replace(0,np.nan,inplace=True)
 
-        fullday.drop(fullday.iloc[:,0:1],axis=1,inplace=True)
-        fullday.index.name = 'datex'
+        self.fullday.drop(self.fullday.iloc[:,0:1],axis=1,inplace=True)
+        self.fullday.index.name = 'datex'
         
-        return am, pm, fullday
+        self.fullday_lastdate = pd.DataFrame(index=[self.fullday.index[-1]], columns=['last_date'])
+        
+        return am, pm, self.fullday, self.fullday_lastdate
         
         
  
@@ -179,14 +173,12 @@ class MilkAggregates:
         tenday.loc['avg']   = tenday.mean(axis=0)
         tenday.loc['total'] = tenday.sum(axis=0)
         
-        
         return tenday, tenday1
         
         
 
     def create_avg_count(self):
-        # sum and nonzero count for entire milk df
-        
+
         milk = self.fullday.copy()
         self.fullday.replace(np.nan,0,inplace=True)
         
@@ -201,9 +193,12 @@ class MilkAggregates:
         milk.index =    pd.to_datetime(milk.index)
         
         return milk
-        
+    
+     
 
     def create_monthly_weekly(self):
+        
+        start_time = time.time()
 
         self.milk['year']   = self.milk.index.year
         self.milk['month']  = self.milk.index.month
@@ -230,30 +225,87 @@ class MilkAggregates:
         monthly_sum = milk_monthly_sum
         monthly_mean = milk_monthly_mean1
         
+        end_time = time.time()
+        print(f"monthly: {end_time - start_time} seconds")
+
+
         return monthly, weekly_sum, weekly_mean, monthly_sum, monthly_mean
 
-
-
     def create_write_to_csv(self):
+        def write_csv(dataframe, path):
+            dataframe.to_csv(path)
 
-        self.am.to_csv('F:\\COWS\\data\\milk_data\\halfday\\am\\am.csv')  #these are useful to check against daily_milk to see if the data is aligned
-        self.pm.to_csv('F:\\COWS\\data\\milk_data\\halfday\\pm\\pm.csv')
-        # 
-        fullday_lastdate = pd.DataFrame(index=[self.fullday.index[-1]], columns=['last_date'])
+        rclone_path = "D:\\programs\\Rclone\\rclone.exe"  # Full path to rclone.exe
 
-        # 
-        self.fullday.           to_csv('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv')
-        fullday_lastdate.       to_csv('F:\\COWS\\data\\milk_data\\fullday\\fullday_lastdate.csv')
-        # 
-        self.weekly_sum.            to_csv('F:\\COWS\\data\\milk_data\\totals\\weekly_sum.csv')
-        self.weekly_mean.            to_csv('F:\\COWS\\data\\milk_data\\totals\\weekly_mean.csv')
-        self.monthly.           to_csv('F:\\COWS\\data\\milk_data\\totals\\monthly.csv')
-        self.monthly_sum.       to_csv('F:\\COWS\\data\\milk_data\\totals\\monthly_sum.csv')
-        self.monthly_mean.      to_csv('F:\\COWS\\data\\milk_data\\totals\\monthly_mean.csv')
+        if os.name == 'nt':  # Windows
+            paths = [
+                
+                
+                
+                
+                ('am', 'F:\\COWS\\data\\milk_data\\halfday\\am\\halfday_am.csv'),
+                ('pm', 'F:\\COWS\\data\\milk_data\\halfday\\pm\\halfday_pm.csv'),
+                ('fullday', 'F:\\COWS\\data\\milk_data\\fullday\\fullday.csv'),
+                ('fullday_lastdate', 'F:\\COWS\\data\\milk_data\\fullday\\fullday_lastdate.csv'),
+                ('weekly_sum', 'F:\\COWS\\data\\milk_data\\totals\\weekly_sum.csv'),
+                ('weekly_mean', 'F:\\COWS\\data\\milk_data\\totals\\weekly_mean.csv'),
+                ('monthly', 'F:\\COWS\\data\\milk_data\\totals\\monthly.csv'),
+                ('monthly_sum', 'F:\\COWS\\data\\milk_data\\totals\\monthly_sum.csv'),
+                ('monthly_mean', 'F:\\COWS\\data\\milk_data\\totals\\monthly_mean.csv'),
+                ('milk', 'F:\\COWS\\data\\milk_data\\fullday\\milk.csv'),
+                ('tenday', 'F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\tenday.csv'),
+                ('tenday1', 'F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\tenday1.csv'),
+            ]
+
+            with ThreadPoolExecutor() as executor:
+                futures = [executor.submit(write_csv, getattr(self, name), path) for name, path in paths]
+                for future in futures:
+                    future.result()  # Wait for all threads to complete
+
+            def copy_to_gdrive(local_path, remote_path):
+                subprocess.run(
+                    [rclone_path, "copy", local_path, remote_path],
+                    check=True,
+                    capture_output=True,
+                    text=True
+                )
+                print(f"Successfully copied {local_path} to {remote_path}")
+
+            # Sync files to Google Drive using rclone in parallel
+            with ThreadPoolExecutor() as executor:
+                futures = []
+                for name, local_path in paths:
+                    remote_path = f"gdrive:My Drive/COWS/data/milk_data/{name}/{os.path.basename(local_path)}"
+                    futures.append(executor.submit(copy_to_gdrive, local_path, remote_path))
+                for future in futures:
+                    future.result()  # Wait for all threads to complete
+
+
+        elif os.name == 'posix':  # Ubuntu
+            paths = [
+                ('am', '/home/alanw/dropbox/milk/halfday/am/am.csv'),
+                ('pm', '/home/alanw/dropbox/milk/halfday/pm/pm.csv'),
+                ('fullday', '/home/alanw/dropbox/milk/fullday/fullday.csv'),
+                ('fullday_lastdate', '/home/alanw/dropbox/milk/fullday/fullday_lastdate.csv'),
+                ('weekly_sum', '/home/alanw/dropbox/milk/totals/weekly_sum.csv'),
+                ('weekly_mean', '/home/alanw/dropbox/milk/totals/weekly_mean.csv'),
+                ('monthly', '/home/alanw/dropbox/milk/totals/monthly.csv'),
+                ('monthly_sum', '/home/alanw/dropbox/milk/totals/monthly_sum.csv'),
+                ('monthly_mean', '/home/alanw/dropbox/milk/totals/monthly_mean.csv'),
+                ('milk', '/home/alanw/dropbox/milk/fullday/milk.csv'),
+                ('tenday', '/home/alanw/dropbox/milk/totals/milk_aggregates/tenday.csv'),
+                ('tenday1', '/home/alanw/dropbox/milk/totals/milk_aggregates/tenday1.csv'),
+            ]
+
+            with ThreadPoolExecutor() as executor:
+                futures = [executor.submit(write_csv, getattr(self, name), path) for name, path in paths]
+                for future in futures:
+                    future.result()  # Wait for all threads to complete
+
+            # Sync files to Google Drive using rclone
+            for name, local_path in paths:
+                remote_path = f"gdrive:My Drive/COWS/data/milk_data/{name}/{os.path.basename(local_path)}"
+                subprocess.run(["rclone", "copy", local_path, remote_path], check=True)
+
+        print('tenday ', self.tenday.iloc[:1, :])
         
-        #
-        self.milk.           to_csv('F:\\COWS\\data\\milk_data\\fullday\\milk.csv')
-        self.tenday.         to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\tenday.csv')
-        self.tenday1.        to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\tenday1.csv')
-       
-        print('tenday ',self.tenday.iloc[:1,:])
