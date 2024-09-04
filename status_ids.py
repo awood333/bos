@@ -2,9 +2,8 @@
 status.py
 '''
 import pandas as pd
-import numpy as np
-from startdate_funct import CreateStartdate
-from insem_ultra import InsemUltraData
+# import numpy as np
+from InsemUltraBasics import InsemUltraBasics
 
 class StatusDataLong:
     
@@ -12,9 +11,8 @@ class StatusDataLong:
         self.f1     = pd.read_csv('F:\\COWS\\data\\csv_files\\xlformat\\fullday.csv',index_col='datex')
         self.bd     = pd.read_csv('F:\\COWS\\data\\csv_files\\xlformat\\birth_death.csv')
         
-
-        IUD    = InsemUltraData()
-        self.lb = IUD.create_last_calf()
+        IUF    = InsemUltraBasics()
+        self.lb = IUF.create_last_calf()
         
         self.maxdate        = self.f1.index.max() 
         self.stopdate       = self.maxdate 
@@ -24,38 +22,91 @@ class StatusDataLong:
         
         # functions        
         self.f, self.datex  = self.create_partition_milk_df()     
+
+        
+        [self.milkers, self.non_milkers, 
+         self.milkers_count, self.non_milkers_count]        = self.create_milking_list()
          
-        [self.alive_ids, self.alive_count, 
+        [self.alive_ids, self.alive_count, self.alive_mask,
         self.gone_ids, self.gone_count, 
-        self.nby_ids, self.nby_count]    = self.create_id_lists()
+        self.nby_ids, self.nby_count,
+        self.dry_count]              = self.create_id_lists()
         
         self.find_duplicates()
-        self.herd_count   = self.create_dry_list()
+        self.herd_df   = self.create_herd_list()
 
-        # self.create_write_to_csv()
+        self.create_write_to_csv()
 
     
     
     
     def create_partition_milk_df(self):
-        self.f = self.f1.loc[:, :].copy()     # partitions the milk df
+        self.f = self.f1.loc[45530:, :].copy()     # partitions the milk df
         self.datex          = self.f.index.to_list()
-        return self.f, self.datex
         
+        print('f:', self.f.iloc[:,:5])
+        return self.f, self.datex
     
-    def create_id_lists(self):   
-        self.alive_ids,  self.alive_count =[],[]
-        self.gone_ids,   self.gone_count  =[],[]
-        self.nby_ids,    self.nby_count   =[],[]
+    def create_milking_list(self):
+        
+        self.milkers, self.non_milkers = [],[]
+        self.milkers_count, self.non_milkers_count = [],[]
         
         for date in self.datex:
+            milk_row = self.f.loc[date,:]
+            
+            milking_mask =  milk_row>0
+            not_milking_mask =  milk_row == 0
+            
+            len_milkers1 = sum(milking_mask)
+            len_non_milkers1 = sum(not_milking_mask)
+            
+            milker1 = milk_row.index[milking_mask]
+            non_milker1 = milk_row.index[not_milking_mask]
+            
+            self.milkers.append(milker1)
+            self.non_milkers.append(non_milker1)
+            
+            self.milkers_count.append(len_milkers1)
+            self.non_milkers_count.append(len_non_milkers1)
+            
+            milking_mask=[]
+            not_milking_mask=[]
+            milker1=[]
+            len_milkers1=[]
+            len_non_milkers1=[]
+            
+        return self.milkers, self.non_milkers, self.milkers_count, self.non_milkers_count
+    
+    
+    def create_id_lists(self):   
+        self.alive_ids,  self.alive_count, self.alive_mask =[],[],[]
+        self.gone_ids,   self.gone_count  =[],[]
+        self.nby_ids,    self.nby_count   =[],[]
+        self.dry_count = []
+        
+        for i, date in enumerate(self.datex):
             condition1 = self.bd['birth_date'] <=date
             condition2 = self.bd['death_date'] > date 
             condition3 = self.bd['adj_bdate'] > date
             condition4 = self.bd['death_date'] <= date
             condition5 = self.bd['death_date'].isnull()
+            
+            
+            alive1, gone1, nby1, dry_count1 = [],[],[],[]
+    
+            
         
-            alive1 = self.bd[(condition1) & (condition2 | condition5)]['WY_id'].to_list()
+            alive1 = self.bd[((condition1 | condition3)
+                             & (condition2 | condition5)
+                             )
+                             ]['WY_id'].to_list()
+            
+            alive1_bool = self.bd[((condition1 | condition3)
+                  & (condition2 | condition5)
+                 )]['WY_id'].notna().tolist()
+            
+            self.alive_mask.append(alive1_bool)
             self.alive_ids.append(alive1)
             self.alive_count.append(len(alive1))
             
@@ -67,9 +118,16 @@ class StatusDataLong:
             self.nby_ids.append(nby1)
             self.nby_count.append(len(nby1))
             
-        return  [self.alive_ids, self.alive_count, 
+            # dry_count1 = [nm - gc for nm, gc in zip(self.non_milkers_count, self.gone_count)]
+            
+            dry_count1 = self.non_milkers_count[i] - self.gone_count[i]
+            self.dry_count.append(dry_count1)
+            
+            
+        return  [self.alive_ids, self.alive_count, self.alive_mask,
         self.gone_ids, self.gone_count, 
-        self.nby_ids, self.nby_count] 
+        self.nby_ids, self.nby_count,
+        self.dry_count] 
 
  
     def find_duplicates(self):
@@ -98,31 +156,34 @@ class StatusDataLong:
         print("Duplicates between gone and nby (first row):", gone_nby_duplicates)
 
  
-    def create_dry_list(self):
+    def create_herd_list(self):
+        data = {
+            'alive': self.alive_count,
+            'milkers': self.milkers_count,
+            'dry':      self.dry_count,
+            'nby': self.nby_count,
+            'gone': self.gone_count,
+        }
         
-        alive_count_df = pd.DataFrame({'alive_count': self.alive_count}, index=self.datex)
-        gone_count_df  = pd.DataFrame({'gone_count': self.gone_count}, index=self.datex)
-        nby_count_df   = pd.DataFrame({'nby_count': self.nby_count}, index=self.datex)
+        self.herd_df = pd.DataFrame(data, index=self.datex)
         
+        self.herd_df['total'] = (
+            self.herd_df['alive'] +
+            self.herd_df['gone']
+            )
+        return self.herd_df
         
-        herd_count=[]
-        
-        for date in self.datex:
-            herd1 = alive_count_df.loc[date, 'alive_count'] + gone_count_df.loc[date, 'gone_count'] + nby_count_df.loc[date, 'nby_count']
-            herd_count.append(herd1)
-        return herd_count
 
     
 
         
         
-if __name__ == "__main__":
-    status_data = StatusDataLong()  
+
     
     
-    # def create_write_to_csv(self):
+    def create_write_to_csv(self):
         
-    #     self.statuscows    .to_csv('F:\\COWS\\data\\status\\statuscows.csv')
+        self.herd_df    .to_csv('F:\\COWS\\data\\status\\herd_df.csv')
     #     self.status_col .to_csv('F:\\COWS\\data\\status\\status_col.csv')
     #     self.milkers_ids.to_csv('F:\\COWS\\data\\status\\milkers_ids.csv')
         
@@ -139,3 +200,7 @@ if __name__ == "__main__":
     #     self.days_mean          .to_csv('F:\\COWS\\data\\status\\days_mean.csv')
         
     #     self.combined_status_cols.to_csv(('F:\\COWS\\data\\status\\combined_status_cols.csv'))
+    
+if __name__ == "__main__":
+    sd=StatusDataLong()
+    print('milkers: ', sd.milkers)
