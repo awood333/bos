@@ -4,8 +4,8 @@ rawmilkupdate.py
 import time
 
 import datetime
-from datetime import timedelta, datetime
-import sys
+from datetime import datetime
+# import sys
 import pandas as pd  
 import numpy as np
 
@@ -69,9 +69,7 @@ class RawMilkUpdate:
               'PM wy:\n', self.PM_wy.iloc[:2,-3:])
         
         self.compare_dates()
-        
        
-        
         self.halt_script()
         
         self.amliters,  self.newdata_am_liters      = self.create_AM_liters()
@@ -89,7 +87,7 @@ class RawMilkUpdate:
         if self.dm_lastdate <= self.AM_lastdate:
             print('date not Ok, halting', self.dm_lastdate, self.AM_lastdate)
             raise HaltScriptException('Halting current module execution')
-            # sys.exit(1) 
+            sys.exit(1) 
             
         elif self.dm_lastdate > self.AM_lastdate:
             print('date Ok, proceeding', 'start= ', self.AM_lastdate, 'end= ', self.dm_lastdate)
@@ -109,7 +107,7 @@ class RawMilkUpdate:
     def create_PM_liters(self):
         self.newdata_PM_liters = self.dmPM_liters.loc[:,self.AM_lastdate+1:self.dm_lastdate].copy()
         
-        # print('newdata \n', self.newdata_PM_liters.head(5),'\n') 
+        # print('newdata \n', self.newdata_PM_liters.iloc[:3,-5:],'\n') 
         # print('PM_liters: \n', self.PM_liters.iloc[:3,-5:])
         
         self.pmliters = pd.concat([self.PM_liters,self.newdata_PM_liters],axis=1,join='inner')
@@ -124,9 +122,9 @@ class RawMilkUpdate:
         return self.pmwy, self.newdata_PM_wy
 
 
-
+#write to file using numeric date format
     def write_to_csv(self):
-        # print('hhhhhhh')
+
         self.amliters   .to_csv(f"D:\\Cows\\data backup\\milk backup\\rawmilk\\AM_liters\\AM_liters_{self.tdy}.csv")
         self.amliters   .to_csv(f"E:\\Cows\\data backup\\milk backup\\rawmilk\\AM_liters\\AM_liters_{self.tdy}.csv")
         self.amliters   .to_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_liters.csv',mode='w',header=True,index=True)
