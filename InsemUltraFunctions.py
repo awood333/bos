@@ -72,7 +72,7 @@ class InsemUltraFunctions:
                             },inplace=True)
         
         self.last_ultra = u1a.set_index("WY_id").reindex(self.rng)
-        print("last_ultra", self.last_ultra.loc[self.last_ultra.index > 260])
+        # print("last_ultra", self.last_ultra.loc[self.last_ultra.index > 260])
   
         return self.last_ultra
     
@@ -102,7 +102,9 @@ class InsemUltraFunctions:
         valid_insem_df1 = self.last_insem[valid_insem_mask1].copy()
         self.valid_insem_df = valid_insem_df1.reindex(self.rng)
         
+        # print("valid_insem_df ", self.valid_insem_df.loc[self.valid_insem_df.index > 260])       
         return self.valid_insem_df
+
 
 
                                     # combines all insem: last, valid, and age 
@@ -118,9 +120,10 @@ class InsemUltraFunctions:
             suffixes=('', "_right"))
         
         self.insem_df.drop([i for i in self.insem_df.columns if '_right' in i], axis=1, inplace=True)
-        # insem_df.set_index('WY_id', inplace=True)  WY_id is already the index
-        return self.insem_df
 
+        # print("insem_df ", self.insem_df.loc[self.insem_df.index > 260])
+        return self.insem_df
+     
 
     
     def create_valid_ultra_df(self):
@@ -130,12 +133,14 @@ class InsemUltraFunctions:
         
         
         valid_ultra_mask_df1 = self.last_ultra[['u_date', 'u_read']][valid_ultra_mask]                  # filters and attaches date
-        valid_ultra_mask_df1.index +=1 
+        # valid_ultra_mask_df1.index +=1 
         
         self.valid_ultra_df = valid_ultra_mask_df1.reindex(self.rng)
         self.valid_ultra_df.index.name = "WY_id"
-        
-        print("valid_ultra_df ", self.valid_ultra_df.loc[self.valid_ultra_df.index > 260])
+        # print("valid_ultra_mask ", valid_ultra_mask.loc[valid_ultra_mask.index > 260])
+        # print("valid_ultra_mask_df1 ", valid_ultra_mask_df1.loc[valid_ultra_mask_df1.index > 260])
+
+        # print("valid_ultra_df ", self.valid_ultra_df.loc[self.valid_ultra_df.index > 260])
 
         
         return self.valid_ultra_df
