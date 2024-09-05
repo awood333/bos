@@ -25,6 +25,8 @@ class MilkAggregates:
         self.tenday, self.tenday1         = self.ten_day()
         self.milk                         = self.create_avg_count()
         self.monthly, self.weekly_sum, self.weekly_mean, self.monthly_sum, self.monthly_mean         = self.create_monthly_weekly()
+        
+        # self.windows_paths, self.linux_paths = self.file_save_paths()
         # self.create_write_to_csv()
 
     def basics(self):       
@@ -230,82 +232,74 @@ class MilkAggregates:
 
 
         return monthly, weekly_sum, weekly_mean, monthly_sum, monthly_mean
+    
+    
+    # def file_save_paths(self):
+    #     self.windows_paths = [
+    #             ('am', 'F:\\COWS\\data\\milk_data\\halfday\\am\\halfday_am.csv'),
+    #             ('pm', 'F:\\COWS\\data\\milk_data\\halfday\\pm\\halfday_pm.csv'),
+    #             ('fullday', 'F:\\COWS\\data\\milk_data\\fullday\\fullday.csv'),
+    #             ('fullday_lastdate', 'F:\\COWS\\data\\milk_data\\fullday\\fullday_lastdate.csv'),
+    #             ('weekly_sum', 'F:\\COWS\\data\\milk_data\\totals\\weekly_sum.csv'),
+    #             ('weekly_mean', 'F:\\COWS\\data\\milk_data\\totals\\weekly_mean.csv'),
+    #             ('monthly', 'F:\\COWS\\data\\milk_data\\totals\\monthly.csv'),
+    #             ('monthly_sum', 'F:\\COWS\\data\\milk_data\\totals\\monthly_sum.csv'),
+    #             ('monthly_mean', 'F:\\COWS\\data\\milk_data\\totals\\monthly_mean.csv'),
+    #             ('milk', 'F:\\COWS\\data\\milk_data\\fullday\\milk.csv'),
+    #             ('tenday', 'F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\tenday.csv'),
+    #             ('tenday1', 'F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\tenday1.csv'),
+    #         ]
+        
+    #     self.linux_paths = [
+    #             ('am', '/home/alanw/data/milk_data/halfday/am/halfday_am.csv'),
+    #             ('pm', '/home/alanw/data/milk_data/halfday/pm/halfday_pm.csv'),
+    #             ('fullday', '/home/alanw/data/milk_data/fullday/fullday.csv'),
+    #             ('fullday_lastdate', '/home/alanw/data/milk_data/fullday/fullday_lastdate.csv'),
+    #             ('weekly_sum', '/home/alanw/data/milk_data/totals/weekly_sum.csv'),
+    #             ('weekly_mean', '/home/alanw/data/milk_data/totals/weekly_mean.csv'),
+    #             ('monthly', '/home/alanw/data/milk_data/totals/monthly.csv'),
+    #             ('monthly_sum', '/home/alanw/data/milk_data/totals/monthly_sum.csv'),
+    #             ('monthly_mean', '/home/alanw/data/milk_data/totals/monthly_mean.csv'),
+    #             ('milk', '/home/alanw/data/milk_data/fullday/milk.csv'),
+    #             ('tenday', '/home/alanw/data/milk_data/totals/milk_aggregates/tenday.csv'),
+    #             ('tenday1', '/home/alanw/data/milk_data/totals/milk_aggregates/tenday1.csv'),,
+    #         ]
+    #     return self.windows_paths, self.linux_paths
+        
 
     def create_write_to_csv(self):
-        def write_csv(dataframe, path):
-            dataframe.to_csv(path)
+        import os
+        from utils import process_files
 
-        rclone_path = "D:\\programs\\Rclone\\rclone.exe"  # Full path to rclone.exe
+        # Define the paths
+        paths = [
+            ('am', 'halfday/am/halfday_am.csv'),
+            ('pm', 'halfday/pm/halfday_pm.csv'),
+            ('fullday', 'fullday/fullday.csv'),
+            ('fullday_lastdate', 'fullday/fullday_lastdate.csv'),
+            ('weekly_sum', 'totals/weekly_sum.csv'),
+            ('weekly_mean', 'totals/weekly_mean.csv'),
+            ('monthly', 'totals/monthly.csv'),
+            ('monthly_sum', 'totals/monthly_sum.csv'),
+            ('monthly_mean', 'totals/monthly_mean.csv'),
+            ('milk', 'fullday/milk.csv'),
+            ('tenday', 'totals/milk_aggregates/tenday.csv'),
+            ('tenday1', 'totals/milk_aggregates/tenday1.csv'),
+        ]
 
+        # Function to provide data for a given name
+        def data_provider(name):
+            return getattr(self, name)
+
+        # Determine the base paths based on the OS
         if os.name == 'nt':  # Windows
-            paths = [
-                
-                
-                
-                
-                ('am', 'F:\\COWS\\data\\milk_data\\halfday\\am\\halfday_am.csv'),
-                ('pm', 'F:\\COWS\\data\\milk_data\\halfday\\pm\\halfday_pm.csv'),
-                ('fullday', 'F:\\COWS\\data\\milk_data\\fullday\\fullday.csv'),
-                ('fullday_lastdate', 'F:\\COWS\\data\\milk_data\\fullday\\fullday_lastdate.csv'),
-                ('weekly_sum', 'F:\\COWS\\data\\milk_data\\totals\\weekly_sum.csv'),
-                ('weekly_mean', 'F:\\COWS\\data\\milk_data\\totals\\weekly_mean.csv'),
-                ('monthly', 'F:\\COWS\\data\\milk_data\\totals\\monthly.csv'),
-                ('monthly_sum', 'F:\\COWS\\data\\milk_data\\totals\\monthly_sum.csv'),
-                ('monthly_mean', 'F:\\COWS\\data\\milk_data\\totals\\monthly_mean.csv'),
-                ('milk', 'F:\\COWS\\data\\milk_data\\fullday\\milk.csv'),
-                ('tenday', 'F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\tenday.csv'),
-                ('tenday1', 'F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\tenday1.csv'),
-            ]
+            local_base_path = 'F:\\COWS\\data\\milk_data'
+            remote_base_path = 'gdrive:My Drive/COWS/data/milk_data'
+        elif os.name == 'posix':  # Linux
+            local_base_path = '/home/alanw/data/milk_data'
+            remote_base_path = 'gdrive:My Drive/COWS/data/milk_data'
 
-            with ThreadPoolExecutor() as executor:
-                futures = [executor.submit(write_csv, getattr(self, name), path) for name, path in paths]
-                for future in futures:
-                    future.result()  # Wait for all threads to complete
+        # Process the files
+        process_files(paths, data_provider, local_base_path, remote_base_path)
 
-            def copy_to_gdrive(local_path, remote_path):
-                subprocess.run(
-                    [rclone_path, "copy", local_path, remote_path],
-                    check=True,
-                    capture_output=True,
-                    text=True
-                )
-                print(f"Successfully copied {local_path} to {remote_path}")
-
-            # Sync files to Google Drive using rclone in parallel
-            with ThreadPoolExecutor() as executor:
-                futures = []
-                for name, local_path in paths:
-                    remote_path = f"gdrive:My Drive/COWS/data/milk_data/{name}/{os.path.basename(local_path)}"
-                    futures.append(executor.submit(copy_to_gdrive, local_path, remote_path))
-                for future in futures:
-                    future.result()  # Wait for all threads to complete
-
-
-        elif os.name == 'posix':  # Ubuntu
-            paths = [
-                ('am', '/home/alanw/dropbox/milk/halfday/am/am.csv'),
-                ('pm', '/home/alanw/dropbox/milk/halfday/pm/pm.csv'),
-                ('fullday', '/home/alanw/dropbox/milk/fullday/fullday.csv'),
-                ('fullday_lastdate', '/home/alanw/dropbox/milk/fullday/fullday_lastdate.csv'),
-                ('weekly_sum', '/home/alanw/dropbox/milk/totals/weekly_sum.csv'),
-                ('weekly_mean', '/home/alanw/dropbox/milk/totals/weekly_mean.csv'),
-                ('monthly', '/home/alanw/dropbox/milk/totals/monthly.csv'),
-                ('monthly_sum', '/home/alanw/dropbox/milk/totals/monthly_sum.csv'),
-                ('monthly_mean', '/home/alanw/dropbox/milk/totals/monthly_mean.csv'),
-                ('milk', '/home/alanw/dropbox/milk/fullday/milk.csv'),
-                ('tenday', '/home/alanw/dropbox/milk/totals/milk_aggregates/tenday.csv'),
-                ('tenday1', '/home/alanw/dropbox/milk/totals/milk_aggregates/tenday1.csv'),
-            ]
-
-            with ThreadPoolExecutor() as executor:
-                futures = [executor.submit(write_csv, getattr(self, name), path) for name, path in paths]
-                for future in futures:
-                    future.result()  # Wait for all threads to complete
-
-            # Sync files to Google Drive using rclone
-            for name, local_path in paths:
-                remote_path = f"gdrive:My Drive/COWS/data/milk_data/{name}/{os.path.basename(local_path)}"
-                subprocess.run(["rclone", "copy", local_path, remote_path], check=True)
-
-        print('tenday ', self.tenday.iloc[:1, :])
         
