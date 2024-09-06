@@ -2,14 +2,30 @@ import time
 import pandas as pd
 import numpy as np
 
-import os
 import subprocess
 import pyexcel_io
+import os
 
+from RemoteFilesaveUtils import RemoteFilesaveUtils as rfu
 from concurrent.futures import ThreadPoolExecutor
 
 class MilkAggregates:
     def __init__(self):
+        
+        self.paths = [
+            # ('halfday_am', 'halfday/am/halfday_am.csv'),
+            # ('halfday_pm', 'halfday/pm/halfday_pm.csv'),
+            ('fullday', 'fullday\\fullday.csv'),
+            # ('fullday_lastdate', 'fullday/fullday_lastdate.csv'),
+            # ('weekly_sum', 'totals/weekly_sum.csv'),
+            # ('weekly_mean', 'totals/weekly_mean.csv'),
+            # ('monthly', 'totals/monthly.csv'),
+            # ('monthly_sum', 'totals/monthly_sum.csv'),
+            # ('monthly_mean', 'totals/monthly_mean.csv'),
+            # ('milk', 'fullday/milk.csv'),
+            ('tenday', 'totals\\milk_aggregates\\tenday.csv'),
+            # ('tenday1', 'totals/milk_aggregates/tenday1.csv'),
+        ]
         
         self.bd      = pd.read_csv       ('F:\\COWS\\data\\csv_files\\birth_death.csv', parse_dates=['birth_date', 'death_date'])
         # self.all     = pd.read_csv       ('F:\\COWS\\data\\insem_data\\allx.csv',        header=0)
@@ -20,25 +36,66 @@ class MilkAggregates:
         
         self.date_format='%m/%d/%Y'
         
-        self.basics()
-        self.am, self.pm, self.fullday, self.fullday_lastdate    = self.fullday_calc()
-        self.tenday, self.tenday1         = self.ten_day()
-        self.milk                         = self.create_avg_count()
-        self.monthly, self.weekly_sum, self.weekly_mean, self.monthly_sum, self.monthly_mean         = self.create_monthly_weekly()
+        # self.name, self.pathx      = self.name_list()
         
-        # self.windows_paths, self.linux_paths = self.file_save_paths()
-        # self.create_write_to_csv()
+        [self.local_base_path,
+        self.remote_base_path]     = self.create_basepath()
+        
+        self.basics()
+        
+        [
+        self.am, self.pm, self.fullday,
+        self.fullday_lastdate]          = self.fullday_calc()
+        
+        self.tenday, self.tenday1           = self.ten_day()
+        self.milk                           = self.create_avg_count()
+        
+        [
+        self.monthly, 
+        self.monthly_sum, 
+        self.monthly_mean, 
+        self.weekly_sum, 
+        self.weekly_mean]           = self.create_monthly_weekly()
+
+        self.write_to_csv()
+ 
+
+    # def name_list(self):
+    #     self.name = []
+    #     self.pathx = []
+        
+    #     for k, i in self.paths:
+    #         name1 = k # Extract the name and path from the tuple
+    #         path1 = i
+
+    #         self.name.append(name1)
+    #         self.pathx.append(path1)
+    #         i +=1
+    #     return self.name, self.pathx
+        
+    
+    def create_basepath(self):
+
+        if os.name == 'nt':  # Windows
+            self.local_base_path = 'F:\\COWS\\data\\milk_data\\'
+            self.remote_base_path = 'Z:/My Drive/COWS/data/milk_data'
+        elif os.name == 'posix':  # Linux
+            self.local_base_path = '/home/alanw/data/milk_data'
+            self.remote_base_path = 'gdrive:My Drive/COWS/data/milk_data'
+
+        return self.local_base_path, self.remote_base_path
+    
+
 
     def basics(self):       
 
-        self.AM_liters = pd.read_csv     ('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_liters.csv',
+        self.AM_liters = pd.read_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_liters.csv',
                                           index_col=0)
-                
-        self.AM_wy   =   pd.read_csv     ('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_wy.csv',
+        self.AM_wy     = pd.read_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_wy.csv',
                                           index_col=0)
-        self.PM_liters = pd.read_csv     ('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_liters.csv',
+        self.PM_liters = pd.read_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_liters.csv',
                                           index_col=0)
-        self.PM_wy   =   pd.read_csv     ('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_wy.csv',
+        self.PM_wy     = pd.read_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_wy.csv',
                                           index_col=0)
        
         self.wy      = self.bd['WY_id']
@@ -74,6 +131,9 @@ class MilkAggregates:
         self.wy_pm_np =    self.wy_pm.      to_numpy(dtype=float)
         self.liters_am_np= self.liters_am.  to_numpy(dtype=float)
         self.liters_pm_np= self.liters_pm.  to_numpy(dtype=float)
+        
+        
+        
 
 
     def fullday_calc(self):
@@ -200,16 +260,14 @@ class MilkAggregates:
 
     def create_monthly_weekly(self):
         
-        start_time = time.time()
-
         self.milk['year']   = self.milk.index.year
         self.milk['month']  = self.milk.index.month
         self.milk['week']   = self.milk.index.isocalendar().week
         #  the as_index=False leaves the new columns accessible for .loc, otherwise they become part of a multi-index
         milk_monthly_sum    =   self.milk.groupby(['year','month'],          as_index=False).sum()    
         milk_monthly_mean1  =   self.milk.groupby(['year','month'],          as_index=False).mean()
-        weekly_sum     =   self.milk.groupby(['year','month','week'],   as_index=False).sum() 
-        weekly_mean    =   self.milk.groupby(['year','month','week'],   as_index=False).mean()
+        self.weekly_sum     =   self.milk.groupby(['year','month','week'],   as_index=False).sum() 
+        self.weekly_mean    =   self.milk.groupby(['year','month','week'],   as_index=False).mean()
         
 
         # change names because 'sum' will eventually mean the monthly total vs the avg
@@ -223,83 +281,16 @@ class MilkAggregates:
             return '{:,.0f}'.format(num)
 
         monthly1[['avg count', 'avg sum', 'total']] = monthly1[['avg count', 'avg sum', 'total']].map(format_num)
-        monthly = monthly1.reset_index(drop=True)
-        monthly_sum = milk_monthly_sum
-        monthly_mean = milk_monthly_mean1
-        
-        end_time = time.time()
-        print(f"monthly: {end_time - start_time} seconds")
+        self.monthly = monthly1.reset_index(drop=True)
+        self.monthly_sum = milk_monthly_sum
+        self.monthly_mean = milk_monthly_mean1
 
-
-        return monthly, weekly_sum, weekly_mean, monthly_sum, monthly_mean
+        return [self.monthly, self.monthly_sum, self.monthly_mean, 
+                self.weekly_sum, self.weekly_mean] 
     
+    def write_to_csv(self):
+        self.fullday.to_csv('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv')
+        self.tenday.to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\tenday.csv')
+
+
     
-    # def file_save_paths(self):
-    #     self.windows_paths = [
-    #             ('am', 'F:\\COWS\\data\\milk_data\\halfday\\am\\halfday_am.csv'),
-    #             ('pm', 'F:\\COWS\\data\\milk_data\\halfday\\pm\\halfday_pm.csv'),
-    #             ('fullday', 'F:\\COWS\\data\\milk_data\\fullday\\fullday.csv'),
-    #             ('fullday_lastdate', 'F:\\COWS\\data\\milk_data\\fullday\\fullday_lastdate.csv'),
-    #             ('weekly_sum', 'F:\\COWS\\data\\milk_data\\totals\\weekly_sum.csv'),
-    #             ('weekly_mean', 'F:\\COWS\\data\\milk_data\\totals\\weekly_mean.csv'),
-    #             ('monthly', 'F:\\COWS\\data\\milk_data\\totals\\monthly.csv'),
-    #             ('monthly_sum', 'F:\\COWS\\data\\milk_data\\totals\\monthly_sum.csv'),
-    #             ('monthly_mean', 'F:\\COWS\\data\\milk_data\\totals\\monthly_mean.csv'),
-    #             ('milk', 'F:\\COWS\\data\\milk_data\\fullday\\milk.csv'),
-    #             ('tenday', 'F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\tenday.csv'),
-    #             ('tenday1', 'F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\tenday1.csv'),
-    #         ]
-        
-    #     self.linux_paths = [
-    #             ('am', '/home/alanw/data/milk_data/halfday/am/halfday_am.csv'),
-    #             ('pm', '/home/alanw/data/milk_data/halfday/pm/halfday_pm.csv'),
-    #             ('fullday', '/home/alanw/data/milk_data/fullday/fullday.csv'),
-    #             ('fullday_lastdate', '/home/alanw/data/milk_data/fullday/fullday_lastdate.csv'),
-    #             ('weekly_sum', '/home/alanw/data/milk_data/totals/weekly_sum.csv'),
-    #             ('weekly_mean', '/home/alanw/data/milk_data/totals/weekly_mean.csv'),
-    #             ('monthly', '/home/alanw/data/milk_data/totals/monthly.csv'),
-    #             ('monthly_sum', '/home/alanw/data/milk_data/totals/monthly_sum.csv'),
-    #             ('monthly_mean', '/home/alanw/data/milk_data/totals/monthly_mean.csv'),
-    #             ('milk', '/home/alanw/data/milk_data/fullday/milk.csv'),
-    #             ('tenday', '/home/alanw/data/milk_data/totals/milk_aggregates/tenday.csv'),
-    #             ('tenday1', '/home/alanw/data/milk_data/totals/milk_aggregates/tenday1.csv'),,
-    #         ]
-    #     return self.windows_paths, self.linux_paths
-        
-
-    def create_write_to_csv(self):
-        import os
-        from utils import process_files
-
-        # Define the paths
-        paths = [
-            ('am', 'halfday/am/halfday_am.csv'),
-            ('pm', 'halfday/pm/halfday_pm.csv'),
-            ('fullday', 'fullday/fullday.csv'),
-            ('fullday_lastdate', 'fullday/fullday_lastdate.csv'),
-            ('weekly_sum', 'totals/weekly_sum.csv'),
-            ('weekly_mean', 'totals/weekly_mean.csv'),
-            ('monthly', 'totals/monthly.csv'),
-            ('monthly_sum', 'totals/monthly_sum.csv'),
-            ('monthly_mean', 'totals/monthly_mean.csv'),
-            ('milk', 'fullday/milk.csv'),
-            ('tenday', 'totals/milk_aggregates/tenday.csv'),
-            ('tenday1', 'totals/milk_aggregates/tenday1.csv'),
-        ]
-
-        # Function to provide data for a given name
-        def data_provider(name):
-            return getattr(self, name)
-
-        # Determine the base paths based on the OS
-        if os.name == 'nt':  # Windows
-            local_base_path = 'F:\\COWS\\data\\milk_data'
-            remote_base_path = 'gdrive:My Drive/COWS/data/milk_data'
-        elif os.name == 'posix':  # Linux
-            local_base_path = '/home/alanw/data/milk_data'
-            remote_base_path = 'gdrive:My Drive/COWS/data/milk_data'
-
-        # Process the files
-        process_files(paths, data_provider, local_base_path, remote_base_path)
-
-        
