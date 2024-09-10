@@ -8,7 +8,7 @@ from InsemUltraBasics import InsemUltraBasics
 class StatusDataLong:
     
     def __init__(self):
-        self.f1     = pd.read_csv('F:\\COWS\\data\\csv_files\\xlformat\\fullday.csv',index_col='datex')
+        self.f1     = pd.read_csv('F:\\COWS\\data\\milk_data\\fullday_xl_format\\fullday_xl.csv',index_col='datex')
         self.bd     = pd.read_csv('F:\\COWS\\data\\csv_files\\xlformat\\birth_death.csv')
         
         IUF    = InsemUltraBasics()
@@ -41,10 +41,10 @@ class StatusDataLong:
     
     
     def create_partition_milk_df(self):
-        self.f = self.f1.loc[45530:, :].copy()     # partitions the milk df
+        self.f = self.f1.loc[45520:, :].copy()     # partitions the milk df
         self.datex          = self.f.index.to_list()
         
-        print('f:', self.f.iloc[:,:5])
+        # print('f:', self.f.iloc[:,:5])
         return self.f, self.datex
     
     def create_milking_list(self):

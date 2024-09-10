@@ -5,7 +5,11 @@ import numpy as np
 from datetime import datetime as dt
 from datetime import timedelta as td
 
-# import GdriveDataLoader
+from status_ids import StatusDataLong
+
+status = StatusDataLong()
+
+today =  pd.Timestamp.today()
 
 lb      = pd.read_csv ('F:\\COWS\\data\\csv_files\\live_births.csv', parse_dates=['b_date'], header=0)
 stop    = pd.read_csv ('F:\\COWS\\data\\csv_files\\stop_dates.csv',  parse_dates=['stop'], header=0)
@@ -14,94 +18,58 @@ start   = pd.read_csv ('F:\\COWS\\data\\csv_files\\live_births.csv', parse_dates
 
 milk    = pd.read_csv  ('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv', parse_dates=['datex'], header=0, index_col=0)
 
+start1  = start.pivot (index='WY_id', columns='calf#',    values='b_date')          
+stop1   = stop .pivot (index='WY_id', columns='lact_num', values='stop')
+lbpivot1     = lb   .pivot (index='WY_id', columns='calf#',    values='b_date')
+
+not_heifers1 = lbpivot1.index.values.tolist()  #eliminate heifers - only contains cows that have calved
+
+rng = bd.index.tolist()
+       
+start2 = start1.reindex(rng)
+stop2  = stop1 .reindex(rng)
+
+cowBdate = bd['birth_date']
+cowDdate = bd['death_date']
+
+max_start1 = start2.max(axis=1)
+max_stop1  = stop2 .max(axis=1)
+max_start  = max_start1.reindex(rng)
+max_stop   = max_stop1.reindex(rng)
+
+diff_last_stop_deathdate = (bd.death_date - max_stop).dt.days
+
 
 class WetDry:
     def __init__(self):
-
-        self.startpivot  = start.pivot (index='WY_id', columns='calf#',    values='b_date').reset_index()          
-        self.stoppivot   = stop .pivot (index='WY_id', columns='lact_num', values='stop').reset_index()
-        self.lbpivot     = lb   .pivot (index='WY_id', columns='calf#',    values='b_date').reset_index()
-
-        self.startpivot .set_index('WY_id', inplace=True)
-        self.stoppivot  .set_index('WY_id', inplace=True)
-        self.lbpivot    .set_index('WY_id', inplace=True)
-
-        self.lb         = lb
-        self.stop       = stop
-        self.bd         = bd
-        self.start          = start
-        self.milk           = milk
-        self.milk_cols      = milk.columns.to_frame()
-
-        self.calf1_bdate    = self.lbpivot[1]
-
-
-
-      #functions
-        (self.today,    self.not_heifers1, 
-        self.start_1,   self.stop_1, 
-        self.start_2,   self.stop_2,         
-        self.cowBdate,  self.cowDdate,
-        self.max_start, self.max_stop,
-        self.diff_last_stop_deathdate)              = self.create_basics()
         
         self.milk_array                             = self.create_array_for_milk()
 
-        ( self.cols,    self.rows, 
+        [self.cols,    self.rows, 
         self.wet3,      self.wet,       self.wetsum,        
         self.milking3,  self.milking,   self.milkingmax
-        )                                           = self.create_wet()
+        ]                                           = self.create_wet()
         
         
         self.dry, self.drysum                       = self.create_dry()
 
-        (self.stop_death_gap)                       = self.create_days_laststop_death()
+        self.stop_death_gap                       = self.create_days_laststop_death()
 
-        (self.wetdry_dates, self.wetdry_duration,
-        self.wetdry_sum)                            = self.merge_wet_dry_intervals_in_sequence()
+        [self.wetdry_dates, 
+         self.wetdry_duration,
+         self.wetdry_sum ]                           = self.merge_wet_dry_intervals_in_sequence()
     
         self.bd_alive, self.alive_mask              = self.create_live_cows_age()
         
         self.bd_dead,  self.death_mask              = self.create_dead_cows_age()
         
         self.wetdry_all                             = self.create_wetdry_all()
-
-
-    def create_basics(self):
-
-        today =  pd.Timestamp.today()
-        not_heifers1 = self.lbpivot.index.values.tolist()  #eliminate heifers - only contains cows that have calved
         
-        #reindex both start and stop with the WY_id's from the milk df
-        start_2 = self.startpivot.reindex(self.milk.T.index.astype(np.int64))
-        stop_2  = self.stoppivot .reindex(self.milk.T.index.astype(np.int64))
-
-        start_1 = start_2.T
-        stop_1  = stop_2.T
-        
-        start_1.rename_axis( 'WY_id', inplace=True)
-        stop_1 .rename_axis( 'WY_id', inplace=True)
-
-        cowBdate = bd['birth_date']
-        cowDdate = bd['death_date']
-
-        max_start1 = start_2.max(axis=1)
-        max_stop1  = stop_2 .max(axis=1)
-        max_start  = max_start1.reindex(self.milk.T.index.astype(np.int64))
-        max_stop   = max_stop1.reindex(self.milk.T.index.astype(np.int64))
-
-        diff_last_stop_deathdate1 = bd.death_date - max_stop        # integer days between last stop and death
-        diff_last_stop_deathdate = diff_last_stop_deathdate1.dt.days
-
-        return today, not_heifers1, \
-            start_1, stop_1,\
-            start_2, stop_2,\
-            cowBdate, cowDdate,\
-            max_start, max_stop,   diff_last_stop_deathdate
+        self.wetdry_livecows                  = self.create_wetdry_livecows()
 
 
     def create_array_for_milk(self):
-        r  = len(self.milk)                            
+        r  = len(milk)                            
 
         headx   = '8/9/2018'
         heady   = '9/1/2016'
@@ -110,61 +78,66 @@ class WetDry:
         
         datex   =   pd.date_range (heady, headx, freq='d', name='datex')
 
-        milkfill  = np.zeros([head,len(self.milk.columns)])
+        milkfill  = np.zeros([head,len(milk.columns)])
         milkfill1 = pd.DataFrame(milkfill,index=datex)
 
-        milkfill1.columns   = self.milk.columns
+        milkfill1.columns   = milk.columns
         milkfill1.index     = pd.to_datetime(milkfill1.index)                  
-        milk_array          = pd.concat((milkfill1 ,milk), axis=0).sort_index()  #blank array from 9/1/2016 joined to 2018/8/10 to most recent milk day (len
-        milk_array.replace(0, "", inplace=True )
+        self.milk_array          = pd.concat((milkfill1 ,milk), axis=0).sort_index()  #blank array from 9/1/2016 joined to 2018/8/10 to most recent milk day (len
+        self.milk_array.replace(0, "", inplace=True )
 
-        return milk_array
+        return self.milk_array
     
 
 
     def create_wet(self):           # WET (completed lactation) + STILL MILKING
 
         (   wet2,         wet3, 
-            milking2,     milking3,     
-        )    =   [], [], [], []
+            milking2,     milking3,   
+            wet_amt_sum2, wet_amt_sum3  
+        )    =   [], [], [], [],[],[]
         
-        rows = list( self.stop_1.index)      #integers
-        cols = self.start_1.columns  #integers decremented by 1
+        rows = list( stop1.index)      #integers
+        cols = start1.columns  #integers decremented by 1
         
-        for j in cols:  #iterates first down the rows in 'start' and 'stop' then across the cols- the wy's
-            for i in rows:
-                start       = self.start_1          .loc[i,j]
-                stop        = self.stop_1           .loc[i,j]
-                max_start_x = self.max_start [j]
-                max_stop_x  = self.max_stop  [j]
+        for j in cols:  # lact_nums
+            for i in rows:         #WY nums
+                start       = start1          .loc[i,j]
+                stop        = stop1           .loc[i,j]
+                max_start_x = max_start [j]
+                max_stop_x  = max_stop  [j]
                 dd          = bd['death_date'][j]
+                k           = str(j)
                
         
-                if( ( pd.isnull(start) == False)                  #if start and stop both exist 
-                    &   ( pd.isnull(stop) == False)
-                    &   ((dd >= max_start_x) | pd.isnull(dd)==True)  # and cow is bd_alive
+                if( ( pd.isnull(start) is False)                  #if start and stop both exist 
+                    &   ( pd.isnull(stop) is False)
+                    &   ((dd >= max_start_x) | pd.isnull(dd) is True)  # and cow is bd_alive
                     ):           
                     wet1=(stop-start)/np.timedelta64(1,'D')       #this is a completed lactation
-
+                    wet_amt_rng = milk.loc[start:stop,k:k]
+                    wet_amt_sum1 = wet_amt_rng.sum(),
                     milking1 = ''
           
         
-                elif( (pd.isnull(start) == False)                 #if start exists ...
-                    &   (pd.isnull(stop)==True)                   #and stop does NOT, 
-                    &   (start==max_start_x)                         #and this is the last start
-                    &   (((dd > max_start_x) | pd.isnull(dd)==True))
+                elif( (pd.isnull(start) is False)                 #if start exists ...
+                    &   (pd.isnull(stop) is True)                   #and stop does NOT, 
+                    &   (start == max_start_x)                         #and this is the last start
+                    &   (((dd > max_start_x) | pd.isnull(dd) is True))
                     ):
 
-                    milking1=(self.today - start)/np.timedelta64(1,'D')     #then it must still be 'milking'
+                    milking1=(today - start)/np.timedelta64(1,'D')     #then it must still be 'milking'
 
 
-                elif( (pd.isnull(start) == True)                 #if neither exists then
-                    &   (pd.isnull(stop)==True)                   # fill with a blank
+                elif( (pd.isnull(start) is True)                 #if neither exists then
+                    &   (pd.isnull(stop) is True)                   # fill with a blank
                     &   (start==max_start_x)                       
                 ):
                   milking1, wet1  = "",""
                   
                 wet2.append(wet1)
+                wet_amt_sum2.append(wet_amt_sum1)
+                print(wet_amt_sum2)
 
                 
                 if 'milking1' in locals():  # use this if the var might not exist eg 'milking'
@@ -174,6 +147,7 @@ class WetDry:
 
             wet3    .append(wet2)
             milking3.append(milking2)
+            wet_amt_sum3.append(wet_amt_sum2)
 
             wet2, milking2 = [],[]
 
@@ -214,14 +188,14 @@ class WetDry:
         for j in self.cols:
             for i in self.rows:              
          
-                max_start    = self.max_start[j]
-                max_stop     = self.max_stop[j]
+                maxstart    = max_start[j]
+                maxstop     =max_stop[j]
 
-                start_x     = self.start_1.shift(-1)
+                start_x     = start1.shift(-1)
 
-                startdry    = self.stop_1.loc[i,j]  
+                startdry    = stop1.loc[i,j]  
                 stopdry     = start_x.loc[i,j]  # the end of the dry is the start of the next lactation
-                max_start_x = pd.to_datetime(max_start)
+                max_start_x = pd.to_datetime(maxstart)
         
                 if(     ( pd.isnull(startdry) == False)   #start exists
                     and   ( stopdry <= max_start_x)            #for 'dry' the next start is the stop value
@@ -235,7 +209,7 @@ class WetDry:
         dry4 = pd.DataFrame(dry3)
         dry4.index +=1
         dry4.columns +=1
-        dry4['last stop']   = self.diff_last_stop_deathdate
+        dry4['last stop']   = diff_last_stop_deathdate
 
         drysum=dry4.sum(axis=1)
         dry4['drysum']      = drysum
@@ -251,10 +225,10 @@ class WetDry:
        
 
         filldate =  pd.to_datetime('1900-01-01')
-        adj_dd = self.bd['death_date'].fillna(filldate).to_frame()
+        adj_dd = bd['death_date'].fillna(filldate).to_frame()
 
         adj_dd.reset_index(drop=True, inplace=True)
-        adj_max_stop = self.max_stop.fillna(filldate).shift(-1)
+        adj_max_stop = max_stop.fillna(filldate).shift(-1)
 
         m1 = pd.merge(adj_dd, adj_max_stop.to_frame(), how='left', left_index=True, right_index=True)
         stop_death_gap1 = m1
@@ -264,7 +238,7 @@ class WetDry:
         stop_death_gap2 = stop_death_gap1.mask(stop_death_gap1['gap'] <0, np.nan)
         stop_death_gap2.index += 1
 
-        stop_death_gap = stop_death_gap2.reindex(self.bd.index)
+        stop_death_gap = stop_death_gap2.reindex(bd.index)
         stop_death_gap.rename(columns={1 : 'max stop'}, inplace=True)
 
         return stop_death_gap
@@ -273,11 +247,11 @@ class WetDry:
     def merge_wet_dry_intervals_in_sequence(self):
         a3,b3,a2,b2=[],[],[],[]
 
-        cols = self.start_1.columns
+        cols = start_1.columns
         i=6
         for j in cols:  
-            a = self.start_1.loc[:i,j]
-            b = self.stop_1.loc[:i,j]
+            a = start_1.loc[:i,j]
+            b = stop_1.loc[:i,j]
             a2.append(a)
             b2.append(b)
         #
@@ -313,7 +287,7 @@ class WetDry:
         alive_mask   = bd['death_date'].isnull()           
         bd_alive    = bd.loc[alive_mask].copy()
 
-        age_alive = (self.today - bd_alive['birth_date'])/np.timedelta64(1,'D')     #age of all living cows
+        age_alive = (today - bd_alive['birth_date'])/np.timedelta64(1,'D')     #age of all living cows
         bd_alive['age']             = age_alive
 
         bd_alive['ageAtCalf1']      = (self.calf1_bdate - bd_alive['birth_date'])/np.timedelta64(1,'D')
@@ -340,26 +314,35 @@ class WetDry:
 
         field_names = ['birth_date','dam_num','typex','arrived','readex']
         days1    .drop(field_names, axis=1, inplace=True)
-        wetdry_all =  days1.loc[self.not_heifers1].copy() 
+        self.wetdry_all =  days1.loc[self.not_heifers1].copy() 
 
 
-        wetdry_all['wetdry_sum'] =self.wetdry_sum['total days']
-        wetdry_all['wet']       = self.wetsum
-        wetdry_all['dry']       = self.drysum
-        wetdry_all['milking']   = self.milkingmax
-        wetdry_all['gap']       = self.stop_death_gap['gap']
+        self.wetdry_all['wetdry_sum'] =self.wetdry_sum['total days']
+        self.wetdry_all['wet']       = self.wetsum
+        self.wetdry_all['dry']       = self.drysum
+        self.wetdry_all['milking']   = self.milkingmax
+        self.wetdry_all['gap']       = self.stop_death_gap['gap']
 
 
 
-        wetdry_all['comp'] = wetdry_all['possible_days'] - wetdry_all['wetdry_sum']
-        wet_pct1=            self.wetsum / wetdry_all['possible_days']
-        dry_pct1=            self.drysum / wetdry_all['possible_days']
+        self.wetdry_all['comp'] = self.wetdry_all['possible_days'] - self.wetdry_all['wetdry_sum']
+        wet_pct1=            self.wetsum / self.wetdry_all['possible_days']
+        dry_pct1=            self.drysum / self.wetdry_all['possible_days']
         
-        wetdry_all['wet_pct'] = wet_pct1
-        wetdry_all['dry_pct'] = dry_pct1
+        self.wetdry_all['wet_pct'] = wet_pct1
+        self.wetdry_all['dry_pct'] = dry_pct1
+        
+        # print ('wetdry_live',self.wetdry_all.loc[status.alive_mask])
 
-        return wetdry_all
+        return self.wetdry_all
 
+    
+    def create_wetdry_livecows(self):
+        self.wetdry_livecows = self.wetdry_all.loc[self.alive_mask]
+    
+        return self.wetdry_livecows
+        
+    
                 
     def create_write_to_csv(self):      
         self.wet             .to_csv('F:\\COWS\\data\\wet_dry\\wet.csv')
@@ -367,10 +350,15 @@ class WetDry:
         self.wetdry_dates    .to_csv('F:\\COWS\\data\\wet_dry\\wetdrydates.csv')   
         self.wetdry_duration .to_csv('F:\\COWS\\data\\wet_dry\\wetdryduration.csv')   
         self.wetdry_all      .to_csv('F:\\COWS\\data\\wet_dry\\wetdry_all.csv')
+        self.wetdry_livecows .to_csv('F:\\COWS\\data\\wet_dry\\wetdry_livecows.csv')
+        
+        
+    
 
 
-
-
+# def main():
+#     if __name__ == "__main__":
+#         main()
 
 
 

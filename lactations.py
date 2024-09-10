@@ -5,7 +5,7 @@ import numpy as np
 from wet_dry        import WetDry
 from insem_ultra    import InsemUltraData
 # from status         import StatusData
-from status_module_adjustment import StatusModuleAdjustment
+# from status_module_adjustment import StatusModuleAdjustment
 
 
 class Lactations:
@@ -17,7 +17,7 @@ class Lactations:
         self.milk   = pd.read_csv    ('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv', header = 0, index_col   = 'datex', parse_dates=['datex'])
         self.bd     = pd.read_csv    ('F:\\COWS\\data\\csv_files\\birth_death.csv',     header = 0, parse_dates = ['birth_date','death_date'])
 
-        self.ma     = StatusModuleAdjustment()
+        # self.ma     = StatusModuleAdjustment()
         # self.sd     = StatusData()
         self.iud    = InsemUltraData()
         self.wd     = WetDry()

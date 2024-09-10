@@ -5,6 +5,7 @@ import numpy as np
 import datetime
 from datetime import date, timedelta
 
+x=1
 
 class InsemUltraBasics:
     def __init__(self):
