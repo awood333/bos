@@ -1,6 +1,7 @@
 import time
 import pandas as pd
 import numpy as np
+from datetime import datetime
 
 import subprocess
 import pyexcel_io
@@ -44,7 +45,7 @@ class MilkAggregates:
         self.basics()
         
         [
-        self.am, self.pm, self.fullday,
+        self.fullday, self.fullday_xl,
         self.fullday_lastdate]          = self.fullday_calc()
         
         self.tenday, self.tenday1           = self.ten_day()
@@ -203,9 +204,13 @@ class MilkAggregates:
         self.fullday.drop(self.fullday.iloc[:,0:1],axis=1,inplace=True)
         self.fullday.index.name = 'datex'
         
+        self.fullday_xl = self.fullday.copy()
+        self.fullday_xl.index = self.fullday_xl.index.map(lambda x: (x - datetime(1899,12,30).date()).days)        
         self.fullday_lastdate = pd.DataFrame(index=[self.fullday.index[-1]], columns=['last_date'])
         
-        return am, pm, self.fullday, self.fullday_lastdate
+
+        
+        return  self.fullday, self.fullday_xl, self.fullday_lastdate
         
         
  
@@ -290,7 +295,9 @@ class MilkAggregates:
     
     def write_to_csv(self):
         self.fullday.to_csv('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv')
+        self.fullday_xl.to_csv('F:\\COWS\\data\\milk_data\\fullday_xl_format\\fullday_xl.csv')
         self.tenday.to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\tenday.csv')
+        self.tenday1.to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\tenday1.csv')
 
 
     

@@ -11,7 +11,7 @@ bd = pd.read_csv  ('F:\\COWS\\data\\csv_files\\birth_death.csv')
 lb = pd.read_csv  ('F:\\COWS\\data\\csv_files\\live_births.csv')
 i  = pd.read_csv  ('F:\\COWS\\data\\csv_files\\insem.csv')
 sd = pd.read_csv  ('F:\\COWS\\data\\csv_files\\stop_dates.csv')
-m  = pd.read_csv  ('F:\\COWS\\data\\csv_files\\miscarries.csv')
+# m  = pd.read_csv  ('F:\\COWS\\data\\csv_files\\miscarries.csv')
 u  = pd.read_csv  ('F:\\COWS\\data\\csv_files\\ultra.csv')
 mi = pd.read_csv  ('F:\\COWS\\data\\PL_data\\milk_income\\milk_income.csv')
 
@@ -28,7 +28,7 @@ bd.to_csv       ('D:\\OneDrive\\Cows\\data backup\\insem backup\\birth death\\bi
 lb.to_csv       ('D:\\OneDrive\\Cows\\data backup\\insem backup\\live births\\live births'+tdy+'.csv')
 i.to_csv        ('D:\\OneDrive\\Cows\\data backup\\insem backup\\insem\\insem'            +tdy+'.csv')
 sd.to_csv       ('D:\\OneDrive\\Cows\\data backup\\insem backup\\stop dates\\stop dates'  +tdy+'.csv')
-m.to_csv        ('D:\\OneDrive\\Cows\\data backup\\insem backup\\miscarries\\miscarries' +tdy+'.csv')
+# m.to_csv        ('D:\\OneDrive\\Cows\\data backup\\insem backup\\miscarries\\miscarries' +tdy+'.csv')
 u.to_csv        ('D:\\OneDrive\\Cows\\data backup\\insem backup\\ultra\\ultra'           +tdy+'.csv')
 
 mi.to_csv       ('D:\\OneDrive\\Cows\\data backup\\finance backup\\milk income\\income'  +tdy+'.csv' )

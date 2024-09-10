@@ -25,6 +25,9 @@ class InsemUltraData:
         self.rng     = list(range(1, self.bd1.index.max()+1))
         self.df      = pd.DataFrame()
         
+        self.death_mask = self.bd1['death_date'].notnull()
+        self.alive_mask = self.bd1['death_date'].isnull()
+        
         self.df['WY_id'] = self.rng
         self.df.set_index('WY_id',drop=True,inplace=True)
         self.date_format = '%m/%d/%Y'
@@ -33,25 +36,16 @@ class InsemUltraData:
         self.last_calf  = self.create_last_calf()
         self.last_stop  = self.create_last_stop()
         
-
         self.last_insem = self.create_last_insem()
         self.last_ultra = self.create_last_ultra()
         
-        self.last_ultra_insem = self.create_merge_last_ultra_insem()
-  
-        
-        self.valid_insem_df  = self.create_valid_insem_df()
-        self.insem_df        = self.create_insem_df()
-        
-        self.valid_ultra_df  = self.create_valid_ultra_df()
-        self.ultra_df        = self.create_ultra_df()
+        self.valid_insem = self.create_valid_insem()
+        self.valid_ultra = self.create_valid_ultra()
         
         self.df2            = self.merge_insem_ultra()
-        self.df3, self.date_cols = self.create_expected_bdate()
+        self.df7                 = self.create_expected_bdate()
         
         self.allx           = self.create_allx()
-     
-        self.ipiv           = self.create_last_insem_pivot()
         self.create_write_to_csv()
 
 
@@ -115,27 +109,21 @@ class InsemUltraData:
                             'try_num'      : 'try#'
                             },inplace=True)
         
-        self.last_insem = self.bd.merge(right=i1,  
-                how         ='left', 
-                left_index  =True, 
-                right_on    ='WY_id', 
-                suffixes    =('', "_right") )
-        
-        self.last_insem.drop([i for i in self.last_insem.columns if '_right' in i], axis=1, inplace=True)
-        
-        self.last_insem.set_index('WY_id', inplace=True)
+        self.last_insem = i1.reindex(self.rng)
         self.last_insem['i_date'].fillna(np.nan, inplace=True)
         return self.last_insem
     
         
     def create_last_ultra(self):
         
+        #u1 is a mask for max calf_num and max ultra date
         u1 = self.u.groupby('WY_id',as_index=True).agg({
         'Calf_num'      : 'max',
         'ultra_date'    : 'max'
         # 'readex'        : 'first'  
         })
         
+        #mask out all but the last ultra date and get the other fields
         u1a = u1.merge( right=self.u[['WY_id','ultra_date', 'readex']], 
             on      =['WY_id', 'ultra_date'], 
             how     ='left', 
@@ -149,133 +137,72 @@ class InsemUltraData:
                             'readex'    : 'u_read'
                             },inplace=True)
         
-        self.last_ultra = self.bd.merge(
-            right       =u1a, 
-            how         ='left', 
-            left_index  =True, 
-            right_on    ='WY_id', 
-            suffixes    =('', "_right") )
-        
-        self.last_ultra.drop([i for i in self.last_ultra.columns if '_right' in i], axis=1, inplace=True)
-        
-        self.last_ultra.set_index('WY_id', inplace=True)
-        self.last_ultra['u_date'].fillna(np.nan, inplace=True)
+        self.last_ultra = u1a.set_index("WY_id").reindex(self.rng)
+        # self.last_ultra['u_date'].fillna(np.nan, inplace=True)
+
         return self.last_ultra
     
     
-    def create_merge_last_ultra_insem(self):
+    def create_valid_insem(self):
         
-        self.last_insem['age insem'] =  (self.today - self.last_insem['i_date']).dt.days
-        self.last_ultra['age ultra'] =  (self.today - self.last_ultra['u_date']).dt.days
-        
-                                    # keep values from both df's with 'outer'          
-        self.last_ultra_insem = self.last_insem.merge(self.last_ultra, 
+        last_insem_last_calf = self.last_insem.merge(self.last_calf, 
                 on      ='WY_id', 
                 how     ='left', 
                 suffixes=('_insem', '_ultra'))
-        # last_ultra_insem.set_index('WY_id', inplace=True)
-        return self.last_ultra_insem
+ 
+        valid_insem_mask   =  (last_insem_last_calf['i_calf#'] 
+                               > last_insem_last_calf['last calf#']) 
+                
+        valid_insem1 = last_insem_last_calf[valid_insem_mask]
+        self.valid_insem = valid_insem1.reindex(self.rng)
+
+        return self.valid_insem
     
 
 
-    def create_valid_insem_df(self):
+    def create_valid_ultra(self):
         
-        valid_insem_mask1   =  (self.last_insem['i_calf#'] > self.df['last calf#']) 
-        valid_insem_mask    =  self.last_insem['i_date'][valid_insem_mask1].to_frame()
+        valid_ultra_mask1    = (
+                (self.last_ultra['u_date'] > self.valid_insem['i_date']) 
+                # | self.last_ultra['u_date'].isnull()
+                )
         
-        valid_insem_mask.reset_index(drop=True, inplace=True)
-
-        valid_insem_df1 = self.last_insem[valid_insem_mask1].copy()
-        self.valid_insem_df = valid_insem_df1.reindex(self.rng)
+        valid_ultra_mask = valid_ultra_mask1.reindex(self.rng)
+        print('True vals in valid_ultra_mask', sum(valid_ultra_mask))
         
-        return self.valid_insem_df
-
-
-                                    # combines all insem: last, valid, and age 
-    def create_insem_df(self):
-          
-        age_insem1 = self.valid_insem_df.loc[(self.valid_insem_df['i_date'].notnull())].copy()
-        age_insem1['age insem'] =  (self.today - age_insem1['i_date']).dt.days
+        valid_ultra1 = self.last_ultra[valid_ultra_mask]
+        self.valid_ultra  = valid_ultra1.reindex(self.rng)
+        print('non-NaN vals in u-date', self.valid_ultra['u_date'].count())
         
-        self.insem_df = self.valid_insem_df.merge(
-            right   =age_insem1, 
+        
+        return self.valid_ultra
+        
+        
+    def merge_insem_ultra(self):
+ 
+        df1 = self.last_insem.merge(self.valid_ultra,
             on      ='WY_id', 
             how     ='left', 
-            suffixes=('', "_right"))
+            suffixes=('_left', '_calf')
+        )
         
-        self.insem_df.drop([i for i in self.insem_df.columns if '_right' in i], axis=1, inplace=True)
-        # insem_df.set_index('WY_id', inplace=True)  WY_id is already the index
-        return self.insem_df
-
-
-       
-    def create_valid_ultra_df(self):
-        valid_ultra_mask = ((self.last_ultra['u_date'] > self.valid_insem_df['i_date']) &
-                            (
-                            (self.valid_insem_df['i_date'].notnull()) | 
-                            (self.valid_insem_df['i_date'].notna()) 
-                            ) 
-          )  # for all cows incl dead
+        df1['age insem'] =  (self.today - df1['i_date']).dt.days
+        df1['age ultra'] =  (self.today - df1['u_date']).dt.days
+        print('non-NaN vals in age ultra', df1['age ultra'].count())
         
-        valid_ultra_mask_df1 = self.last_ultra[['u_date', 'u_read']][valid_ultra_mask]                  # filters and attaches date
-        valid_ultra_mask_df1.index +=1 
-        
-        valid_ultra_mask_df = self.bd.merge(valid_ultra_mask_df1, 
-                    left_index=True, 
-                    right_index=True, 
-                    how='left', 
-                    suffixes=('_left', "__right") )
-        
-        valid_ultra_df1 = self.last_ultra[valid_ultra_mask]
-        self.valid_ultra_df = valid_ultra_df1.reindex(self.rng)
-        
-        return self.valid_ultra_df
-    
-    
-    
-                                        # combines all ultra:  last, valid and age
-    def create_ultra_df(self)    :
-        age_ultra1 = self.valid_ultra_df.loc[(self.valid_ultra_df['u_date'].notnull())].copy()
-        age_ultra1['age ultra'] =  (self.today - age_ultra1['u_date']).dt.days
-        
-        self.ultra_df = self.valid_ultra_df.merge(
-            right=age_ultra1, 
-            on='WY_id', 
-            how='left', 
-            suffixes=('', "_right"))
-        
-        self.ultra_df.drop([i for i in self.ultra_df.columns if '_right' in i], axis=1, inplace=True)
-        # ultra_df.set_index('WY_id', inplace=True)
-        
-        return self.ultra_df
-    
-    
-                                        #merge insem_df with ultra_df and with df
-    def merge_insem_ultra(self):
-        # insem_cols = list(self.insem_df.columns)
-        # ultra_cols = list(self.ultra_df.columns)
-
-        df2a =pd.merge( self.insem_df, self.ultra_df, 
-                       on       ='WY_id', 
-                       how      ='outer', 
-                       suffixes =('', "_right"))
-        
-        df2a.drop([i for i in df2a.columns if '_right' in i], axis=1, inplace=True)
-        
-        self.df2 = pd.merge(self.df, df2a, on='WY_id',  suffixes=('', "_right") )
-        self.df2.drop([i for i in self.df2.columns if '_right' in i], axis=1, inplace=True)
-        # df2.set_index('WY_id', inplace=True)
+        self.df2 = df1[self.alive_mask]
         
         return self.df2
-    
+
+
     
 # expected bdate 
     def create_expected_bdate(self):
         
+        
         bdemask =  (
             (self.df2['u_date'].notnull())  & 
-            (self.df2['u_read'] == 'ok')    &
-            (self.df2['death_date'].isnull())
+            (self.df2['u_read'] == 'ok')   
             )
                             
         
@@ -284,78 +211,63 @@ class InsemUltraData:
         bde1['expected bdate'] = bde1['i_date'] + pd.to_timedelta(282, unit='D')
         bde = bde1['expected bdate']
     
-        self.df3  = self.df2.merge(right=bde, on='WY_id', how='left' )
-        self.df3.fillna(np.nan, inplace=True)
-        
-        self.df3.drop(columns= 'adj_bdate', inplace=True)
+        df3  = self.df2.merge(right=bde,            on='WY_id', how='left' )
+        df4 =       df3.merge(right=self.last_stop, on='WY_id', how='left' )
+        df5 =       df4.merge(right=self.last_calf, on='WY_id', how='left' )
 
-        self.date_cols = ['death_date','last stop date','last calf bdate','i_date','u_date','expected bdate']
+        lastcalf_age = [(self.today - date).days for date in df5['last calf bdate']]
         
+        df5['days milking'] = lastcalf_age
+        df6 = df5.reindex(self.rng)
+        
+        df7a = df6.merge(right=self.status_col[['ids','status']], 
+                             left_on='WY_id', right_on='ids',
+                             suffixes=('', '_right'))
+   
+        df7a.index.name = 'WY_id'     
+        df7b = df7a.reindex(self.rng)
+        
+   
+
+        
+        
+        df7b.drop(columns=['ids'], inplace=True)
+        
+        self.df7 = df7b[df7b['status'] != 'G']
+        
+        # self.date_cols = ['death_date','last stop date','last calf bdate','i_date','u_date','expected bdate']
+        print(self.df7.columns)
        
-        return self.df3, self.date_cols
+        return self.df7
     
     
     def create_allx(self):
-        lc = self.last_calf
-        tdy = pd.Timestamp.today()
-        lastcalf_age = [(tdy - date).days for date in lc['last calf bdate']]
-        
-        self.df3['last calf age'] = lastcalf_age
-        
-        self.df3_reset = self.df3.reset_index()
-        df4 = self.df3_reset.merge(self.status_col[['ids','status']], how='left', left_on='WY_id', right_on='ids', suffixes=('', '_right'))
-        df4.drop(columns=['ids'], inplace=True)
-        df4.set_index('WY_id', inplace=True)
-        
-        df5 = df4.loc[df4['status'] != 'G']
-        
-        self.allx = df5
+
+        self.allx = self.df7[
+            [
+            'status',
+            'last stop date',
+            'stop calf#',
+            'last calf bdate',
+            'last calf#',
+            'days milking',
+            'i_calf#',
+            'i_date',
+            'age insem',
+            'u_calf#',
+            'u_date',
+            'u_read',
+            'age ultra',
+            'expected bdate'
+            ]
+        ]
         
         return self.allx
     
-
-    
-    def create_last_insem_pivot(self):
-        i2 = self.i.drop(columns=['typex', 'readex'])
-    
-        maxcalf1 = self.last_insem[['i_calf#', 'death_date']].copy()
-        maxcalf1.rename(columns={'i_calf#': 'maxcalf#'}, inplace=True)
-        
-        livemask = maxcalf1['death_date'].isnull()
-
-        maxcalf3 = maxcalf1[livemask].fillna(0)
-           
-        pivdata1 = i2.merge(maxcalf3, 
-                            how='right', 
-                            left_on=['WY_id', 'calf_num'], 
-                            right_on=['WY_id', 'maxcalf#'])
-        
-        pivdata2 = pivdata1.dropna(subset=['calf_num'])
-        
-        self.ipiv = pd.pivot_table(pivdata2, 
-                    index   = ['WY_id', 'calf_num' ], 
-                    columns = ['try_num' ],
-                    values  = 'insem_date'  ,
-                    aggfunc = 'max'
-                    )
-        return self.ipiv
-
     
     def create_write_to_csv(self):
         
         self.last_calf      .to_csv('F:\\COWS\\data\\insem_data\\lb_last.csv')
-        self.bd             .to_csv('F:\\COWS\\data\\insem_data\\bd.csv')
-  
-        self.valid_ultra_df .to_csv('F:\\COWS\\data\\insem_data\\valid_ultra_df.csv')
         self.last_ultra     .to_csv('F:\\COWS\\data\\insem_data\\last_ultra.csv')
-        self.ultra_df       .to_csv('F:\\COWS\\data\\insem_data\\ultra_df.csv')
         
-        self.last_insem     .to_csv('F:\\COWS\\data\\insem_data\\last_insem.csv')       
-        self.valid_insem_df .to_csv('F:\\COWS\\data\\insem_data\\valid_insem.csv')
-        
-        self.df2            .to_csv('F:\\COWS\\data\\insem_data\\df2.csv')
-        
-        
-        self.last_ultra_insem   .to_csv('F:\\COWS\\data\\insem_data\\last_ultra_insem.csv')
         self.allx               .to_csv('F:\\COWS\\data\\insem_data\\allx.csv')
-        self.ipiv               .to_csv ('F:\\COWS\\data\\insem_data\\ipiv.csv')

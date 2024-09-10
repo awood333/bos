@@ -6,8 +6,12 @@ import pandas as pd
 import os
 import subprocess
 from RemoteFilesaveUtils import RemoteFilesaveUtils
+
+from RawmMlkUpdate import RawMilkUpdate
 from milkaggregates import MilkAggregates
 
+
+rm = RawMilkUpdate()
 rfu = RemoteFilesaveUtils()
 ma = MilkAggregates()
 
