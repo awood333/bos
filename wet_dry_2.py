@@ -10,68 +10,56 @@ from InsemUltraBasics import InsemUltraBasics
 # status = StatusDataLong()
 
 today =  pd.Timestamp.today()
+class WetDryBasics:
+    def __init__(self):
+        
+        IUB = InsemUltraBasics()
 
-stopx    = pd.read_csv ('F:\\COWS\\data\\csv_files\\stop_dates.csv',  parse_dates=['stop'], header=0)
-bd1      = pd.read_csv ('F:\\COWS\\data\\csv_files\\birth_death.csv', parse_dates=['birth_date','death_date'], header=0, index_col='WY_id')
-startx   = pd.read_csv ('F:\\COWS\\data\\csv_files\\live_births.csv', parse_dates=['b_date'],header=0)
+        stopx    = pd.read_csv ('F:\\COWS\\data\\csv_files\\stop_dates.csv',  parse_dates=['stop'], header=0)
+        bd1      = pd.read_csv ('F:\\COWS\\data\\csv_files\\birth_death.csv', parse_dates=['birth_date','death_date'], header=0, index_col='WY_id')
+        startx   = pd.read_csv ('F:\\COWS\\data\\csv_files\\live_births.csv', parse_dates=['b_date'],header=0)
+        milk1a    = pd.read_csv  ('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv', parse_dates=['datex'], header=0, index_col=0)
 
-milk1a    = pd.read_csv  ('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv', parse_dates=['datex'], header=0, index_col=0)
+        start1a  = startx.pivot (index='WY_id', columns='calf#',    values='b_date')          
+        stop1a   = stopx .pivot (index='WY_id', columns='lact_num', values='stop')
 
-start1a  = startx.pivot (index='WY_id', columns='calf#',    values='b_date')          
-stop1a   = stopx .pivot (index='WY_id', columns='lact_num', values='stop')
+        rng = bd1.index.tolist()
 
+        cutoff1 = None     ## !! if eliminating cutoff with None check on col headers and stop2 index reset!!
+        cutoff2 = None  #263
+        cutoff3 = None   #-50
+        
+        self.milk   = milk1a.iloc[cutoff3:,cutoff1:cutoff2].copy()
+      
+        self.lastday= self.milk.index[-1]
 
-rng = bd1.index.tolist()
+        self.extended_rng_milk = pd.date_range(start='9/1/2016', end= self.milk.index[-1])
+      
 
-cutoff1 = None     ## !! if eliminating cutoff with None check on col headers and stop2 index reset!!
-cutoff2 = None  #263
-cutoff3 = None   #-50
+        # col_head_int =[num  for num in range (cutoff1+1, cutoff2+1)]
+        # col_head_str =[str(num)  for num in range (cutoff1+1, cutoff2+1)]
 
-# col_head_int =[num  for num in range (cutoff1+1, cutoff2+1)]
-# col_head_str =[str(num)  for num in range (cutoff1+1, cutoff2+1)]
+        start2a = start1a.reindex(rng)
+        stop2a  = stop1a .reindex(rng)
+        
+        #index is WY_ids so this restricts the cow nums same as in milk1b
+        start2b = start2a.iloc[cutoff1:cutoff2,:].copy()    
+        stop2b  = stop2a .iloc[cutoff1:cutoff2,:].copy()
 
+        self.start2 = start2b
+        self.stop2  = stop2b
+        
+        self.last_start = IUB.last_calf
+        self.last_stop  = IUB.last_stop
 
+        self.dd = bd1['death_date']
 
-# bd2= bd1.iloc[cutoff1:cutoff2,: ].copy()
-# bd= bd2.reset_index(drop=True)
-# bd['adj_bdate'] = pd.to_datetime(bd['adj_bdate'])
-
-start2a = start1a.reindex(rng)
-stop2a  = stop1a .reindex(rng)
-start2b = start2a.iloc[cutoff1:cutoff2,:].copy()    #index is WY_ids so this restricts the cow nums
-stop2b  = stop2a .iloc[cutoff1:cutoff2,:].copy()
-
-start2= start2b         #.reset_index(drop=True)
-stop2= stop2b           #.reset_index(drop=True)
-
-last_start = start2
-
-
-
-
-
-
-milk1b = milk1a.iloc[cutoff3:,cutoff1:cutoff2].copy()
-milk1c = milk1b         #.reset_index()
-# milk1c= milk1c.set_index('datex')
-milk1=milk1c
-lastday = milk1.index[-1]
-
-# milk1.columns=col_head_str                #no need if milk1c has str headers already
-
-rng_milk = pd.date_range(start='9/1/2016', end= milk1.index[-1])
-# milk = milk1.reindex(rng_milk)
-milk = milk1
-
-# days_alive = (milk1.index[-1] - bd['adj_bdate'])/np.timedelta64(1,'D')   
-
-cowBdate = bd1['birth_date']
-dd = bd1['death_date']
-# print('dd   ', bd1.iloc[118:125,:])
 
 
 class WetDry2:
     def __init__(self):
+        
+        self.WDB = WetDryBasics()
         
         self.wet_days3 = []
         self.milking_days3 = []
@@ -108,9 +96,9 @@ class WetDry2:
         )    =   [],[],[],[],   [],[],[],[],     [],[],[],[]
         
         x=1000
-        y= 1  # len(milk1.columns)
+        y= 1  # len(self.milk.columns)
         z=0
-        rngx = range(1,x,1)
+        # rngx = range(1,x,1)
         
         milking1 = np.full((x, y), np.nan)  
         milking2 = np.full((x, y, z), np.nan)  
@@ -121,17 +109,19 @@ class WetDry2:
         
         self.wet_dict = {}
         self.milking_dict = {}
+        
+        start   = self.WDB.start2
+        stop    = self.WDB.stop2
+        dd      = self.WDB.dd
                             
-        rows = stop2.index   #list( stop2.index)      #integers
-        cols = start2.columns  #integers 
-        # milk_cols = list(milk.columns)
+        rows = self.WDB.stop2.index   #list( stop2.index)      #integers
+        cols = self.WDB.start2.columns  #integers 
+        # milk_cols = list(self.milk.columns)
 
        
         for j in cols:  # lact_nums
             for i in rows:         #WY nums
-                start       = start2          .loc[i,j]
-                stop        = stop2           .loc[i,j]
-                dd          = dd[i]
+
                 k           = str(i)
      
                 # print(f"xxxxxxxxxx i: {i}, start: {start}, stop: {stop}, dd: {dd}, type(dd): {type(dd)}")
@@ -143,20 +133,17 @@ class WetDry2:
                 e =  pd.isna(start) is True        # start value missing
                 f =  pd.isna(stop)  is True        # stop value missing
 
-
-                
-             
              
             # completed lactation: 
                 if a and b:
                     
-                    wet_days1=(stop[i]-start[i])/np.timedelta64(1,'D')
+                    wet_days1=(stop[i] - start[i])/np.timedelta64(1,'D')
                     wet_amt1 = np.nansum(wet1)
                     
-                    wet1a = milk.loc[start:stop, k:k]
-                    wet1 = wet1a.to_numpy()
-                    xpad=x - wet1.shape[0]
-                    wet1 = np.pad(wet1, ((0, xpad), (0, 0)), 'constant', constant_values=np.nan)
+                    wet1a   = self.WDB.milk.loc[start:stop, k:k]
+                    wet1    = wet1a.to_numpy()
+                    xpad    = x - wet1.shape[0]
+                    wet1    = np.pad(wet1, ((0, xpad), (0, 0)), 'constant', constant_values=np.nan)
 
                     if wet1.ndim == 2:
                         wet1 = wet1[:,:, np.newaxis]
@@ -166,11 +153,11 @@ class WetDry2:
 
             # milking and cow alive
                 elif a and d and f:     
-                             
+                    lastday = self.WDB.lastday
                     milking_days1 = (lastday[i]-start[i])/np.timedelta64(1,'D')
                     
                     # note stop date is lastday - cow is still alive
-                    milking1c = milk.loc[start:lastday, k:k]
+                    milking1c = self.WDB.milk.loc[start:lastday, k:k]
                     
                     milking1 = milking1c.to_numpy()
                     milking_amt1 = np.nansum(milking1)
@@ -188,7 +175,7 @@ class WetDry2:
 
                     milking_days1=(dd[i]-start[i])/np.timedelta64(1,'D')
                     
-                    milking1c = milk.loc[start:stop, k:k]
+                    milking1c = self.WDB.milk.loc[start:stop, k:k]
 
                     milking1 = milking1c.to_numpy()
                     milking_amt1 = np.nansum(milking1)

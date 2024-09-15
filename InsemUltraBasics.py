@@ -2,11 +2,7 @@
 
 import pandas as pd
 import numpy as np
-import datetime
-from datetime import date, timedelta
-
-x=1
-
+from datetime import date, timedelta, datetime
 class InsemUltraBasics:
     def __init__(self):
         
