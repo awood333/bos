@@ -261,7 +261,7 @@ class InsemUltraData:
             'expected bdate'
             ]
         ]
-        
+        print(self.df7)
         return self.allx
     
     
