@@ -69,21 +69,24 @@ class WetDry2:
         self.wet_dict = {}  # Initialize wet_dict
         self.milking_dict = {}  # Initialize milking_dict
                 
-        [self.wet_i_3, self.milking_i_3] = [],[]
+        self.wet_header     = []
+        self.milking_header = []
+         
         
         
         [
-        self.wet_dict, self.milking_dict,
+        self.wet_dict,  self.milking_dict,
         self.wet_days3, self.milking_days3, 
-        self.wet_amt3, self.milking_amt3,
-        self.wet3, self.milking3
+        self.wet_amt3,  self.milking_amt3,
+        self.wet_header, self.milking_header
+        
         ]                                  = self.create_wet_milking()
 
         [
         self.lact1, self.lact2, self.lact3,
         self.lact4, self.lact5, self.lact6,
         self.milking1, self.milking2, 
-        self.milking3, self.milking4, 
+        milking3, self.milking4, 
         self.milking5, self.milking6
         ]                                   = self.create_dataframes()
 
@@ -112,10 +115,10 @@ class WetDry2:
         
         milking1 = np.full((x, y), np.nan)  
         milking2 = np.full((x, y, z), np.nan)  
-        self.milking3 = np.full((x, y, z), np.nan)  
+        milking3 = np.full((x, y, z), np.nan)  
         wet1     = np.full((x, y), np.nan)
         wet2     = np.full((x, y, z), np.nan)
-        self.wet3     = np.full((x, y, z), np.nan)
+        wet3     = np.full((x, y, z), np.nan)
         
         self.wet_dict = {}
         self.milking_dict = {}
@@ -172,6 +175,7 @@ class WetDry2:
                         milking1 = milking1[:, np.newaxis, :]
                         
                     milking2 = np.concatenate((milking2, milking1), axis=2)
+                
                     milking_i_1.append(i)
                     
                 # everything missing
@@ -184,8 +188,12 @@ class WetDry2:
                 milking_days2   .append(milking_days1)
                 milking_amt2    .append(milking_amt1)
                 
-                wet_i_2         .append(wet_i_1)
-                milking_i_2     .append(milking_i_1)
+                if wet_i_1:
+                    wet_i_2     .append(wet_i_1)
+                    
+                if milking_i_1:
+                    milking_i_2 .append(milking_i_1)
+                    
                 blank_cols_i_2  .append(blank_cols_i_1)
 
                 # reinitialize
@@ -203,51 +211,70 @@ class WetDry2:
             self.milking_days3  .append(milking_days2)
             self.wet_amt3       .append(milking_days2)
             self.milking_amt3   .append(milking_amt2)
-            self.wet_i_3        .append(wet_i_2)       
-            self.milking_i_3    .append(milking_i_2)
-    
+            self.wet_header        .append(wet_i_2)       
+            self.milking_header    .append(milking_i_2)
 
 
-            if hasattr(self, 'wet3'):
-                self.wet3 = np.concatenate((self.wet3, wet2), axis=2)
-                self.wet_dict[j] = self.wet3
-                print(f'wet_dict {j}',self.wet_dict[j])
-            else:
-                self.wet3=wet2
-                
-            if hasattr(self, 'milking3'):
-                self.milking3 = np.concatenate((self.milking3, milking2), axis=2)    
-                self.milking_dict[j] = self.milking3
-                print(f'milking_dict {j}.shape',self.milking_dict[j].shape,self.milking_dict[j])
-            else:
-                self.milking3=milking2
+            if wet2.shape[2] > 0:
+                wet3 = np.concatenate((wet3, wet2), axis=2)
+            else: wet3 = wet2
+            self.wet_dict[j] = wet3
+            print(f'wet_dict {j}', self.wet_dict[j][:3])            
+           
 
+            if  milking2.shape[2] > 0:
+                milking3 = np.concatenate((milking3, milking2), axis=2)
+            else:milking3 = milking2
+            self.milking_dict[j] = milking3
+            print(f'milking_dict {j}.shape', self.milking_dict[j].shape, '\n', f'milking_dict {j}  ', self.milking_dict[j][:3])
+         
+           
             [wet_days2,     wet_amt2,       milking_days2]  = [],[],[]
             [milking_amt2,  milking_i_2,    blank_cols_i_2] = [],[],[] 
-            wet_i_2                                       = []
+            wet_i_2,        milking_i_2                    = [],[]
+            
+            wet2        = np.empty((x,y,z))
+            wet3        = np.empty((x,y,z))
+            milking2    = np.empty((x,y,z))
+            milking3    = np.empty((x,y,z))
                 
-        return [self.wet_dict, self.milking_dict, 
+        return [self.wet_dict,      self.milking_dict, 
                     self.wet_days3, self.milking_days3, 
-                    self.wet_amt3, self.milking_amt3,
-                    self.wet3, self.milking3
+                    self.wet_amt3,  self.milking_amt3,
+                    self.wet_header, self.milking_header
+                    
                     ]
 
 
     def create_dataframes(self):
+        
+        m_head_1 = [item for sublist in self.milking_header[0] for item in sublist]
+        m_head_2 = [item for sublist in self.milking_header[1] for item in sublist]
+        m_head_3 = [item for sublist in self.milking_header[2] for item in sublist]
+        m_head_4 = [item for sublist in self.milking_header[3] for item in sublist]
+        m_head_5 = [item for sublist in self.milking_header[4] for item in sublist]
+        m_head_6 = [item for sublist in self.milking_header[5] for item in sublist]
 
-        self.milking_1 = pd.DataFrame(self.milking_dict[1][:,0,:])
-        self.milking_2 = pd.DataFrame(self.milking_dict[2][:,0,:])
-        self.milking_3 = pd.DataFrame(self.milking_dict[3][:,0,:])
-        self.milking_4 = pd.DataFrame(self.milking_dict[4][:,0,:])
-        self.milking_5 = pd.DataFrame(self.milking_dict[5][:,0,:])
-        self.milking_6 = pd.DataFrame(self.milking_dict[6][:,0,:])
+        l_head_1 = [item for sublist in self.wet_header[0] for item in sublist]
+        l_head_2 = [item for sublist in self.wet_header[1] for item in sublist]
+        l_head_3 = [item for sublist in self.wet_header[2] for item in sublist]
+        l_head_4 = [item for sublist in self.wet_header[3] for item in sublist]
+        l_head_5 = [item for sublist in self.wet_header[4] for item in sublist]
+        l_head_6 = [item for sublist in self.wet_header[5] for item in sublist]
 
-        self.lact_1 = pd.DataFrame(self.wet_dict[1][:,0,:])
-        self.lact_2 = pd.DataFrame(self.wet_dict[2][:,0,:])
-        self.lact_3 = pd.DataFrame(self.wet_dict[3][:,0,:])
-        self.lact_4 = pd.DataFrame(self.wet_dict[4][:,0,:])
-        self.lact_5 = pd.DataFrame(self.wet_dict[5][:,0,:])
-        self.lact_6 = pd.DataFrame(self.wet_dict[6][:,0,:])
+        self.milking_1 = pd.DataFrame(self.milking_dict[1][:,0,:],columns=m_head_1)
+        self.milking_2 = pd.DataFrame(self.milking_dict[2][:,0,:],columns=m_head_2)
+        self.milking_3 = pd.DataFrame(self.milking_dict[3][:,0,:],columns=m_head_3)
+        self.milking_4 = pd.DataFrame(self.milking_dict[4][:,0,:],columns=m_head_4)
+        self.milking_5 = pd.DataFrame(self.milking_dict[5][:,0,:],columns=m_head_5)
+        self.milking_6 = pd.DataFrame(self.milking_dict[6][:,0,:],columns=m_head_6)
+
+        self.lact_1 = pd.DataFrame(self.wet_dict[1][:,0,:],columns=l_head_1)
+        self.lact_2 = pd.DataFrame(self.wet_dict[2][:,0,:],columns=l_head_2)
+        self.lact_3 = pd.DataFrame(self.wet_dict[3][:,0,:],columns=l_head_3)
+        self.lact_4 = pd.DataFrame(self.wet_dict[4][:,0,:],columns=l_head_4)
+        self.lact_5 = pd.DataFrame(self.wet_dict[5][:,0,:],columns=l_head_5)
+        self.lact_6 = pd.DataFrame(self.wet_dict[6][:,0,:],columns=l_head_6)
 
         return [
             self.lact_1, self.lact_2, self.lact_3,
