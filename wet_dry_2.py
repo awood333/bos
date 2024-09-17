@@ -25,11 +25,11 @@ class WetDryBasics:
 
         rng = bd1.index.tolist()
 
-        cutoff1 = None     ## !! if eliminating cutoff with None check on col headers and stop2 index reset!!
-        cutoff2 = None  #263
-        cutoff3 = None   #-50
+        self.cutoff1 = 255 #None     ## !! if eliminating cutoff with None check on col headers and stop2 index reset!!
+        self.cutoff2 = 260 #None  #263
+        self.cutoff3 = -500 #None   #-50
         
-        self.milk   = milk1a.iloc[cutoff3:,cutoff1:cutoff2].copy()
+        self.milk   = milk1a.iloc[self.cutoff3:,self.cutoff1:self.cutoff2].copy()
       
         self.lastday= self.milk.index[-1]
 
@@ -43,8 +43,8 @@ class WetDryBasics:
         stop2a  = stop1a .reindex(rng)
         
         #index is WY_ids so this restricts the cow nums same as in milk1b
-        start2b = start2a.iloc[cutoff1:cutoff2,:].copy()    
-        stop2b  = stop2a .iloc[cutoff1:cutoff2,:].copy()
+        start2b = start2a.iloc[self.cutoff1:self.cutoff2,:].copy()    
+        stop2b  = stop2a .iloc[self.cutoff1:self.cutoff2,:].copy()
 
         self.start2 = start2b
         self.stop2  = stop2b
@@ -65,12 +65,19 @@ class WetDry2:
         self.milking_days3 = []
         self.wet_amt3 = []
         self.milking_amt3 = []
+
+        self.wet_dict = {}  # Initialize wet_dict
+        self.milking_dict = {}  # Initialize milking_dict
+                
+        [self.wet_i_3, self.milking_i_3] = [],[]
+        
         
         [
         self.wet_dict, self.milking_dict,
         self.wet_days3, self.milking_days3, 
-        self.wet_amt3, self.milking_amt3
-         ]                                  = self.create_wet_milking()
+        self.wet_amt3, self.milking_amt3,
+        self.wet3, self.milking3
+        ]                                  = self.create_wet_milking()
 
         [
         self.lact1, self.lact2, self.lact3,
@@ -92,40 +99,41 @@ class WetDry2:
         (   wet_days1,      wet_days2,      wet_days3,  
             milking_days1,  milking_days2,  milking_days3,   
             wet_amt1,       wet_amt2,       wet_amt3,
-            milking_amt1,   milking_amt2,   milking_amt3             
-        )    =   [],[],[],[],   [],[],[],[],     [],[],[],[]
+            milking_amt1,   milking_amt2,   milking_amt3,
+            milking_i_1,    blank_cols_i_1, wet_i_1,
+            milking_i_2,    blank_cols_i_2, wet_i_2,
+            milking_i_3,    blank_cols_i_3, wet_i_3
+              
+        )    =   [],[],[],  [],[],[],  [],[],[],  [],[],[],  [],[],[], [],[],[], [],[],[]
         
         x=1000
         y= 1  # len(self.milk.columns)
         z=0
-        # rngx = range(1,x,1)
         
         milking1 = np.full((x, y), np.nan)  
         milking2 = np.full((x, y, z), np.nan)  
-        milking3 = np.full((x, y, z), np.nan)  
+        self.milking3 = np.full((x, y, z), np.nan)  
         wet1     = np.full((x, y), np.nan)
         wet2     = np.full((x, y, z), np.nan)
-        wet3     = np.full((x, y, z), np.nan)
+        self.wet3     = np.full((x, y, z), np.nan)
         
         self.wet_dict = {}
         self.milking_dict = {}
         
-        start   = self.WDB.start2
-        stop    = self.WDB.stop2
         dd      = self.WDB.dd
                             
         rows = self.WDB.stop2.index   #list( stop2.index)      #integers
         cols = self.WDB.start2.columns  #integers 
-        # milk_cols = list(self.milk.columns)
 
        
         for j in cols:  # lact_nums
             for i in rows:         #WY nums
-
+                
+                start   = self.WDB.start2.loc[i,j]
+                stop    = self.WDB.stop2.loc[i,j]
+                lastday = self.WDB.lastday                #last day of the milk df datex
                 k           = str(i)
-     
-                # print(f"xxxxxxxxxx i: {i}, start: {start}, stop: {stop}, dd: {dd}, type(dd): {type(dd)}")
-               
+
                 a =  pd.isna(start) is False        # start value exists
                 b =  pd.isna(stop)  is False        # stop value exists
                 c =  pd.isna(dd)    is False        # is gone  
@@ -134,14 +142,13 @@ class WetDry2:
                 f =  pd.isna(stop)  is True        # stop value missing
 
              
-            # completed lactation: 
+                # completed lactation: 
                 if a and b:
                     
-                    wet_days1=(stop[i] - start[i])/np.timedelta64(1,'D')
-                    wet_amt1 = np.nansum(wet1)
-                    
+                    wet_days1=(stop - start)/np.timedelta64(1,'D')
                     wet1a   = self.WDB.milk.loc[start:stop, k:k]
                     wet1    = wet1a.to_numpy()
+                    wet_amt1 = np.nansum(wet1)
                     xpad    = x - wet1.shape[0]
                     wet1    = np.pad(wet1, ((0, xpad), (0, 0)), 'constant', constant_values=np.nan)
 
@@ -149,19 +156,15 @@ class WetDry2:
                         wet1 = wet1[:,:, np.newaxis]
                         
                     wet2     = np.concatenate((wet2, wet1), axis=2)
+                    wet_i_1.append(i)
                     
+                # milking 
+                elif a and f:     
 
-            # milking and cow alive
-                elif a and d and f:     
-                    lastday = self.WDB.lastday
-                    milking_days1 = (lastday[i]-start[i])/np.timedelta64(1,'D')
-                    
-                    # note stop date is lastday - cow is still alive
-                    milking1c = self.WDB.milk.loc[start:lastday, k:k]
-                    
-                    milking1 = milking1c.to_numpy()
+                    milking_days1 = (lastday-start)/np.timedelta64(1,'D')
+                    milking1a = self.WDB.milk.loc[start:lastday, k:k]               
+                    milking1 = milking1a.to_numpy()
                     milking_amt1 = np.nansum(milking1)
-                    
                     xpad            =  x - milking1.shape[0] 
                     milking1 = np.pad(milking1, ((0, xpad), (0, 0)), 'constant', constant_values=np.nan)
       
@@ -169,104 +172,88 @@ class WetDry2:
                         milking1 = milking1[:, np.newaxis, :]
                         
                     milking2 = np.concatenate((milking2, milking1), axis=2)
-
-            # milking --  but cow is gone
-                elif a and c and f:     
-
-                    milking_days1=(dd[i]-start[i])/np.timedelta64(1,'D')
+                    milking_i_1.append(i)
                     
-                    milking1c = self.WDB.milk.loc[start:stop, k:k]
-
-                    milking1 = milking1c.to_numpy()
-                    milking_amt1 = np.nansum(milking1)
-                    
-                    xpad            =  x - milking1.shape[0] 
-                    milking1 = np.pad(milking1, ((0, xpad), (0, 0)), 'constant', constant_values=np.nan)
-      
-                    if milking1.ndim == 2:
-                        milking1 = milking1[:, np.newaxis, :]
-                        
-                    milking2 = np.concatenate((milking2, milking1), axis=2)
-                    
-                    
-            # everything missing
+                # everything missing
                 elif e and f:
-                    pass     
+                    blank_cols_i_1.append(i)     
                     
-
-            # iteration end
-            
+                # iteration end
                 wet_days2       .append(wet_days1)
                 wet_amt2        .append(wet_amt1)
                 milking_days2   .append(milking_days1)
                 milking_amt2    .append(milking_amt1)
                 
-            # reinitialize
-                wet_days1       = []
-                wet_amt1        = []
-                milking_days1   = []
-                milking_amt1    = []
+                wet_i_2         .append(wet_i_1)
+                milking_i_2     .append(milking_i_1)
+                blank_cols_i_2  .append(blank_cols_i_1)
+
+                # reinitialize
+                [wet_days1,     wet_amt1]           = [],[]
+                [milking_days1, milking_amt1]       = [],[]
+                [ milking_i_1,  blank_cols_i_1 ]    = [],[]
+                wet_i_1                           = []
+                
                 wet1     .fill( np.nan)  
                 milking1 .fill( np.nan)
-                # print('i= ', i ,'j= ', j)
 
 
 # each lactation iteration finished
-            self.wet_days3       .append(wet_days2)
-            self.milking_days3   .append(milking_days2)
-            self.wet_amt3        .append(wet_amt2)
-            self.milking_amt3    .append(milking_amt2)
-            
+            self.wet_days3      .append(wet_days2)
+            self.milking_days3  .append(milking_days2)
+            self.wet_amt3       .append(milking_days2)
+            self.milking_amt3   .append(milking_amt2)
+            self.wet_i_3        .append(wet_i_2)       
+            self.milking_i_3    .append(milking_i_2)
+    
 
-            milking3 = np.concatenate((milking3, milking2), axis=2)
-            wet3     = np.concatenate((wet3, wet2), axis=2)
-            
-            [wet_days2, wet_amt2, milking_days2, milking_amt2] = [], [], [], []
-            
-            self.wet_dict[j] = wet3
-            self.milking_dict[j] = milking3
-            # print(self.milking_dict[j])
-            wet3        = np.empty((x,y,0))
-            milking3    = np.empty((x,y,0))
-            
+
+            if hasattr(self, 'wet3'):
+                self.wet3 = np.concatenate((self.wet3, wet2), axis=2)
+                self.wet_dict[j] = self.wet3
+                print(f'wet_dict {j}',self.wet_dict[j])
+            else:
+                self.wet3=wet2
+                
+            if hasattr(self, 'milking3'):
+                self.milking3 = np.concatenate((self.milking3, milking2), axis=2)    
+                self.milking_dict[j] = self.milking3
+                print(f'milking_dict {j}.shape',self.milking_dict[j].shape,self.milking_dict[j])
+            else:
+                self.milking3=milking2
+
+            [wet_days2,     wet_amt2,       milking_days2]  = [],[],[]
+            [milking_amt2,  milking_i_2,    blank_cols_i_2] = [],[],[] 
+            wet_i_2                                       = []
+                
         return [self.wet_dict, self.milking_dict, 
-                self.wet_days3, self.milking_days3, 
-                self.wet_amt3, self.milking_amt3
-                ]
-        
-             
-            
+                    self.wet_days3, self.milking_days3, 
+                    self.wet_amt3, self.milking_amt3,
+                    self.wet3, self.milking3
+                    ]
+
 
     def create_dataframes(self):
-        def reshape_to_dataframe(data):
-            
-            # print('data: ', data)
-        
-            if data.size == 0:  # Check if the array is empty
-                return pd.DataFrame()
-      
-            reshaped_data = data.reshape(-1, data.shape[2])   # Combine the first two dimensions and keep the third dimension as columns
-            return pd.DataFrame(reshaped_data)
 
-        self.milking1 = reshape_to_dataframe(self.milking_dict[1])
-        self.milking2 = reshape_to_dataframe(self.milking_dict[2])
-        self.milking3 = reshape_to_dataframe(self.milking_dict[3])
-        self.milking4 = reshape_to_dataframe(self.milking_dict[4])
-        self.milking5 = reshape_to_dataframe(self.milking_dict[5])
-        self.milking6 = reshape_to_dataframe(self.milking_dict[6])
+        self.milking_1 = pd.DataFrame(self.milking_dict[1][:,0,:])
+        self.milking_2 = pd.DataFrame(self.milking_dict[2][:,0,:])
+        self.milking_3 = pd.DataFrame(self.milking_dict[3][:,0,:])
+        self.milking_4 = pd.DataFrame(self.milking_dict[4][:,0,:])
+        self.milking_5 = pd.DataFrame(self.milking_dict[5][:,0,:])
+        self.milking_6 = pd.DataFrame(self.milking_dict[6][:,0,:])
 
-        self.lact1 = reshape_to_dataframe(self.wet_dict[1])
-        self.lact2 = reshape_to_dataframe(self.wet_dict[2])
-        self.lact3 = reshape_to_dataframe(self.wet_dict[3])
-        self.lact4 = reshape_to_dataframe(self.wet_dict[4])
-        self.lact5 = reshape_to_dataframe(self.wet_dict[5])
-        self.lact6 = reshape_to_dataframe(self.wet_dict[6])
+        self.lact_1 = pd.DataFrame(self.wet_dict[1][:,0,:])
+        self.lact_2 = pd.DataFrame(self.wet_dict[2][:,0,:])
+        self.lact_3 = pd.DataFrame(self.wet_dict[3][:,0,:])
+        self.lact_4 = pd.DataFrame(self.wet_dict[4][:,0,:])
+        self.lact_5 = pd.DataFrame(self.wet_dict[5][:,0,:])
+        self.lact_6 = pd.DataFrame(self.wet_dict[6][:,0,:])
 
         return [
-            self.lact1, self.lact2, self.lact3,
-            self.lact4, self.lact5, self.lact6,
-            self.milking1, self.milking2, self.milking3,
-            self.milking4, self.milking5, self.milking6
+            self.lact_1, self.lact_2, self.lact_3,
+            self.lact_4, self.lact_5, self.lact_6,
+            self.milking_1, self.milking_2, self.milking_3,
+            self.milking_4, self.milking_5, self.milking_6
         ]
         
     def create_other_dfs(self):
@@ -292,16 +279,16 @@ class WetDry2:
         self.milking_amt         .to_csv('F:\\COWS\\data\\milk_data\\lactations\\milking_amt.csv')   
         self.milking_days        .to_csv('F:\\COWS\\data\\milk_data\\lactations\\milking_days.csv')   
         
-        self.lact1         .to_csv('F:\\COWS\\data\\milk_data\\lactations\\lact_1.csv')
-        self.lact2         .to_csv('F:\\COWS\\data\\milk_data\\lactations\\lact_2.csv')
-        self.lact3         .to_csv('F:\\COWS\\data\\milk_data\\lactations\\lact_3.csv')
-        self.lact4         .to_csv('F:\\COWS\\data\\milk_data\\lactations\\lact_4.csv')
-        self.lact5         .to_csv('F:\\COWS\\data\\milk_data\\lactations\\lact_5.csv')
-        self.lact6         .to_csv('F:\\COWS\\data\\milk_data\\lactations\\lact_6.csv')
+        self.lact_1         .to_csv('F:\\COWS\\data\\milk_data\\lactations\\lact_1.csv')
+        self.lact_2         .to_csv('F:\\COWS\\data\\milk_data\\lactations\\lact_2.csv')
+        self.lact_3         .to_csv('F:\\COWS\\data\\milk_data\\lactations\\lact_3.csv')
+        self.lact_4         .to_csv('F:\\COWS\\data\\milk_data\\lactations\\lact_4.csv')
+        self.lact_5         .to_csv('F:\\COWS\\data\\milk_data\\lactations\\lact_5.csv')
+        self.lact_6         .to_csv('F:\\COWS\\data\\milk_data\\lactations\\lact_6.csv')
         
-        self.milking1         .to_csv('F:\\COWS\\data\\milk_data\\lactations\\milking_1.csv')
-        self.milking2         .to_csv('F:\\COWS\\data\\milk_data\\lactations\\milking_2.csv')
-        self.milking3         .to_csv('F:\\COWS\\data\\milk_data\\lactations\\milking_3.csv')
-        self.milking4         .to_csv('F:\\COWS\\data\\milk_data\\lactations\\milking_4.csv')
-        self.milking5         .to_csv('F:\\COWS\\data\\milk_data\\lactations\\milking_5.csv')
-        self.milking6         .to_csv('F:\\COWS\\data\\milk_data\\lactations\\milking_6.csv')
+        self.milking_1         .to_csv('F:\\COWS\\data\\milk_data\\lactations\\milking_1.csv')
+        self.milking_2         .to_csv('F:\\COWS\\data\\milk_data\\lactations\\milking_2.csv')
+        self.milking_3         .to_csv('F:\\COWS\\data\\milk_data\\lactations\\milking_3.csv')
+        self.milking_4         .to_csv('F:\\COWS\\data\\milk_data\\lactations\\milking_4.csv')
+        self.milking_5         .to_csv('F:\\COWS\\data\\milk_data\\lactations\\milking_5.csv')
+        self.milking_6         .to_csv('F:\\COWS\\data\\milk_data\\lactations\\milking_6.csv')

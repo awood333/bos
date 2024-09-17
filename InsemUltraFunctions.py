@@ -20,6 +20,7 @@ class InsemUltraFunctions:
         self.today   = np.datetime64('today','D')
         self.rng     = list(range(1, self.bd1.index.max()+1))
         
+        self.last_stop  = self.create_last_stop()
         self.last_insem = self.create_last_insem()
         self.last_ultra = self.create_last_ultra()
         
@@ -35,6 +36,13 @@ class InsemUltraFunctions:
         self.df3 = self.create_expected_bdate()
         
         self.ipiv           = self.create_last_insem_pivot()
+        self.df4            = self.create_last_stop_merge()
+        self.df5            = self.create_last_calf_merge()
+        
+    def create_last_stop(self):
+        self.last_stop = self.IUB.last_stop
+        return self.last_stop
+            
         
     
     def create_last_insem(self):
@@ -132,7 +140,7 @@ class InsemUltraFunctions:
                             )  # for all cows incl dead
         
         
-        valid_ultra_mask_df1 = self.last_ultra[['u_date', 'u_read']][valid_ultra_mask]                  # filters and attaches date
+        valid_ultra_mask_df1 = self.last_ultra[['u_calf#','u_date', 'u_read']][valid_ultra_mask]                  # filters and attaches date
         # valid_ultra_mask_df1.index +=1 
         
         self.valid_ultra_df = valid_ultra_mask_df1.reindex(self.rng)
@@ -172,7 +180,7 @@ class InsemUltraFunctions:
                     how      ='left', 
                     suffixes =('', "_right"))
      
-        print("df2", self.last_ultra.tail(10))
+        # print("df2", self.last_ultra.tail(10))
 
         return self.df2
     
@@ -219,3 +227,20 @@ class InsemUltraFunctions:
                     aggfunc = 'max'
                     )
         return self.ipiv
+
+
+
+    def create_last_stop_merge(self):
+        self.df4 = self.df3.merge(self.last_stop,
+                    how='left',
+                    on='WY_id'
+                    )
+        
+        return self.df4
+    
+    def create_last_calf_merge(self):
+        self.df5 = self.df4.merge(self.IUB.last_calf,
+                                  how='left',
+                                  on="WY_id"
+                                  )
+        return self.df5
