@@ -2,40 +2,29 @@
 RunMilkDailyUpdate.py
 '''
 
-import pandas as pd
-import os
-import subprocess
-from RemoteFilesaveUtils import RemoteFilesaveUtils
 
-from RawmMlkUpdate import RawMilkUpdate
+from RawMilkUpdate import RawMilkUpdate, HaltScriptException
 from milkaggregates import MilkAggregates
 
+def main():
 
-rm = RawMilkUpdate()
-rfu = RemoteFilesaveUtils()
-ma = MilkAggregates()
-
-lbp = ma.local_base_path
-rbp = ma.remote_base_path
-
-
-def write_to_local():
-    for df_name, subdir in (ma.paths):
-        df = getattr(ma, df_name)
-        local_path = f"{lbp}{subdir}"
-        df.to_csv(local_path, index=True)
-
-def write_to_remote(rclone_path='rclone'):
     
-    for df_name, subdir in (ma.paths):
-        df = getattr(ma, df_name)
-        local_path = f"{lbp}{subdir}"
-        remote_subdir = subdir.replace('\\', '/')
-        remote_subdir_no_ext = os.path.splitext(remote_subdir)[0]
-        remote_path = f"{rbp}/{remote_subdir_no_ext}"
+    
+    try:
+        rm = RawMilkUpdate()
+        rm.halt_script()
+    except HaltScriptException as e:
+        print("\n" + "="*40)
+        print("ERROR: Halting Script Execution")
+        print("="*40)
+        print(f"Reason: {e}")
+        print("="*40 + "\n")
         
-        # rfu.create_remote_directory(os.path.dirname(remote_path), rclone_path)
-        rfu.copy_to_gdrive( local_path, remote_path, rclone_path, extra_flags="--ignore-size")
+    # Proceed to the next module
+    finally:
+        ma = MilkAggregates()
+        ma.write_to_csv()
 
-write_to_local()  
-write_to_remote()
+if __name__ == "__main__":
+    main()
+    

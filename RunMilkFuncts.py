@@ -2,7 +2,7 @@
 
 # from lactations import Lactations
 # from lactations2 import WeeklyLactations
-from wet_dry_2 import WetDry2
+from WetDry import WetDry
 
 def main():
     
@@ -11,7 +11,7 @@ def main():
 
     # lact2 = WeeklyLactations()
 
-    wd = WetDry2()
+    wd = WetDry()
 
    
 
