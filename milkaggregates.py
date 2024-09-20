@@ -14,33 +14,18 @@ class MilkAggregates:
     def __init__(self):
         
         self.paths = [
-            # ('halfday_am', 'halfday/am/halfday_am.csv'),
-            # ('halfday_pm', 'halfday/pm/halfday_pm.csv'),
             ('fullday', 'fullday\\fullday.csv'),
-            # ('fullday_lastdate', 'fullday/fullday_lastdate.csv'),
-            # ('weekly_sum', 'totals/weekly_sum.csv'),
-            # ('weekly_mean', 'totals/weekly_mean.csv'),
-            # ('monthly', 'totals/monthly.csv'),
-            # ('monthly_sum', 'totals/monthly_sum.csv'),
-            # ('monthly_mean', 'totals/monthly_mean.csv'),
-            # ('milk', 'fullday/milk.csv'),
             ('tenday', 'totals\\milk_aggregates\\tenday.csv'),
-            # ('tenday1', 'totals/milk_aggregates/tenday1.csv'),
+            ('tenday1', 'totals/milk_aggregates/tenday1.csv'),
         ]
         
         self.bd      = pd.read_csv       ('F:\\COWS\\data\\csv_files\\birth_death.csv', parse_dates=['birth_date', 'death_date'])
-        # self.all     = pd.read_csv       ('F:\\COWS\\data\\insem_data\\allx.csv',        header=0)
-        # self.status  = pd.read_csv       ('F:\\COWS\\data\\status\\status_col.csv',      index_col=0, )       
-
         self.lag     = -10
         print('lag = ', self.lag)
         
         self.date_format='%m/%d/%Y'
         
-        # self.name, self.pathx      = self.name_list()
-        
-        [self.local_base_path,
-        self.remote_base_path]     = self.create_basepath()
+        [self.LBP, self.RBP]     = self.create_basepath()
         
         self.basics()
         
@@ -58,33 +43,20 @@ class MilkAggregates:
         self.weekly_sum, 
         self.weekly_mean]           = self.create_monthly_weekly()
 
-        self.write_to_csv()
+        # self.write_to_csv()
  
 
-    # def name_list(self):
-    #     self.name = []
-    #     self.pathx = []
-        
-    #     for k, i in self.paths:
-    #         name1 = k # Extract the name and path from the tuple
-    #         path1 = i
-
-    #         self.name.append(name1)
-    #         self.pathx.append(path1)
-    #         i +=1
-    #     return self.name, self.pathx
-        
     
     def create_basepath(self):
 
         if os.name == 'nt':  # Windows
-            self.local_base_path = 'F:\\COWS\\data\\milk_data\\'
-            self.remote_base_path = 'Z:/My Drive/COWS/data/milk_data'
+            self.LBP = 'F:\\COWS\\data\\milk_data\\'
+            self.RBP = 'Z:/My Drive/COWS/data/milk_data'
         elif os.name == 'posix':  # Linux
-            self.local_base_path = '/home/alanw/data/milk_data'
-            self.remote_base_path = 'gdrive:My Drive/COWS/data/milk_data'
+            self.LBP = '/home/alanw/data/milk_data'
+            self.RBP = 'gdrive:My Drive/COWS/data/milk_data'
 
-        return self.local_base_path, self.remote_base_path
+        return self.LBP, self.RBP
     
 
 
@@ -298,6 +270,11 @@ class MilkAggregates:
         self.fullday_xl.to_csv('F:\\COWS\\data\\milk_data\\fullday_xl_format\\fullday_xl.csv')
         self.tenday.to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\tenday.csv')
         self.tenday1.to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\tenday1.csv')
+
+
+if __name__ == "__main__":
+    milk_aggregates = MilkAggregates()
+    milk_aggregates.write_to_csv()
 
 
     
