@@ -1,8 +1,10 @@
 '''check_laststop.py'''
 
 import pandas as pd
-from wet_dry import WetDry
+from WetDryBasics import WetDryBasics
 from status_2 import StatusData
+from InsemUltraBasics import InsemUltraBasics
+from InsemUltraFunctions import InsemUltraFunctions
 from insem_ultra import InsemUltraData
 
 bd = pd.read_csv('F:\\COWS\\data\\csv_files\\birth_death.csv', parse_dates=['birth_date', 'death_date', 'adj_bdate'])
@@ -10,14 +12,16 @@ bd = pd.read_csv('F:\\COWS\\data\\csv_files\\birth_death.csv', parse_dates=['bir
 class CheckLastStop:
     def __init__(self):
             
-        wd = WetDry()
-        sd = StatusData()
-        iu = InsemUltraData()
+        self.wdb = WetDryBasics()
+        self.sd = StatusData()
+        self.IUB = InsemUltraBasics()
+        self.IUF = InsemUltraFunctions()
+        self.IUD = InsemUltraData()
         
-        self.allx = iu.allx.iloc[:,:5].copy()   #first 5 cols of allx
-        self.status_col = sd.status_col['status']
-        self.last_stop = wd.max_stop
-        self.last_start = wd.max_start
+        self.allx = self.IUD.allx.iloc[:,:5].copy()   #first 5 cols of allx
+        self.status_col = self.sd.status_col['status']
+        self.last_stop = self.wdb.last_stop
+        self.last_start = self.wdb.last_start
         self.cows = bd.index.tolist()
         
         self.last_stop.index = self.last_stop.index -1
@@ -30,10 +34,12 @@ class CheckLastStop:
 
     def create_list(self):
         listx1 = []
+        lstop = self.last_stop["last stop date"]
+        lstart = self.last_start["last calf bdate"]
         for i in self.status_col.index.tolist():
             if i in self.last_stop.index and i in self.last_start.index:
-                a = self.last_stop[i]
-                b = self.last_start[i]
+                a = lstop[i]
+                b = lstart[i]
                 c = (self.status_col != 'M')
                 d = (self.status_col != 'D')
               

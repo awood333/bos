@@ -236,7 +236,7 @@ class InsemUltraData:
         self.df7 = df7b[df7b['status'] != 'G']
         
         # self.date_cols = ['death_date','last stop date','last calf bdate','i_date','u_date','expected bdate']
-        print(self.df7.columns)
+        print('df7  ',self.df7.iloc[:5,:])
        
         return self.df7
     
