@@ -1,6 +1,5 @@
 '''run_insem_status_IU.py'''
 
-
 from status_2 import StatusData
 from insem_ultra import InsemUltraData
 from I_U_merge import I_U_merge
