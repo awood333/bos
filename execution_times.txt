@@ -1,6 +1,0 @@
-Startdate mod execution time: 0 seconds, Cumulative time: 0 seconds
-StatusData execution time: 128 seconds, Cumulative time: 128 seconds
-InsemUltraData execution time: 0 seconds, Cumulative time: 128 seconds
-StatusModuleAdjustment execution time: 124 seconds, Cumulative time: 252 seconds
-I_U_merge execution time: 0 seconds, Cumulative time: 252 seconds
-CheckLastStop execution time: 128 seconds, Cumulative time: 380 seconds

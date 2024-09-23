@@ -7,5 +7,23 @@
             "name": "cows",
             "database": "${workspaceFolder:bos}/cows.db"
         }
-    ]
+    ],
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/CVS": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true,
+        "**/.gitignore": true,
+        ".gitignore": true,
+        "**/.help": true,
+        "**/.pylintrc": true,
+        ".pylintrc": true,
+        "**/__pycache__": true,
+        "__pycache__": true,
+        "**/.vscode": true,
+        ".vscode": true
+    },
+    "explorerExclude.backup": {}
 }
