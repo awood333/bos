@@ -21,9 +21,16 @@
         "**/.pylintrc": true,
         ".pylintrc": true,
         "**/__pycache__": true,
-        "__pycache__": true,
-        "**/.vscode": true,
-        ".vscode": true
+        "__pycache__": true
+
     },
-    "explorerExclude.backup": {}
+    "explorerExclude.backup": {},
+    "terminal.integrated.env.windows": {
+        "PYTHONPATH": "D:/Git_repos/bos"
+    },
+    "python.envFile": "${workspaceFolder}/.env",
+    "python.formatting.provider": "black",
+    "python.testing.unittestEnabled": true,
+    "python.testing.pytestEnabled": true,
+    "python.testing.nosetestsEnabled": false
 }

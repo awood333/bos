@@ -1,23 +1,15 @@
-'''
-RunMilkDailyUpdate.py
-'''
+'''RunMilkDailyUpdate.py'''
 
-from milkaggregates import MilkAggregates
-from WetDryBasics import WetDryBasics
-from WetDry import WetDry
+from milk_functions.milkaggregates import MilkAggregates
+from milk_functions.WetDryBasics import WetDryBasics
+from milk_functions.WetDry import WetDry
 
-
-
-def main():
-    
-    ma = MilkAggregates()
-    wd = WetDry()
-    
-    
-    ma.write_to_csv()
-    wd.create_write_to_csv()
-
+class Main():
+    def __init__(self):
+            
+        MilkAggregates()
+        WetDry()
 
 if __name__ == "__main__":
-    main()
+    Main()
     
