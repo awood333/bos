@@ -1,17 +1,18 @@
 '''run_milk_functs.py'''
 
-from lactation1 import ThisLactation
-from lactations2 import WeeklyLactations
-from WetDry import WetDry
+from milk_functions.lactation1  import ThisLactation
+from milk_functions.lactations2 import WeeklyLactations
+from milk_functions.WetDry      import WetDry
+from milk_functions.check_laststop import CheckLastStop
 
-def main():
+def Main():
     
-    
-    wd = WetDry()
-    lacts = WeeklyLactations()
-    milking = ThisLactation()
-   
+    WetDry()
+    WeeklyLactations()
+    ThisLactation()
+    CheckLastStop()
+
 
 if __name__ == "__main__":
-    main()
+    Main()
     

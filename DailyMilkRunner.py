@@ -1,5 +1,9 @@
-from RawMilkUpdate import RawMilkUpdate
+'''DailyMilkRunner'''
+
+from milk_functions.RawMilkUpdate import RawMilkUpdate
 
 if __name__ == "__main__":
-    raw_milk_update = RawMilkUpdate()
-    raw_milk_update.write_to_csv()
+    try:
+        raw_milk_update = RawMilkUpdate()
+    except HaltScriptException as e:
+        print(e)
