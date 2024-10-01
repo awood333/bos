@@ -246,9 +246,9 @@ class FeedCostBasics:
     def create_grand_total_cost(self):
         self.tfc.index += 1
         self.tfc.index = self.alive3.index
-        print('tfc',self.tfc, '\n', 'alive3 ', self.alive3)
+        # print('tfc',self.tfc, '\n', 'alive3 ', self.alive3)
         self.gtc = self.tfc * self.alive3['days'] * self.alive3['alive']
-        print(self.gtc)
+        # print(self.gtc)
         return self.gtc
 
 

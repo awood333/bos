@@ -2,7 +2,7 @@
 
 from insem_functions.InsemUltraFunctions import InsemUltraFunctions
 from insem_functions.I_U_merge import I_U_merge
-from insem_functions.insem_ultra import InsemUltraData
+from insem_functions.InsemUltraData import InsemUltraData
 from insem_functions.InsemUltraBasics import InsemUltraBasics
 
 
