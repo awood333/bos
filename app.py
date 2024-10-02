@@ -7,12 +7,22 @@ from dash_app.dynamic_loader import load_class_and_create_json
 from dash_app.module_config import modules
 from dash_app.formatting import DataFrameFormatter
 
-app = Dash(__name__)
+app = Dash(__name__, assets_folder='dash_app/assets')
 
 app.layout = html.Div([
-    dcc.Dropdown(id='module-dropdown', options=[{'label': k, 'value': k} for k in modules.keys()]),
-    dcc.Dropdown(id='table-dropdown'),
-    html.Div(id='table-container')
+    dcc.Dropdown(
+        id='module-dropdown', 
+        className='dash-dropdown', 
+        options=[{'label': k, 'value': k} for k in modules.keys()],
+        placeholder="Select a module"
+    ),
+                
+    dcc.Dropdown(
+        id='table-dropdown',
+        className='dash-dropdown',
+        placeholder="Select a table"
+    ),
+    html.Div(id='table-container', className='dash-table-container')
 ])
 
 # Callback to update the table dropdown based on the selected module
@@ -54,15 +64,21 @@ def update_table(selected_module, selected_table):
     
     # Convert the selected table's JSON data back to a DataFrame
     df = pd.DataFrame.from_dict(data_dict[selected_table])
-    df.reset_index(inplace=True)
     
     # Use the DataFrameFormatter class
     df_formatter = DataFrameFormatter(df)
     formatted_df = df_formatter.format_dataframe()
     
     return dash_table.DataTable(
-        columns=[{"name": i, "id": i} fo.r i in formatted_df.columns],
-        data=formatted_df.to_dict('records')
+        columns=[{"name": i, "id": i} for i in formatted_df.columns],
+        data=formatted_df.to_dict('records'),
+        style_cell={
+            'height': '50px',  # XXX Added style_cell to increase row height
+            'minWidth': '0px', 'maxWidth': '180px',
+            'whiteSpace': 'normal',
+            'fontSize': '24px',
+            'color': '#da9d9d'
+        }
     )
 
 if __name__ == '__main__':
