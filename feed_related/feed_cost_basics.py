@@ -13,58 +13,52 @@ class DataLoader:
     def __init__(self,base_path):
         self.base_path = base_path
 
-    def load_csv(self,filename):
+    def load_csv(self, filename):
         path = os.path.join(self.base_path, filename)
-        data = pd.read_csv(path, header=0).dropna
+        data = pd.read_csv(path, header=0).dropna(how='all')
+        data['datex'] = pd.to_datetime(data['datex'])
+        data = data.set_index(data['datex']).drop(columns=['datex'])
+        return data
         
         
 class FeedCostBasics:
     def __init__(self):
-        
+
         self.DR = DateRange()
         self.SD = StatusData()
         self.feed_type =  ['corn','cassava','beans','straw'] 
-        
+        self.data_loader = DataLoader('F:/COWS/data/feed_data/feed_csv')
+                
         self.alive3, self.rng_monthly               = self.create_monthly_alive()
-
-        self.price_seq_dict, self.daily_amt_dict    = self.create_feed_cost()
-        
-        [
-        self.corn_psd,
-        self.cassava_psd,
-        self.beans_psd,
-        self.straw_psd, 
-        
-        self.corn_dad,
-        self.cassava_dad,
-        self.beans_dad,
-        self.straw_dad
-        ]                       = self.create_separate_feed_series()
+        self.price_seq_dict, self.daily_amt_dict    = self.create_feed_cost()   
+        self.feed_series_dict      = self.create_separate_feed_series()
         
         self.cost_dict_A          = self.create_cost_A()
         self.cost_dict_B          = self.create_cost_B()
         self.cost_dict_D          = self.create_cost_D()
         
-        self.totalcostA    = self.create_total_cost_A()
-        self.totalcostB    = self.create_total_cost_B()
-        self.totalcostD    = self.create_total_cost_D()
+        self.totalcostA, self.totalcost_A_df    = self.create_total_cost_A()
+        self.totalcostB, self.totalcost_B_df    = self.create_total_cost_B()
+        self.totalcostD, self.totalcost_D_df    = self.create_total_cost_D()
+        
+        self.feedcostByGroup                    = self.create_milkers_feedcost()
         
         self.tfc           = self.create_total_food_cost()
         self.gtc           = self.create_grand_total_cost()
+        self.milk_income_dash_vars = self.get_dash_vars()
         
     def create_monthly_alive(self):
 
         self.rng_monthly    = self.DR.date_range_monthly
         self.rng_daily      = self.DR.date_range_daily
-        # herd_trunc          = self.SD.herd.reindex(rng_)
+        # 
         alive_df            = self.SD.herd_df['alive'].to_frame()
-        alive_df['yearx']   = alive_df.index.year
-        alive_df['monthx']  = alive_df.index.month
+        alive_df['year']   = alive_df.index.year
+        alive_df['month']  = alive_df.index.month
         alive_df['days']    = alive_df.index.days_in_month
-        # alive_df.reindex(self.rng_daily)
 
         
-        alive2 = alive_df.groupby(['yearx','monthx']).agg({
+        alive2 = alive_df.groupby(['year','month']).agg({
             'alive' : 'mean',
             'days'  : 'first'
             } )  #.reset_index()
@@ -74,24 +68,13 @@ class FeedCostBasics:
 
 
     def create_feed_cost(self):
-         
-        base_path = 'F:/COWS/data/feed_data/feed_csv'
         self.price_seq_dict = {}
         self.daily_amt_dict = {}
         
-        for feed in self.feed_type:        
-            price_seq_path = os.path.join(base_path, f'{feed}_price_seq.csv')
-            daily_amt_path = os.path.join(base_path, f'{feed}_daily_amt.csv')
-
-            price_seq   = pd.read_csv(price_seq_path,  header=0).dropna(how='all')  
-            daily_amt   = pd.read_csv(daily_amt_path,  header=0).dropna(how='all')  
+        for feed in self.feed_type:
+            price_seq = self.data_loader.load_csv(f'{feed}_price_seq.csv')
+            daily_amt = self.data_loader.load_csv(f'{feed}_daily_amt.csv')
             
-            price_seq['datex'] = pd.to_datetime(price_seq['datex'])
-            daily_amt['datex'] = pd.to_datetime(daily_amt['datex'])
-            
-            price_seq = price_seq.set_index(price_seq['datex']) .drop(columns=['datex']) 
-            daily_amt = daily_amt.set_index(daily_amt['datex']) .drop(columns=['datex']) 
-                             
             price_seq = price_seq.reindex(self.rng_monthly, method='ffill')
             daily_amt = daily_amt.reindex(self.rng_monthly, method='ffill')
             
@@ -100,100 +83,62 @@ class FeedCostBasics:
             
         return self.price_seq_dict, self.daily_amt_dict
     
-    
-    def create_separate_feed_series (self):
-        
+    def create_separate_feed_series(self):
         psd = self.price_seq_dict
         dad = self.daily_amt_dict
         
-        self.corn_psd       = psd['corn']
-        self.cassava_psd    = psd['cassava']
-        self.beans_psd      = psd['beans']
-        self.straw_psd      = psd['straw'] 
-        
-        self.corn_dad       = dad['corn']
-        self.cassava_dad    = dad['cassava']
-        self.beans_dad      = dad['beans']
-        self.straw_dad      = dad['straw']
-        
-        return  [
-        self.corn_psd,
-        self.cassava_psd,
-        self.beans_psd,
-        self.straw_psd, 
-        
-        self.corn_dad,
-        self.cassava_dad,
-        self.beans_dad,
-        self.straw_dad
-        ]
-        
-    def create_cost_A(self):
-        self.cost_dict_A = {
-            'corn': [],
-            'cassava': [],
-            'beans': [],
-            'straw': []
+        self.feed_series_dict = {
+            feed: {
+                'psd': psd[feed],
+                'dad': dad[feed]
+            } for feed in self.feed_type
         }
         
-        for i in self.rng_monthly:
-            corn_cost_A     = self.corn_psd.loc[i,'unit_price']      * self.corn_dad.loc[i,'group_a_kg']
-            cassava_cost_A  = self.cassava_psd.loc[i, 'unit_price']  * self.cassava_dad.loc[i, 'group_a_kg']
-            beans_cost_A    = self.beans_psd.loc[i, 'unit_price']    * self.beans_dad.loc[i, 'group_a_kg']
-            straw_cost_A    = self.straw_psd.loc[i, 'unit_price']    * self.straw_dad.loc[i, 'group_a_kg']
+        return self.feed_series_dict
             
-            self.cost_dict_A['corn'].append(corn_cost_A)
-            self.cost_dict_A['cassava'].append(cassava_cost_A)
-            self.cost_dict_A['beans'].append(beans_cost_A)
-            self.cost_dict_A['straw'].append(straw_cost_A)
+    
+    def create_cost_A(self):
+        self.cost_dict_A = {feed: [] for feed in self.feed_type}
+        
+        for i in self.rng_monthly:
+            for feed in self.feed_type:
+                unit_price = self.price_seq_dict[feed].loc[i, 'unit_price']
+                group_a_kg = self.daily_amt_dict[feed].loc[i, 'group_a_kg']
+                cost_A = unit_price * group_a_kg
+                self.cost_dict_A[feed].append(cost_A)
         
         return self.cost_dict_A
+        
+        
             
     def create_cost_B(self):
-        self.cost_dict_B = {
-            'corn': [],
-            'cassava': [],
-            'beans': [],
-            'straw': []
-        }
+        self.cost_dict_B = { feed: [] for feed in self.feed_type }
         
         for i in self.rng_monthly:
-            corn_cost_B     = self.corn_psd.loc[i,'unit_price']      * self.corn_dad.loc    [i, 'group_b_kg']
-            cassava_cost_B  = self.cassava_psd.loc[i, 'unit_price']  * self.cassava_dad.loc [i, 'group_b_kg']
-            beans_cost_B    = self.beans_psd.loc[i, 'unit_price']    * self.beans_dad.loc   [i, 'group_b_kg']
-            straw_cost_B    = self.straw_psd.loc[i, 'unit_price']    * self.straw_dad.loc   [i, 'group_b_kg']
-            
-            self.cost_dict_B['corn'].append(corn_cost_B)
-            self.cost_dict_B['cassava'].append(cassava_cost_B)
-            self.cost_dict_B['beans'].append(beans_cost_B)
-            self.cost_dict_B['straw'].append(straw_cost_B)
-        
+            for feed in self.feed_type:
+                unit_price = self.price_seq_dict[feed].loc[i, 'unit_price']
+                group_b_kg = self.daily_amt_dict[feed].loc[i, 'group_b_kg']
+                cost_B = unit_price * group_b_kg
+                self.cost_dict_B[feed].append(cost_B)
+
         return self.cost_dict_B
         
         
     def create_cost_D(self):
-        self.cost_dict_D = {
-            'corn': [],
-            'cassava': [],
-            'beans': [],
-            'straw': []
-        }
+
+        self.cost_dict_D = {feed: [] for feed in self.feed_type}
         
         for i in self.rng_monthly:
-            corn_cost_D     = self.corn_psd.loc     [i,'unit_price']      * self.corn_dad.loc   [i, 'dry_kg']
-            cassava_cost_D  = self.cassava_psd.loc  [i, 'unit_price']  * self.cassava_dad.loc   [i, 'dry_kg']
-            beans_cost_D    = self.beans_psd.loc    [i, 'unit_price']    * self.beans_dad.loc   [i, 'dry_kg']
-            straw_cost_D    = self.straw_psd.loc    [i, 'unit_price']    * self.straw_dad.loc   [i, 'dry_kg']
-            
-            self.cost_dict_D['corn']    .append(corn_cost_D)
-            self.cost_dict_D['cassava'] .append(cassava_cost_D)
-            self.cost_dict_D['beans']   .append(beans_cost_D)
-            self.cost_dict_D['straw']   .append(straw_cost_D)
+            for feed in self.feed_type:
+                unit_price = self.price_seq_dict[feed].loc[i, 'unit_price']
+                dry_kg = self.daily_amt_dict[feed].loc[i, 'dry_kg']
+                cost_D = unit_price * dry_kg
+                self.cost_dict_D[feed].append(cost_D)
         
         return self.cost_dict_D
     
+    
     def create_total_cost_A(self):
-        self.total_A, self.sum_A = [],[]
         
         for i in self.rng_monthly:
             corn_series = pd.Series(self.cost_dict_A['corn']).astype(float)
@@ -202,13 +147,24 @@ class FeedCostBasics:
             straw_series = pd.Series(self.cost_dict_A['straw']).astype(float)
             
             self.totalcostA = corn_series + cassava_series+ beans_series + straw_series
-    
-        return self.totalcostA
+
+        df = pd.DataFrame({
+                'corn': corn_series,
+                'cassava': cassava_series,
+                'beans': beans_series,
+                'straw': straw_series,
+                'totalcostA': self.totalcostA
+            })
+        
+        df.index = self.alive3.index
+
+        self.totalcost_A_df = df  
+
+        return self.totalcostA,  self.totalcost_A_df
             
         
     def create_total_cost_B(self):
-        self.total_B = []
-        self.sum_B = []
+
         
         for i in self.rng_monthly:
             corn_series = pd.Series(self.cost_dict_B['corn']).astype(float)
@@ -217,13 +173,22 @@ class FeedCostBasics:
             straw_series = pd.Series(self.cost_dict_B['straw']).astype(float)
             
             self.totalcostB = corn_series + cassava_series+ beans_series + straw_series
+            
+        df = pd.DataFrame({
+                'corn': corn_series,
+                'cassava': cassava_series,
+                'beans': beans_series,
+                'straw': straw_series,
+                'totalcostB': self.totalcostB
+            })
+                
+        df.index = self.alive3.index
+        self.totalcost_B_df = df            
            
-        return self.totalcostB
+        return self.totalcostB, self.totalcost_B_df
     
         
     def create_total_cost_D(self):
-        total_D = []
-        sum_D = []
         
         for i in self.rng_monthly:
             corn_series = pd.Series(self.cost_dict_D['corn']).astype(float)
@@ -231,9 +196,48 @@ class FeedCostBasics:
             beans_series = pd.Series(self.cost_dict_D['beans']).astype(float)
             straw_series = pd.Series(self.cost_dict_D['straw']).astype(float)
             
-            self.totalcostD = corn_series + cassava_series + beans_series + straw_series
-        return  self.totalcostD
+            self.totalcostD = corn_series + cassava_series+ beans_series + straw_series
             
+        df = pd.DataFrame({
+                'corn': corn_series,
+                'cassava': cassava_series,
+                'beans': beans_series,
+                'straw': straw_series,
+                'totalcostD': self.totalcostD
+            })
+                
+        df.index = self.alive3.index
+        
+        self.totalcost_D_df = df            
+           
+        return self.totalcostD, self.totalcost_D_df
+            
+
+    def create_milkers_feedcost(self):
+        
+        milkersfeedcost1 = pd.DataFrame(self.totalcost_A_df['totalcostA'])
+        milkersfeedcost2 = milkersfeedcost1.merge(self.SD.herd_monthly,
+                                                  how='outer',
+                                                  left_index=True,
+                                                  right_index=True)
+        drycost = pd.DataFrame(self.totalcost_D_df['totalcostD'])
+        milkersfeedcost3 = milkersfeedcost2.merge(drycost,
+                                                  how='outer',
+                                                  left_index=True,
+                                                  right_index=True)
+        
+        milkersfeedcost3['milkers cost'] = milkersfeedcost3['milkers'] * milkersfeedcost3['totalcostA']
+        milkersfeedcost3['dry cost'] = milkersfeedcost3['dry'] * milkersfeedcost3['totalcostD']
+        milkersfeedcost4 = milkersfeedcost3.drop(columns=['gone','total'])
+        
+        totalcostD = milkersfeedcost4.pop('totalcostD')
+        milkersfeedcost4.insert(1, 'totalcostD', totalcostD)
+        
+        milkersfeedcost5 = milkersfeedcost4.rename(columns={'totalcostA' : 'milkers cost', 'totalcostD' : 'dry cost'})
+        self.feedcostByGroup = milkersfeedcost5
+        
+        return  self.feedcostByGroup
+                     
         
     def create_total_food_cost(self):
         tca = pd.Series(self.totalcostA).astype(float) * 22
@@ -246,10 +250,14 @@ class FeedCostBasics:
     def create_grand_total_cost(self):
         self.tfc.index += 1
         self.tfc.index = self.alive3.index
-        # print('tfc',self.tfc, '\n', 'alive3 ', self.alive3)
         self.gtc = self.tfc * self.alive3['days'] * self.alive3['alive']
-        # print(self.gtc)
+
         return self.gtc
+    
+    def get_dash_vars(self):
+        self.milk_income_dash_vars = {name: value for name, value in vars(self).items()
+               if isinstance(value, (pd.DataFrame, pd.Series))}
+        return self.milk_income_dash_vars  
 
 
 if __name__ == "__main__":

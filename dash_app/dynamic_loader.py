@@ -46,6 +46,7 @@ def instance_to_dict(instance):
         if isinstance(value, pd.DataFrame):
             data[attr] = {
                 'data': value.to_dict(orient='records'),
+                'columns' : value.columns.tolist(),
                 'index': value.index.tolist()
             }
         elif isinstance(value, pd.Series):
