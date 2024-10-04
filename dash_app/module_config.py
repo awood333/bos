@@ -5,13 +5,26 @@ import logging
 
 
 from insem_functions.InsemUltraData import InsemUltraData
-from finance.milk_net_revenue       import MilkNetRevenue
+from finance.NetRevenue             import MilkNetRevenue
+from finance.BKK_bank               import BKK_bank
+from feed_related.feed_cost_basics  import FeedCostBasics
+from milk_functions.status_ids      import StatusData
+
 
 IUD = InsemUltraData()
 IUD_vars = IUD.get_dash_vars
 
 MI = MilkNetRevenue()
 MI_vars = MI.get_dash_vars
+
+BKK = BKK_bank()
+BKK_vars = BKK.get_dash_vars
+
+FCB = FeedCostBasics()
+FCB_vars = FCB.get_dash_vars
+
+SD = StatusData()
+SD_vars = SD.get_dash_vars
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -20,10 +33,28 @@ modules = {
         'module_name': 'insem_functions.InsemUltraData',
         'get_dash_vars': IUD_vars
     },
+    
     'MilkNetRevenue': {
         'module_name': 'finance.milk_net_revenue',
         'get_dash_vars': MI_vars,
-    }
+        },
+    
+    'BKK_bank': {
+        'module_name': 'finance.BKK_bank',
+        'get_dash_vars': BKK_vars,
+        },
+    
+    'Feed Cost': {
+        'module_name': 'feed_related.feed_cost_basics',
+        'get_dash_vars': FCB_vars,
+        },
+        
+    'Status IDs': {
+        'module_name': 'milk_functions.status_ids',
+        'get_dash_vars': SD_vars,
+        }
+    
+    
 }
 
 class CustomJSONEncoder(json.JSONEncoder):
