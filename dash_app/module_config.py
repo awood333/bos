@@ -9,6 +9,7 @@ from finance.NetRevenue             import MilkNetRevenue
 from finance.BKK_bank               import BKK_bank
 from feed_related.feed_cost_basics  import FeedCostBasics
 from milk_functions.status_ids      import StatusData
+from milk_functions.days_of_milking import DaysOfMilking
 
 
 IUD = InsemUltraData()
@@ -26,6 +27,9 @@ FCB_vars = FCB.get_dash_vars
 SD = StatusData()
 SD_vars = SD.get_dash_vars
 
+DOM = DaysOfMilking()
+DOM_vars = DOM.get_dash_vars
+
 logging.basicConfig(level=logging.DEBUG)
 
 modules = {
@@ -35,7 +39,7 @@ modules = {
     },
     
     'MilkNetRevenue': {
-        'module_name': 'finance.milk_net_revenue',
+        'module_name': 'finance.NetRevenue',
         'get_dash_vars': MI_vars,
         },
     
@@ -52,8 +56,12 @@ modules = {
     'Status IDs': {
         'module_name': 'milk_functions.status_ids',
         'get_dash_vars': SD_vars,
+        },
+            
+    'days of milking': {
+        'module_name': 'milk_functions.days_of_milking',
+        'get_dash_vars': SD_vars,
         }
-    
     
 }
 
