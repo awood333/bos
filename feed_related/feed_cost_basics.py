@@ -29,7 +29,10 @@ class FeedCostBasics:
         self.feed_type =  ['corn','cassava','beans','straw'] 
         self.data_loader = DataLoader('F:/COWS/data/feed_data/feed_csv')
                 
-        self.alive3, self.rng_monthly               = self.create_monthly_alive()
+        [self.alive3, self.milkers3, 
+         self.dry3, self.dry3_15pct , self.dry3_85pct, 
+         self.rng_monthly]               = self.create_monthly_alive()
+        
         self.price_seq_dict, self.daily_amt_dict    = self.create_feed_cost()   
         self.feed_series_dict      = self.create_separate_feed_series()
         
@@ -43,28 +46,54 @@ class FeedCostBasics:
         
         self.feedcostByGroup                    = self.create_milkers_feedcost()
         
-        self.tfc           = self.create_total_food_cost()
-        self.gtc           = self.create_grand_total_cost()
+        self.tfc           = self.lactation_average_food_cost()
+        self.gtc           = self.create_lactation_average_total_cost()
         self.milk_income_dash_vars = self.get_dash_vars()
         
     def create_monthly_alive(self):
 
         self.rng_monthly    = self.DR.date_range_monthly
         self.rng_daily      = self.DR.date_range_daily
-        # 
-        alive_df            = self.SD.herd_df['alive'].to_frame()
-        alive_df['year']   = alive_df.index.year
-        alive_df['month']  = alive_df.index.month
-        alive_df['days']    = alive_df.index.days_in_month
+        
+        herd_df             = self.SD.herd_df 
+               
+        herd_df['year']   = herd_df.index.year
+        herd_df['month']  = herd_df.index.month
+        herd_df['days']   = herd_df.index.days_in_month
+        
+        alive_df            = herd_df['alive'].to_frame()
+        milkers_df          = herd_df['milkers'].to_frame()
+        dry_df              = herd_df['dry'].to_frame()
+                
+        dfs = {
+            'alive': alive_df,
+            'milkers': milkers_df,
+            'dry': dry_df
+        }
 
+        results = {}
+
+        for key, df in dfs.items():
+            df['year'] = df.index.year
+            df['month'] = df.index.month
+            df['days'] = df.index.days_in_month
+            
+            grouped_df = df.groupby(['year', 'month']).agg({
+                key: 'mean',
+                'days': 'first'
+            })
+            
+            results[key] = grouped_df
+
+        self.alive3 = results['alive']
+        self.milkers3 = results['milkers']
+        self.dry3 = results['dry']
         
-        alive2 = alive_df.groupby(['year','month']).agg({
-            'alive' : 'mean',
-            'days'  : 'first'
-            } )  #.reset_index()
+        self.dry3_15pct = (self.milkers3['milkers'] * .15).to_frame(name = 'dry 15pct')    
+        self.dry3_85pct  = (self.milkers3['milkers'] * .85).to_frame(name = 'dry 85%')   
         
-        self.alive3 = alive2
-        return self.alive3, self.rng_monthly
+        
+        return self.alive3, self.milkers3, self.dry3, self.dry3_15pct , self.dry3_85pct, self.rng_monthly
 
 
     def create_feed_cost(self):
@@ -220,15 +249,21 @@ class FeedCostBasics:
                                                   how='outer',
                                                   left_index=True,
                                                   right_index=True)
+        
+        # milkersfeedcost2 = milkersfeedcost2a.drop(columns='dry')
+        milkersfeedcost2['dry 15pct']  = self.dry3_15pct['dry 15pct']
+        
+        
         drycost = pd.DataFrame(self.totalcost_D_df['totalcostD'])
         milkersfeedcost3 = milkersfeedcost2.merge(drycost,
                                                   how='outer',
                                                   left_index=True,
                                                   right_index=True)
         
-        milkersfeedcost3['milkers cost'] = milkersfeedcost3['milkers'] * milkersfeedcost3['totalcostA']
-        milkersfeedcost3['dry cost'] = milkersfeedcost3['dry'] * milkersfeedcost3['totalcostD']
-        milkersfeedcost4 = milkersfeedcost3.drop(columns=['gone','total'])
+        milkersfeedcost3['milkers agg cost'] = milkersfeedcost3['milkers'] * milkersfeedcost3['totalcostA']
+        milkersfeedcost3['dry 15pct agg cost'] = milkersfeedcost3['dry 15pct'] * milkersfeedcost3['totalcostD']
+        milkersfeedcost3['dry_agg_cost'] = milkersfeedcost3['dry'] * milkersfeedcost3['totalcostD']
+        milkersfeedcost4 = milkersfeedcost3.drop(columns=['gone','total','alive'])
         
         totalcostD = milkersfeedcost4.pop('totalcostD')
         milkersfeedcost4.insert(1, 'totalcostD', totalcostD)
@@ -239,7 +274,9 @@ class FeedCostBasics:
         return  self.feedcostByGroup
                      
         
-    def create_total_food_cost(self):
+    def lactation_average_food_cost(self):
+        
+        # Note this is based on a 52 week lactation
         tca = pd.Series(self.totalcostA).astype(float) * 22
         tcb = pd.Series(self.totalcostB).astype(float) * 22
         tcd = pd.Series(self.totalcostD).astype(float) * 8
@@ -247,7 +284,7 @@ class FeedCostBasics:
         self.tfc  = tfc1 / 52
         return self.tfc
     
-    def create_grand_total_cost(self):
+    def create_lactation_average_total_cost(self):
         self.tfc.index += 1
         self.tfc.index = self.alive3.index
         self.gtc = self.tfc * self.alive3['days'] * self.alive3['alive']
