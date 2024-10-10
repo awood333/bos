@@ -4,41 +4,25 @@ import pandas as pd
 import numpy as np
 from datetime import date, timedelta, datetime
 
+from MilkBasics import MilkBasics
+
 tdy = pd.Timestamp.today()
 
 class InsemUltraBasics:
     def __init__(self):
         
-
+        self.mb = MilkBasics()
         self.df      = pd.DataFrame()
         
-        self.data       = self.read_data()
+        self.data = self.mb.dataLoader()  
+
         self.first_calf = self.create_first_calf()
-        self.last_calf  = self.create_last_calf()
+        [self.last_calf, 
+            self.lastcalf_age]                  = self.create_last_calf()
         self.last_stop  = self.create_last_stop()
         self.IUB_dash_vars = self.get_dash_vars()
         
-    def read_data(self):
-
-        lb  = pd.read_csv('F:\\COWS\\data\\csv_files\\live_births.csv', index_col=None) 
-        s   = pd.read_csv ('F:\\COWS\\data\\csv_files\\stop_dates.csv')
-        bd1 = pd.read_csv('F:\\COWS\\data\\csv_files\\birth_death.csv', index_col='WY_id')
-
-        lb ['b_date']     = pd.to_datetime(lb['b_date'])
-        s  ['stop']       = pd.to_datetime(s['stop'])        
-        bd1['birth_date'] = pd.to_datetime(bd1['birth_date'])
-        bd1['death_date'] = pd.to_datetime(bd1['death_date'])
         
-        rng = list(range(1, bd1.index.max()+1))
-        
-        self.data = {
-            'lb': lb,
-            's': s,
-            'bd1': bd1,
-            'rng': rng
-        }
-        return self.data
-    
     
     def create_first_calf(self):
         
@@ -47,7 +31,9 @@ class InsemUltraBasics:
             'calf#'   : 'min'
             }).reset_index()
         
-        self.first_calf = first_calf1.set_index('WY_id').reindex(self.data['rng'])
+        self.first_calf = first_calf1.reindex(self.data['rng'])
+        # self.first_calf['WY_id'] = self.data['bd']['WY_id']     
+           
         self.first_calf.rename(columns={'calf#': 'first calf#',
             'b_date': 'first calf bdate'}, inplace=True)     
         return self.first_calf
@@ -61,31 +47,31 @@ class InsemUltraBasics:
             'calf#'   : 'max'
             }).reset_index()
         
-        self.last_calf = last_calf1.set_index("WY_id").reindex(self.data['rng'])
-        self.last_calf.rename(columns={'calf#': 'last calf#',
-            'b_date': 'last calf bdate'}, inplace=True)
-        # self.last_calf['last calf#'].fillna( 0, inplace=True)
+        last_calf1 = last_calf1.reindex(self.data['rng'])
+        # last_calf1['WY_id'] = self.data['bd']['WY_id']
         
-        self.last_calf.fillna({'last calf#': 0}, inplace=True)
-        lastcalf_age = [(tdy - date).days for date in self.last_calf['last calf bdate']]
-        self.last_calf['last calf age'] = lastcalf_age
+        self.last_calf = last_calf1.rename(columns={'calf#': 'last calf#',
+            'b_date': 'last calf bdate'})
         
-        return self.last_calf
+        self.last_calf = self.last_calf.fillna({'last calf#': 0})
+        self.lastcalf_age = [(tdy - date).days for date in self.last_calf['last calf bdate']]
+        self.last_calf['last calf age'] = self.lastcalf_age
+        
+        return self.last_calf, self.lastcalf_age
     
 
 
     def create_last_stop(self):
-        last_stop1 = self.data['s'].groupby('WY_id').agg({
+        last_stop1 = self.data['stopx'].groupby('WY_id').agg({
             'lact_num'    : 'max',
             'stop'        : 'max'
-        })   
+        })  .reset_index() 
         
-        self.last_stop = last_stop1.reindex(self.data['rng']).copy()
-        self.last_stop.rename(columns = {'lact_num':'stop calf#','stop':'last stop date'
-            },inplace=True)       
-        
-        # self.last_stop['last stop date'].fillna(np.nan, inplace=True)
-        self.last_stop.fillna({'last stop date': np.nan}, inplace=True)
+        self.last_stop = last_stop1.reindex(self.data['rng'])
+        self.last_stop['WY_id'] = self.data['bd']['WY_id']
+                
+        self.last_stop = self.last_stop.rename(columns = {'lact_num':'stop calf#','stop':'last stop date'})       
+        self.last_stop = self.last_stop.fillna({'last stop date': np.nan})
         
         return self.last_stop
     

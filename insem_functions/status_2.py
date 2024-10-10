@@ -2,46 +2,35 @@
 
 import pandas as pd
 import numpy as np
-from feed_related.CreateStartDate import DateRange
+from CreateStartDate import DateRange
 from insem_functions.InsemUltraBasics import InsemUltraBasics
+from MilkBasics import MilkBasics
 
 class StatusData2:
     
     def __init__(self):
         
         IUB = InsemUltraBasics()
+        self.MB = MilkBasics() 
 
         self.days_milking1 = IUB.last_calf.loc[:,'last calf age']
         DR = DateRange()
         self.startdate  = DR.startdate
         self.rng        = DR.date_range_daily
+        self.milk = self.MB.data['milk']
+        
 
-        f        = pd.read_csv('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv', index_col=0,  header=0)
-        f.index = pd.to_datetime(f.index)
-        self.f1 = f.loc[self.startdate:,:].copy()
-        self.last_milking   = self.f1.iloc[-1]
-        
-        self.bd        = pd.read_csv('F:\\COWS\\data\\csv_files\\birth_death.csv',      index_col=0, header=0)
-        date_fields=['birth_date','death_date','arrived', 'adj_bdate']
-        
-        for date_field in date_fields:
-            self.bd[date_field] = pd.to_datetime(self.bd[date_field])
-            
-        self.wy_range = range(1,(len(self.bd)+1))
+        self.last_milking   = self.MB.data['milk'].iloc[-1:,:]
 
 
         # functions
 
-        [self.alive_df, self.gone_df, 
-         self.milkers_df]                  = self.create_masks()
-        
+        [self.alive_mask, self.gone_mask, 
+         self.milkers_mask]                  = self.create_masks()
 
-        
         [self.alive_ids, self.gone_ids, 
         self.milkers_ids, self.dry_ids]         = self.create_id_lists()
-        
-        self.groupAlist,self.groupBlist         = self.create_groups()
-        
+       
         self.dry, self.goners, self.milkers     = self.create_df()
         
         [self.alive_count, self.gone_count, 
@@ -51,35 +40,21 @@ class StatusData2:
         self.create_write_to_csv()
 # 
     def create_masks(self):   
-        self.alive_df      = self.bd[self.bd['death_date'].isnull()]
-        self.gone_df       = self.bd[self.bd['death_date'].notnull()]
-        self.milkers_df    = self.last_milking > 0
+        self.alive_mask      = self.MB.data['bd'][self.MB.data['bd']['death_date'].isnull()]
+        self.gone_mask       = self.MB.data['bd'][self.MB.data['bd']['death_date'].notnull()]
+        self.milkers_mask    = self.MB.data['milk'].iloc[-1,:] > 0
 
-        return self.alive_df, self.gone_df, self.milkers_df
+        return self.alive_mask, self.gone_mask, self.milkers_mask
     
 
 
     def create_id_lists(self):
-        self.alive_ids   = self.alive_df.index.to_list()
-        self.gone_ids    = self.gone_df.index.to_list()
-        self.milkers_ids = self.last_milking.loc[self.milkers_df].index.astype(int).tolist()
+        self.alive_ids   = self.alive_mask['WY_id'].to_list()
+        self.gone_ids    = self.gone_mask['WY_id'].to_list()
+        self.milkers_ids = self.last_milking.columns[self.milkers_mask].astype(int).tolist() 
         self.dry_ids     = [id for id in self.alive_ids if id not in self.milkers_ids]
         return  self.alive_ids, self.gone_ids, self.milkers_ids, self.dry_ids
 
-
-    def create_groups(self):
-        mm = self.milkers_df.copy() 
-        mm.index = mm.index.astype(int)
-        dm = self.days_milking1.loc[mm]
-
-        groupAmask = dm <= 200
-        groupBmask = dm >  200
-        
-        self.groupAlist = groupAmask.to_list()
-        self.groupBlist = groupBmask.to_list()
-        
-        return self.groupAlist,self.groupBlist
-        
 
 
     def create_df(self):
@@ -119,3 +94,5 @@ class StatusData2:
     def create_write_to_csv(self):
         self.status_col .to_csv('F:\\COWS\\data\\status\\status_col.csv')
     
+if __name__ == "__main__":
+    SD = StatusData2()

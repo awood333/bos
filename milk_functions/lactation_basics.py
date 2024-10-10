@@ -2,51 +2,27 @@
 
 import pandas as pd    #123   456
 import numpy as np
-from milk_functions.WetDryBasics    import WetDryBasics
+from MilkBasics    import MilkBasics
 from milk_functions.WetDry          import WetDry
-from insem_functions.InsemUltraData    import InsemUltraData
 
 
 class Lactation_basics:
 
     def __init__(self):
 
-        self.iud    = InsemUltraData()
-        self.WDB    = WetDryBasics()
+        self.data    = MilkBasics().data
         self.WD     = WetDry()
-
-        # functions
-        [ self.start, self.stop , self.milk, self.bd, 
-         self.max_milking_cownum,  self.max_bd_cownum  ]   = self.dataLoader()
-
-        
+      
         self.lact4x, self.day_of_milking4 = self.create_lactation_basics()
-
-    
-    def dataLoader(self):
+        self.data = MilkBasics().data  
         
-        self.start  = pd.read_csv    ('F:\\COWS\\data\\csv_files\\live_births.csv',     header = 0)
-        self.stop   = pd.read_csv    ('F:\\COWS\\data\\csv_files\\stop_dates.csv',      header = 0)
-        self.milk   = pd.read_csv    ('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv', header = 0, index_col   = 'datex')
-        self.bd     = pd.read_csv    ('F:\\COWS\\data\\csv_files\\birth_death.csv',     header = 0)
-
-        # date cols
-        self.start   ['b_date']     = pd.to_datetime(self.start['b_date'])
-        self.stop    ['stop']       = pd.to_datetime(self.stop['stop'])   
-        self.bd      ['death_date'] = pd.to_datetime(self.bd['death_date'])
-        self.bd      ['birth_date'] = pd.to_datetime(self.bd['death_date'])
         
-        self.max_milking_cownum     = self.milk.T.index.max()    # no heifers
-        self.max_bd_cownum          = self.bd.index.max()        # including heifers
         
-        return [ self.start, self.stop , self.milk, self.bd, 
-         self.max_milking_cownum,  self.max_bd_cownum  ]
-
-    
+              
     def create_lactation_basics(self):
-        lastday = self.WDB.lastday
-        milk = self.WDB.milk
-        rows = list(self.WDB.stop2.columns)  # these will be the headers in stop2, i.e., the lactations
+
+        milk = self.data.milk
+        rows = list(self.data['stop2'].columns)  # these will be the headers in stop2, i.e., the lactations
 
         milk_cols1 = milk.columns
         cols = [int(x) for x in milk_cols1]
@@ -54,15 +30,15 @@ class Lactation_basics:
         # Initialize arrays to store the data
         max_rows = len(rows)
         max_cols = len(cols)
-        max_depth = len(pd.date_range(start=self.WDB.start2.min().min(), end=lastday))
+        max_depth = len(pd.date_range(start=self.data['start2'].min().min(), end=self.data['lastday']))
 
         lact4x = np.empty((max_rows, max_cols, max_depth), dtype=object)
         day_of_milking4 = np.empty((max_rows, max_cols, max_depth), dtype=object)
 
-        for j, row in enumerate(milk.columns()):
+        for j, row in enumerate(milk.columns):
             for i, col in enumerate(rows):
-                start = milk.loc[row[0], 'start']
-                stop = milk.loc[row[0], 'stop']
+                start = milk.loc[row[0], start]
+                stop = milk.loc[row[0], stop]
 
                 if pd.isna(start) and pd.isna(stop):  # start doesn't exist and stop doesn't exist - skip
                     continue

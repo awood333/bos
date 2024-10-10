@@ -1,14 +1,16 @@
 '''milkingation1.py'''
 
 import pandas as pd
-from milk_functions.WetDryBasics import WetDryBasics
+from MilkBasics import MilkBasics
 from milk_functions.WetDry import WetDry
 
-WDB = WetDryBasics()
-WD  = WetDry()
+
 
 class ThisLactation():
     def __init__(self):
+        
+        self.data = MilkBasics().data
+        self.WD  = WetDry()
         
         (self.milking1, 
          self.milking2, 
@@ -23,11 +25,11 @@ class ThisLactation():
 
     def create_308day(self):
 
-        milking1 = WD.milking_1.iloc[:308,:].copy()
-        milking2 = WD.milking_2.iloc[:308,:].copy()
-        milking3 = WD.milking_3.iloc[:308,:].copy()
-        milking4 = WD.milking_4.iloc[:308,:].copy()
-        milking5 = WD.milking_5.iloc[:308,:].copy()
+        milking1 = self.WD.milking_1.iloc[:308,:].copy()
+        milking2 = self.WD.milking_2.iloc[:308,:].copy()
+        milking3 = self.WD.milking_3.iloc[:308,:].copy()
+        milking4 = self.WD.milking_4.iloc[:308,:].copy()
+        milking5 = self.WD.milking_5.iloc[:308,:].copy()
 
         return (milking1, milking2, milking3, milking4, milking5    )
     

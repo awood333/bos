@@ -2,32 +2,28 @@
 
 import pandas as pd
 import numpy as np
-from feed_related.CreateStartDate import DateRange
+from CreateStartDate import DateRange
 from insem_functions.InsemUltraBasics import InsemUltraBasics
+from MilkBasics import MilkBasics
 
 class StatusData2:
     
     def __init__(self):
         
         IUB = InsemUltraBasics()
+        self.data = MilkBasics().data
 
         self.days_milking1 = IUB.last_calf.loc[:,'last calf age']
         DR = DateRange()
         self.startdate  = DR.startdate
         self.rng        = DR.date_range_daily
 
-        f        = pd.read_csv('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv', index_col=0,  header=0)
+        f        = self.data['milk']
         f.index = pd.to_datetime(f.index)
         self.f1 = f.loc[self.startdate:,:].copy()
         self.last_milking   = self.f1.iloc[-1]
         
-        self.bd        = pd.read_csv('F:\\COWS\\data\\csv_files\\birth_death.csv',      index_col=0, header=0)
-        date_fields=['birth_date','death_date','arrived', 'adj_bdate']
-        
-        for date_field in date_fields:
-            self.bd[date_field] = pd.to_datetime(self.bd[date_field])
-            
-        self.wy_range = range(1,(len(self.bd)+1))
+        self.wy_range = range(1,(len(self.data['bd'])+1))
 
 
         # functions
@@ -49,8 +45,8 @@ class StatusData2:
         self.create_write_to_csv()
 # 
     def create_masks(self):   
-        self.alive_df      = self.bd[self.bd['death_date'].isnull()]
-        self.gone_df       = self.bd[self.bd['death_date'].notnull()]
+        self.alive_df      = self.data['bd'][self.data['bd']['death_date'].isnull()]
+        self.gone_df       = self.data['bd'][self.data['bd']['death_date'].notnull()]
         self.milkers_df    = self.last_milking > 0
 
         return self.alive_df, self.gone_df, self.milkers_df
@@ -58,8 +54,8 @@ class StatusData2:
 
 
     def create_id_lists(self):
-        self.alive_ids   = self.alive_df.index.to_list()
-        self.gone_ids    = self.gone_df.index.to_list()
+        self.alive_ids   = self.alive_df['WY_id'].to_list()
+        self.gone_ids    = self.gone_df['WY_id'].to_list()
         self.milkers_ids = self.last_milking.loc[self.milkers_df].index.astype(int).tolist()
         self.dry_ids     = [id for id in self.alive_ids if id not in self.milkers_ids]
         return  self.alive_ids, self.gone_ids, self.milkers_ids, self.dry_ids
@@ -102,4 +98,7 @@ class StatusData2:
         
     def create_write_to_csv(self):
         self.status_col .to_csv('F:\\COWS\\data\\status\\status_col.csv')
+        
+if __name__ == "__main__":
+    status_data2 = StatusData2()
     

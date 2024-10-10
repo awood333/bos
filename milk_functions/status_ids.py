@@ -2,40 +2,34 @@
 
 import pandas as pd
 
-from feed_related.CreateStartDate import DateRange
+from CreateStartDate import DateRange
 from insem_functions.InsemUltraBasics import InsemUltraBasics
+from MilkBasics import MilkBasics
 
 
 class StatusData:
     
     def __init__(self):
                 
-        IUB     = InsemUltraBasics()
-        DR     = DateRange()
-             
-        self.lb = IUB.create_last_calf()
-        self.startdate = DR.startdate
-        self.enddate = DR.enddate_monthly
-        
-        self.f1          = pd.read_csv('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv', index_col=0,  header=0)
-        self.f1.index    = pd.to_datetime(self.f1.index)
-        
-        self.f          = self.f1.loc[self.startdate:,:].copy()
-    
-        self.bd         = pd.read_csv('F:\\COWS\\data\\csv_files\\birth_death.csv',      index_col=0, header=0)
-        date_fields=['birth_date','death_date','arrived', 'adj_bdate']
-        
-        for date_field in date_fields:
-            self.bd[date_field] = pd.to_datetime(self.bd[date_field])
 
-        self.maxdate        = self.f1.index.max() 
-        self.stopdate       = self.maxdate 
-        self.bdmax          = len(self.bd)
+        self.DR     = DateRange()
+        self.IUB     = InsemUltraBasics()
+        self.data = MilkBasics().data
+             
+        self.startdate = self.data['start']
+        self.enddate = self.DR.enddate_monthly
+        
+        
+        self.f1         = self.data['milk']
+        self.datex      = self.data['milk'].index  
+    
+        self.stopdate       = self.f1.index.max() 
+        self.bdmax          = len(self.data['bd'])
         self.wy_series      = pd.Series(list(range(1, self.bdmax + 1)), name='WY_id', index=range(1, self.bdmax + 1))
         
         
         # functions        
-        self.f, self.datex                                  = self.create_partition_milk_df()     
+ 
 
         [self.milkers, self.non_milkers, 
          self.milkers_count, self.non_milkers_count]        = self.create_milking_list()
@@ -53,20 +47,14 @@ class StatusData:
 
 
     # sets the time frame
-    def create_partition_milk_df(self):
-        
-        # Note - enddate is last day of last completed month
-        self.f = self.f1.loc[self.startdate:self.enddate, :].copy()    
-        self.datex          = self.f.index.to_list()
-        return self.f, self.datex
-    
+
     def create_milking_list(self):
         
         self.milkers, self.non_milkers = [],[]
         self.milkers_count, self.non_milkers_count = [],[]
         
         for date in self.datex:
-            milk_row = self.f.loc[date,:]
+            milk_row = self.f1.loc[date,:]
             
             milking_mask =  milk_row>0
             not_milking_mask =  pd.isna(milk_row)
@@ -99,20 +87,20 @@ class StatusData:
         self.dry_count = []
         
         for i, date in enumerate(self.datex):
-            condition1 = self.bd['birth_date'] <=date
-            condition2 = self.bd['death_date'] > date 
-            condition3 = self.bd['adj_bdate'] > date
-            condition4 = self.bd['death_date'] <= date
-            condition5 = self.bd['death_date'].isnull()
+            condition1 = self.data['bd']['birth_date'] <=date
+            condition2 = self.data['bd']['death_date'] > date 
+            condition3 = self.data['bd']['adj_bdate'] > date
+            condition4 = self.data['bd']['death_date'] <= date
+            condition5 = self.data['bd']['death_date'].isnull()
             
             alive1, gone1, dry_count1 = [],[],[]
 
-            alive1 = self.bd[((condition1 | condition3)
+            alive1 = self.data['bd'][((condition1 | condition3)
                              & (condition2 | condition5)
                              )
                              ].index.to_list()
             
-            alive1_bool = self.bd[((condition1 | condition3)
+            alive1_bool = self.data['bd'][((condition1 | condition3)
                   & (condition2 | condition5)
                  )].index.notna().tolist()
             
@@ -120,7 +108,7 @@ class StatusData:
             self.alive_ids.append(alive1)
             self.alive_count.append(len(alive1))
             
-            gone1 = self.bd[condition4].index.to_list()
+            gone1 = self.data['bd'][condition4].index.to_list()
             self.gone_ids.append(gone1)
             self.gone_count.append(len(gone1))
             
@@ -212,7 +200,9 @@ class StatusData:
         return self.herd_df
     
     def create_herd_list_monthly(self):
-
+        
+        self.herd_df.index = pd.to_datetime(self.herd_df.index)
+        
         hm = self.herd_df.groupby(pd.Grouper(freq='ME')).mean()
         
         hm['year'] = hm.index.year
@@ -228,7 +218,7 @@ class StatusData:
     def get_dash_vars(self):
         
         self.status_ids_dash_vars = {
-            'milk series' : self.f,
+            'milk series' : self.f1,
             'date series' : self.datex,
             'herd monthly' : self.herd_monthly
             

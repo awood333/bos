@@ -7,19 +7,22 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from RemoteFilesaveUtils import RemoteFilesaveUtils as rfu
+import subprocess
+import pyexcel_io
+from concurrent.futures import ThreadPoolExecutor
 
 import time
 import pandas as pd
 import numpy as np
 from datetime import datetime
 
-import subprocess
-import pyexcel_io
+from MilkBasics import MilkBasics
 
-from concurrent.futures import ThreadPoolExecutor
 
 class MilkAggregates:
     def __init__(self):
+        
+        self.data = MilkBasics().data
         
         self.paths = [
             ('fullday', 'fullday\\fullday.csv'),
@@ -27,9 +30,6 @@ class MilkAggregates:
             ('self.tenday1', 'totals/milk_aggregates/self.tenday1.csv'),
         ]
         
-        self.bd = pd.read_csv       ('F:\\COWS\\data\\csv_files\\birth_death.csv')
-        self.bd['birth_date'] = pd.to_datetime(self.bd['birth_date'])
-        self.bd['death_date'] = pd.to_datetime(self.bd['death_date'])
         
         self.lag     = -10
         print('lag = ', self.lag)
@@ -66,20 +66,15 @@ class MilkAggregates:
         return self.LBP, self.RBP
     
 
-
     def basics(self):       
 
-        self.AM_liters = pd.read_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_liters.csv',
-                                          index_col=0)
-        self.AM_wy     = pd.read_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_wy.csv',
-                                          index_col=0)
-        self.PM_liters = pd.read_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_liters.csv',
-                                          index_col=0)
-        self.PM_wy     = pd.read_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_wy.csv',
-                                          index_col=0)
+        self.AM_liters = pd.read_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_liters.csv',index_col=0)
+        self.AM_wy     = pd.read_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_wy.csv',index_col=0)
+        self.PM_liters = pd.read_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_liters.csv',index_col=0)
+        self.PM_wy     = pd.read_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_wy.csv',index_col=0)
        
-        wy      = self.bd['WY_id']
-        alive1  = self.bd['death_date'].isnull()
+        wy      = self.data['bd']['WY_id']
+        alive1  = self.data['bd']['death_date'].isnull()
         alive   = wy.loc[alive1].copy()
         alive.reset_index(drop=True,inplace=True)
 
@@ -99,7 +94,7 @@ class MilkAggregates:
         print('last index value ', last_index_value)
 
         self.maxcols     = len(self.datex)             #1575                          #len of dates (col headers for liters - which starts with 'start_date')
-        maxrows     = len(self.bd['WY_id'])   #201                          #len of groupx - will accomodate new calves - continuous series from 1~200 will be the output col heading 
+        maxrows     = len(self.data['bd']['WY_id'])   #201                          #len of groupx - will accomodate new calves - continuous series from 1~200 will be the output col heading 
 
         idx     = np.zeros((maxrows+1,self.maxcols), dtype=int)    
         self.idx_am  = idx.copy()

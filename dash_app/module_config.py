@@ -5,15 +5,21 @@ import logging
 
 
 from insem_functions.InsemUltraData import InsemUltraData
-from finance.NetRevenue             import MilkNetRevenue
-from finance.BKK_bank               import BKK_bank
-from feed_related.feed_cost_basics  import FeedCostBasics
+from insem_functions.InsemUltraBasics import InsemUltraBasics
+from finance_functions.NetRevenue             import MilkNetRevenue
+from finance_functions.BKK_bank               import BKK_bank
+from feed_functions.feed_cost_basics  import FeedCostBasics
 from milk_functions.status_ids      import StatusData
-from milk_functions.days_of_milking import DaysOfMilking
+# from milk_functions.days_of_milking import DaysOfMilking
+from milk_functions.play            import Play
 
 
 IUD = InsemUltraData()
 IUD_vars = IUD.get_dash_vars
+
+IUB = InsemUltraBasics()
+IUB_vars = IUB.get_dash_vars
+
 
 MI = MilkNetRevenue()
 MI_vars = MI.get_dash_vars
@@ -27,8 +33,13 @@ FCB_vars = FCB.get_dash_vars
 SD = StatusData()
 SD_vars = SD.get_dash_vars
 
-DOM = DaysOfMilking()
-DOM_vars = DOM.get_dash_vars
+# DOM = DaysOfMilking()
+# DOM_vars = DOM.get_dash_vars
+
+# play = play()
+# play_vars = play.get_dash_vars
+
+
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -36,7 +47,13 @@ modules = {
     'InsemUltraData': {
         'module_name': 'insem_functions.InsemUltraData',
         'get_dash_vars': IUD_vars
-    },
+    }
+    ,
+        'InsemUltraBasics': {
+        'module_name': 'insem_functions.InsemUltraBasics',
+        'get_dash_vars': IUB_vars
+    }
+    ,
     
     'MilkNetRevenue': {
         'module_name': 'finance.NetRevenue',
@@ -58,10 +75,15 @@ modules = {
         'get_dash_vars': SD_vars,
         },
             
-    'days of milking': {
-        'module_name': 'milk_functions.days_of_milking',
-        'get_dash_vars': SD_vars,
-        }
+    # 'days of milking': {
+    #     'module_name': 'milk_functions.days_of_milking',
+    #     'get_dash_vars': SD_vars,
+    #     },
+    
+    # 'play' : {
+    #     'module_name' : 'play',
+    #     'get_dash_vars': play_vars,
+    # }
     
 }
 

@@ -4,49 +4,41 @@ import pandas as pd
 import numpy as np
 # from datetime import datetime, timedelta
 from milk_functions.lactation_basics import Lactation_basics
-from milk_functions.WetDryBasics import WetDryBasics
-from feed_related.CreateStartDate import DateRange
+from MilkBasics import MilkBasics
+from CreateStartDate import DateRange
 
     
 class DaysOfMilking:
     def __init__(self):
+        
+        
+        self.data       = MilkBasics().data
         self.L_basics   = Lactation_basics()
-        self.WDB        = WetDryBasics()
         self.DOM        = self.L_basics.day_of_milking4
         
-        date_range              = DateRange()
-        self.startdate          = date_range.startdate
-        self.enddate_monthly    = date_range.enddate_monthly
-        self.enddate_daily      = date_range.enddate_daily
         
-        self.date_range_daily   = date_range.create_date_range_daily()
-        self.date_range_monthly = date_range.create_date_range_monthly()
+        DR              = DateRange()
+        self.startdate          = DR.startdate
+        self.enddate_monthly    = DR.enddate_monthly
+        self.enddate_daily      = DR.enddate_daily
+        
+        self.date_range_daily   = DR.create_date_range_daily()
+        self.date_range_monthly = DR.create_date_range_monthly()
 
         
-        self.processDaysOfMilking()
-        # self.result_df2             = self.fix_col_headers()
-        # self.countA, self.countB    = self.create_group_dfs()
-        
-        # [self.countA_monthly, 
-        #     self.countB_monthly, 
-        #     self.all_monthly  ]  = self.create_monthly()
-        
-        # self.days_of_milking_dash_vars  = self.get_dash_vars()
-        # self.write_to_csv()
-
 
     def processDaysOfMilking(self):
-        date_range = pd.date_range(start='2016-09-01', end=self.enddate_daily, freq='D')
-        rng = pd.date_range(start='2016-09-01', end='2016-09-02')
-        series2 = pd.DataFrame(index=rng)
-        series3 = pd.DataFrame(index=rng)
-        series4 = pd.DataFrame(index=rng)
+        
+        rngx = pd.date_range(start='2016-09-01', end='2016-09-02')
+        series2 = pd.DataFrame(index=rngx)
+        series3 = pd.DataFrame(index=rngx)
+        series4 = pd.DataFrame(index=rngx)
         series5=[]  
         
         dom = self.DOM
         
         days1 = dom[0]
-        # print(days1)
+        print(days1)
         
         
         return
