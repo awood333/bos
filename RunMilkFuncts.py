@@ -11,14 +11,14 @@ from milk_functions.days_of_milking import DaysOfMilking
 
 def Main():
     
-    ThisLactation()
-    WeeklyLactations()
-    Lactation_basics()
+    # ThisLactation()
+    # WeeklyLactations()
+    # Lactation_basics()
     
-    WetDry()
-    CheckLastStop()
+    # WetDry()
+    # CheckLastStop()
     MilkAggregates()
-    DaysOfMilking()
+    # DaysOfMilking()
 
 
 if __name__ == "__main__":

@@ -8,18 +8,18 @@ from insem_functions.InsemUltraFunctions    import InsemUltraFunctions
 from insem_functions.InsemUltraData         import InsemUltraData
 
 from insem_functions.I_U_merge              import I_U_merge
-
 from milk_functions .check_laststop         import CheckLastStop
 
 class Main():
+    def __init__ (self):
 
-    StatusData2 ()
-    StatusData  ()  # needs to be after status
-    InsemUltraData()
-    InsemUltraBasics()
-    InsemUltraFunctions    ()  
-    I_U_merge   () 
-    CheckLastStop()
+        StatusData2()
+        StatusData()  # needs to be after status
+        self.insem_ultra_data = InsemUltraData()
+        self.insem_ultra_basics = InsemUltraBasics()
+        self.insem_ultra_functions = InsemUltraFunctions()
+        self.i_u_merge = I_U_merge()
+        self.check_last_stop = CheckLastStop()
 
 
 if __name__ == "__main__":
