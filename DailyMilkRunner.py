@@ -1,6 +1,6 @@
 '''DailyMilkRunner'''
 
-from milk_functions.RawMilkUpdate import RawMilkUpdate, HaltScriptException
+from milk_functions.raw_milk_update import RawMilkUpdate, HaltScriptException
 
 
 if __name__ == "__main__":

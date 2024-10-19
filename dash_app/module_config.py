@@ -4,14 +4,13 @@ import numpy as np
 import logging
 
 
-from insem_functions.InsemUltraData import InsemUltraData
-from insem_functions.InsemUltraBasics import InsemUltraBasics
-from finance_functions.NetRevenue             import MilkNetRevenue
-from finance_functions.BKK_bank               import BKK_bank
-from feed_functions.feed_cost_basics  import FeedCostBasics
-from milk_functions.status_ids      import StatusData
-# from milk_functions.days_of_milking import DaysOfMilking
-from milk_functions.play            import Play
+from insem_functions.Insem_ultra_data   import InsemUltraData
+from insem_functions.insem_ultra_basics import InsemUltraBasics
+from finance_functions.NetRevenue       import MilkNetRevenue
+
+from finance_functions.BKK_bank         import BKK_bank
+from feed_functions.feed_cost_basics    import FeedCostBasics
+from milk_functions.status_data          import StatusData
 
 
 IUD = InsemUltraData()
@@ -32,12 +31,6 @@ FCB_vars = FCB.get_dash_vars
 
 SD = StatusData()
 SD_vars = SD.get_dash_vars
-
-# DOM = DaysOfMilking()
-# DOM_vars = DOM.get_dash_vars
-
-# play = play()
-# play_vars = play.get_dash_vars
 
 
 
