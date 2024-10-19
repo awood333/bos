@@ -3,7 +3,7 @@
 import pandas as pd
 
 from CreateStartDate import DateRange
-from insem_functions.InsemUltraBasics import InsemUltraBasics
+from insem_functions.insem_ultra_basics import InsemUltraBasics
 from MilkBasics import MilkBasics
 
 
@@ -21,6 +21,7 @@ class StatusData:
         
         self.f1          = self.MB.data['milk']
         self.f          = self.f1.loc[self.startdate:,:].copy()
+        
 
         self.maxdate        = self.f1.index.max() 
         self.stopdate       = self.maxdate 
@@ -83,7 +84,7 @@ class StatusData:
         self.nby_ids,    self.nby_count   =[],[]
         self.dry_count = []
         
-        for i, date in enumerate(self.datex):
+        for i, date in enumerate(self.f.index):
             condition1 = self.MB.data['bd']['birth_date'] <=date
             condition2 = self.MB.data['bd']['death_date'] > date 
             condition3 = self.MB.data['bd']['adj_bdate'] > date
@@ -149,7 +150,7 @@ class StatusData:
             'gone': self.gone_count,
         }
         
-        self.herd_df = pd.DataFrame(data, index=self.datex)
+        self.herd_df = pd.DataFrame(data, index=self.f.index)
         
         self.herd_df['total'] = (
             self.herd_df['alive'] + self.herd_df['gone']
@@ -162,5 +163,5 @@ class StatusData:
         
         self.herd_df    .to_csv('F:\\COWS\\data\\status\\herd_df.csv')
 
-if __name_ =="__main__":
+if __name__ =="__main__":
     status_data = StatusData()

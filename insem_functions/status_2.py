@@ -3,7 +3,7 @@
 import pandas as pd
 import numpy as np
 from CreateStartDate import DateRange
-from insem_functions.InsemUltraBasics import InsemUltraBasics
+from insem_functions.insem_ultra_basics import InsemUltraBasics
 from MilkBasics import MilkBasics
 
 class StatusData2:

@@ -2,10 +2,9 @@
 
 import pandas as pd
 from MilkBasics                             import MilkBasics
-from milk_functions.status_2                import StatusData2
-from insem_functions.InsemUltraBasics       import InsemUltraBasics
-from insem_functions.InsemUltraFunctions    import InsemUltraFunctions
-from insem_functions.InsemUltraData         import InsemUltraData
+from milk_functions.status_data2                import StatusData2
+from insem_functions.insem_ultra_basics       import InsemUltraBasics
+from insem_functions.Insem_ultra_data         import InsemUltraData
 
 
 
@@ -15,7 +14,6 @@ class CheckLastStop:
         self.data = MilkBasics().data
         self.sd  = StatusData2()
         self.IUB = InsemUltraBasics()
-        self.IUF = InsemUltraFunctions()
         self.IUD = InsemUltraData()
         
         self.allx       = self.IUD.allx.iloc[:,:5].copy()   #first 5 cols of allx

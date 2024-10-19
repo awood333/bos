@@ -23,14 +23,7 @@ class MilkAggregates:
     def __init__(self):
         
         self.data = MilkBasics().data
-        
-        self.paths = [
-            ('fullday', 'fullday\\fullday.csv'),
-            ('self.tenday', 'totals\\milk_aggregates\\self.tenday.csv'),
-            ('self.tenday1', 'totals/milk_aggregates/self.tenday1.csv'),
-        ]
-        
-        
+
         self.lag     = -10
         print('lag = ', self.lag)
         
@@ -183,8 +176,6 @@ class MilkAggregates:
         self.fullday_xl.index = self.fullday_xl.index.map(lambda x: (x - datetime(1899,12,30).date()).days)        
         self.fullday_lastdate = pd.DataFrame(index=[self.fullday.index[-1]], columns=['last_date'])
         
-
-        
         return  [self.am, self.pm,
             self.fullday, self.fullday_xl, 
             self.fullday_lastdate]
@@ -252,18 +243,16 @@ class MilkAggregates:
         self.monthly[['count', 'sum']] = self.monthly[['count', 'sum']].map(format_num)
         self.weekly [['count', 'sum']] = self.weekly [['count', 'sum']].map(format_num)
 
-
         return self.monthly,  self.weekly, self.start, self.stop
     
     def write_to_csv(self):
-        self.fullday.to_csv('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv')
-        self.fullday_xl.to_csv('F:\\COWS\\data\\milk_data\\fullday_xl_format\\fullday_xl.csv')
-        self.tenday.to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\tenday.csv')
-        self.tenday1.to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\tenday1.csv')
-        self.monthly.to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\monthly.csv')
-        self.weekly.to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\weekly.csv')
-        pass
+        self.fullday    .to_csv('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv')
+        self.fullday_xl .to_csv('F:\\COWS\\data\\milk_data\\fullday_xl_format\\fullday_xl.csv')
+        self.tenday     .to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\tenday.csv')
+        self.tenday1    .to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\tenday1.csv')
+        self.monthly    .to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\monthly.csv')
+        self.weekly     .to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\weekly.csv')
 
-
-
+if __name__ == '__main__':
+    milk_aggregates = MilkAggregates()
     
