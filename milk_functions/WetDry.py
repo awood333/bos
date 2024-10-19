@@ -4,105 +4,109 @@ import pandas as pd
 import numpy as np
 
 from MilkBasics import MilkBasics
+from CreateStartDate import DateRange
 
-today =  pd.Timestamp.today()
+today = pd.Timestamp.today()
 
 class WetDry:
     def __init__(self):
         
-        self.data = MilkBasics().data     
-
-        self.ext_rng = self.data['ext_rng']
-        self.milk1 = self.data['milk'].reindex(self.data['ext_rng'])
-  
+        self.MB         = MilkBasics()
+        self.DR         = DateRange()
         
+        self.ext_rng    = self.MB.data['ext_rng'] # start is 9-1/2016, end is last milking day
+        self.milk1      = self.MB.data['milk'] # this is 'milk' betw the cutoff dates/WY's
+        self.datex      = self.MB.datex
                 
-        self.create_wet_milking()
+        self.wet_days_data = self.create_wet_days()
+        self.wet_dry_days_monthly = self.create_monthly_wet_days()
 
-
-    def create_wet_milking(self):         
-
-        
-        wet1c   = pd.DataFrame()
-        wet1d   = pd.DataFrame()
-        
-        wet2a = pd.DataFrame()
-        wet2a.index = self.ext_rng
-        wet2_days = pd.DataFrame()
-        wet2_days.index = self.ext_rng
-        
-       
-        
-                                    
-        rows = self.data['stop'].index     #integers
-        cols = self.data['stop'].columns  #integers
-
-        for i in rows:  # lact_nums
-            for j in cols:         #WY nums
+    def create_wet_days(self):
+        wet_days2       = pd.DataFrame()
+        self.wet_days3  = pd.DataFrame()
                 
-                lastday = self.data['lastday']                #last day of the milk df datex
-                k       = str(i)
-                
-                start   = self.data['start'].loc[i,j]
-                stop    = self.data['stop'].loc[i,j]
+        wet_sum2, wet_max2 = [],[]
+        self.wet_sum3, self.wet_max3 = [],[]
 
+        WY_ids  = self.MB.data['stop'].columns  # WY_ids integer
+        lacts   = self.MB.data['stop'].index      # lact# float
 
-                a =  pd.isna(start) is False        # start value exists
-                b =  pd.isna(stop)  is False        # stop value exists
-                e =  pd.isna(start) is True        # start value missing
-                f =  pd.isna(stop)  is True        # stop value missing
+        for i in WY_ids:
+            for j in lacts:
 
-             
-                # completed lactation: 
+                lastday = self.MB.data['lastday']  # last day of the milk df datex
+
+                start = self.MB.data ['start'].loc[j, i]
+                stop  = self.MB.data ['stop'] .loc[j, i]
+
+                a = pd.isna(start)  is False  # start value exists
+                b = pd.isna(stop)   is False  # stop value exists
+                e = pd.isna(start)  is True   # start value missing
+                f = pd.isna(stop)   is True   # stop value missing
+
+                # completed lactation:
                 if a and b:
-
-                    wet1a   = self.milk1.loc[start:stop, str(i)]
-                    wet1a.name=None
-                    wet_numbering = pd.DataFrame({'num': range(1, len(wet1a.index)+1)}, index=wet1a.index)
-                    wet1b = pd.concat([wet1a, wet_numbering], axis=1)               
+                    days_range = pd.date_range(start, stop)
+                    day_nums = pd.Series(range(1,len(days_range)+1), index=days_range)
+                    wet_days1 = pd.DataFrame(day_nums)
                     
-                    # get sum of series
-                    wetsum1 = wet1a.sum()
-                    
-                    # stack the series vertically
-                    wet1c = pd.concat([wet1b, wet1c], axis=0)
-                    
-                if a and f:
-                    
-                    stop = lastday
-
-                    wet1a   = self.milk1.loc[start:stop, str(i)]
-                    wet1a.name=None
-                    wet_numbering = pd.DataFrame({'num': range(1, len(wet1a.index)+1)}, index=wet1a.index)
-                    wet1b = pd.concat([wet1a, wet_numbering], axis=1)               
-                    
-                    # get sum of series
-                    wetsum1 = wet1a.sum()
-                    
-                    # stack the series vertically
-                    wet1c = pd.concat([wet1b, wet1c], axis=0)
-                    
-                   
-                   
-               
-            # reindex
-            wet1d = wet1c.reindex(self.ext_rng)
+                    # get sum/max of series
+                    wet1a = self.milk1.loc[start:stop, str(i)]
+                    wet_sum1 = wet1a.sum()
+                    wet_max1 = wet1a.max()
 
 
-            wet1_days    = wet1d.iloc[:,1:]
-            wet1_days = wet1_days .rename (columns={'num': k})
+                elif a and f:
+                    days_range = pd.date_range(start, lastday)
+                    day_nums = pd.Series(range(1,len(days_range)+1), index=days_range)
+                    wet_days1 = pd.DataFrame(day_nums)
+                    
+                    # get sum/max of series
+                    wet1a = self.milk1.loc[start:stop, str(i)]
+                    wet_sum1 = wet1a.sum()
+                    wet_max1 = wet1a.max()
+                    
+                    
+                elif e and f:
+                    wet_days1=pd.DataFrame()
+                    wet1a, wet_sum1, wet_max1=[],[],[]
+                    
+                else:
+                    pass
 
 
-            wet2_days = pd.concat([wet2_days, wet1_days], axis=1)            
-            wet1c = pd.DataFrame()
-            wet1d = pd.DataFrame()
-        
+                wet_days2 = pd.concat ([wet_days2, wet_days1],axis=0)
+                # duplicate_labels = wet_days2.index[wet_days2.index.duplicated()]
+                # print('dup labels  ',i,j,  duplicate_labels)
+                wet_sum2 .append (wet_sum1)
+                wet_max2 .append (wet_max1)
+
+            wet_days2 = wet_days2.reindex(self.DR.date_range_daily)
+            # duplicate_labels = wet_days2.index[wet_days2.index.duplicated()]
+            # print('wet 2  dup labels  ',i,j, duplicate_labels)
+                
+            self.wet_days3 = pd.concat ([self.wet_days3, wet_days2], axis=1) 
+            wet_days2=pd.DataFrame()
+            self.wet_sum3 .append (wet_sum2)
+            self.wet_max3 .append (wet_max2)            
             
-        wet2_days.iloc[709:,:].to_csv('F:\\COWS\\data\\status\\wet2_days.csv')
-                   
-        return
+        self.wet_days_data = [self.wet_days3, self.wet_sum3, self.wet_max3]
+        return self.wet_days_data
+    
+    def create_monthly_wet_days(self):
+        
+        wdd = self.wet_days_data
+        year = wdd.index.year
+        month = wdd.index.month
+        
+        wdd.index = pd.MultiIndex.from_arrays([ year, month, wdd.index], \
+            names=['year','month','datex'])
+        self.wet_dry_days_monthly = wdd.loc[2024]
+        
+        return self.wet_dry_days_monthly
+        
 
-            #
+
 
 if __name__ == '__main__':
     WetDry()
