@@ -255,7 +255,6 @@ class FeedCostBasics:
         feedcost5 = feedcost4.rename(columns={'totalcostA' : 'cost A', 'totalcostB' : 'cost B', 'totalcostD' : 'dry cost'})
         feedcost6 = feedcost5.reindex(self.rng_monthly2)
         
-        
         self.feedcostByGroup = pd.DataFrame(feedcost6)
         
         return  self.feedcostByGroup
