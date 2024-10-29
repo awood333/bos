@@ -61,11 +61,13 @@ class MilkIncome:
         
         income_daily = self.income.reindex(rng, method='bfill').ffill()
         
-        income_daily.loc[:,'days_in_month'] = income_daily.index.to_period('M').days_in_month
+        income_daily.loc[:,'days'] = income_daily.index.to_period('M').days_in_month
         
-        income_monthly1 = income_daily.groupby(['year','month']).mean()
+        income_monthly1 = income_daily.groupby(['year','month', 'days']).mean()
         
-        self.income_monthly = income_monthly1
+        self.income_monthly = income_monthly1.loc[2024:,:]
+        
+        
         return self.income_monthly
     
     def write_to_csv(self):

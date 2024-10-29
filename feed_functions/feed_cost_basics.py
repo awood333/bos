@@ -31,7 +31,6 @@ class FeedCostBasics:
     def __init__(self):
         
         self.data = MilkBasics().data 
-
         self.DR = DateRange()
         self.SD = StatusData()
         self.feed_type =  ['corn','cassava','beans','straw'] 
@@ -256,6 +255,7 @@ class FeedCostBasics:
         feedcost6 = feedcost5.reindex(self.rng_monthly2)
         
         self.feedcostByGroup = pd.DataFrame(feedcost6)
+        self.feedcostByGroup.to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\feedcostByGroup.csv')
         
         return  self.feedcostByGroup
     
