@@ -19,7 +19,7 @@ class WetDry:
         self.datex      = self.MB.datex
                 
         self.wet_days_data = self.create_wet_days()
-        self.wet_dry_days_monthly = self.create_monthly_wet_days()
+        self.wdd_monthly = self.create_monthly_wet_days()
 
     def create_wet_days(self):
         wet_days2       = pd.DataFrame()
@@ -90,20 +90,52 @@ class WetDry:
             self.wet_sum3 .append (wet_sum2)
             self.wet_max3 .append (wet_max2)            
             
-        self.wet_days_data = [self.wet_days3, self.wet_sum3, self.wet_max3]
+        self.wet_days_df    = pd.DataFrame(self.wet_days3)
+        self.wet_sum_df    = pd.DataFrame(self.wet_sum3) 
+        self.wet_max_df       = pd.DataFrame(self.wet_max3)
+        
+        self.wet_days_data = [self.wet_days_df, self.wet_sum_df, self.wet_max_df ]
+        
         return self.wet_days_data
     
     def create_monthly_wet_days(self):
         
-        wdd = self.wet_days_data
+        wdd = self.wet_days_df
+        wdsum = self.wet_sum_df
+        wdmax = self.wet_max_df
+        wdd.to_csv('F:\\COWS\\data\\wet_dry\\wdd.csv')       
+        wdsum.to_csv('F:\\COWS\\data\\wet_dry\\wdsum.csv')
+        wdmax.to_csv('F:\\COWS\\data\\wet_dry\\wdmax.csv')
+        
+        groupA_count = (wdd <= 172).sum(axis=1)
+        groupB_count = (wdd > 172) .sum(axis=1)
+        
+        
+        wdd['groupA_count'] = groupA_count
+        wdd['groupB_count'] = groupB_count
+
         year = wdd.index.year
         month = wdd.index.month
+        days = wdd.index.days_in_month
         
-        wdd.index = pd.MultiIndex.from_arrays([ year, month, wdd.index], \
-            names=['year','month','datex'])
-        self.wet_dry_days_monthly = wdd.loc[2024]
+        # wdd['year'] = year
+        # wdd['month'] = month
+        # wdd['days'] = days
         
-        return self.wet_dry_days_monthly
+        wdd.index = pd.MultiIndex.from_arrays([ year, month, days], \
+            names=['year','month', 'days' ])
+        
+        wdd_monthly1 = wdd.iloc[:,-2:].copy()
+        
+        self.wdd_monthly = wdd_monthly1.groupby(['year','month', 'days']).mean()
+        
+        
+        self.wdd_monthly = self.wdd_monthly.loc[2024:,:]
+        
+        
+        self.wdd_monthly.to_csv('F:\\COWS\\data\\wet_dry\\wdd_monthly.csv')
+        
+        return self.wdd_monthly
         
 
 
