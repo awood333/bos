@@ -8,6 +8,7 @@ from milk_functions.status_data import StatusData
 
 DR = DateRange()
 
+tdy = pd.Timestamp('now').strftime('%Y-%m-%d %H_%M_%S')
 
 class MilkIncome:
     def __init__(self):
@@ -72,7 +73,7 @@ class MilkIncome:
     
     def write_to_csv(self):
         self.income     .to_csv('F:\\COWS\\data\\PL_data\\milk_income\\output\\milk_income_output.csv')
-        
+        self.income     .to_csv('E:\\COWS\\data_backup\\milk_income_backup\\milk_income_'+tdy+'.csv')
 
 if __name__ == '__main__':
     MilkIncome()
