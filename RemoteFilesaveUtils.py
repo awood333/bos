@@ -19,7 +19,7 @@ class RemoteFilesaveUtils:
             # print(f"rclone output: {result.stdout}")
         except subprocess.CalledProcessError as e:
             print(f"Failed to create remote directory {remote_path}")
-            # print(f"rclone error: {e.stderr}")
+            print(f"rclone error: {e.stderr}")
 
     @staticmethod
     def copy_to_gdrive(local_path, remote_path, rclone_path='rclone', extra_flags=None):

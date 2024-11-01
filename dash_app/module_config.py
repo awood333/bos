@@ -6,7 +6,7 @@ import logging
 
 from insem_functions.Insem_ultra_data   import InsemUltraData
 from insem_functions.insem_ultra_basics import InsemUltraBasics
-from finance_functions.NetRevenue       import MilkNetRevenue
+from finance_functions.net_revenue       import NetRevenue
 
 from finance_functions.BKK_bank         import BKK_bank
 from feed_functions.feed_cost_basics    import FeedCostBasics
@@ -20,7 +20,7 @@ IUB = InsemUltraBasics()
 IUB_vars = IUB.get_dash_vars
 
 
-MI = MilkNetRevenue()
+MI = NetRevenue()
 MI_vars = MI.get_dash_vars
 
 BKK = BKK_bank()
@@ -48,8 +48,8 @@ modules = {
     }
     ,
     
-    'MilkNetRevenue': {
-        'module_name': 'finance.NetRevenue',
+    'NetRevenue': {
+        'module_name': 'finance.net_revenue',
         'get_dash_vars': MI_vars,
         },
     
