@@ -205,7 +205,7 @@ class MilkAggregates:
         # self.tenday.loc[''] = sumx.round(0)                   # [''] means 'empty row'
         self.tenday.loc['avg']   = self.tenday.mean(axis=0)
         self.tenday.loc['total'] = self.tenday.sum(axis=0)
-        print('self.tenday ', self.tenday.head(3))
+        # print('self.tenday ', self.tenday.head(3))
         
         return self.tenday, self.tenday1
     
@@ -248,7 +248,7 @@ class MilkAggregates:
     def write_to_csv(self):
         self.fullday    .to_csv('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv')
         self.fullday_xl .to_csv('F:\\COWS\\data\\milk_data\\fullday_xl_format\\fullday_xl.csv')
-        self.tenday     .to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\tenday.csv')
+        # self.tenday     .to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\tenday.csv')
         self.tenday1    .to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\tenday1.csv')
         self.monthly    .to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\monthly.csv')
         self.weekly     .to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\weekly.csv')
