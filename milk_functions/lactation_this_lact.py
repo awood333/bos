@@ -57,4 +57,7 @@ class ThisLactation():
     
     
     def create_write_to_csv(self):
-        self.milking.to_csv('F:\\COWS\\data\\milk_data\\lactations\\milking.csv')  
+        self.milking.to_csv('F:\\COWS\\data\\milk_data\\lactations\\milking.csv')
+        
+if __name__ == "__main__":
+    ThisLactation()  

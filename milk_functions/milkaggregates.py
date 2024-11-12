@@ -197,7 +197,7 @@ class MilkAggregates:
         self.tenday = tendayT
         avg = self.tenday.mean(axis=1).astype(float)
         tendayT['avg']=avg.round(1) 
-        tendayT['pct chg'] = (tendayT.loc[:,10] / tendayT['avg'] ) - 1
+        tendayT['pct chg from avg'] = (tendayT.loc[:,10] / tendayT['avg'] ) - 1
         self.tenday.index.name='WY_id'
     
         # sumx = self.tenday.sum(axis=0).astype(float)
