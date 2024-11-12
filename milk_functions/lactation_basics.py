@@ -50,7 +50,7 @@ class Lactation_basics:
                 
                 
                 md_np1 = np.array(md1)
-            md_np2 = np.hstack(md_np2, md_np1)
+            md_np2 = np.hstack((md_np2, md_np1))
             
 
         return self.lact4x, self.day_of_milking4
