@@ -14,7 +14,7 @@ from concurrent.futures import ThreadPoolExecutor
 import time
 import pandas as pd
 import numpy as np
-from datetime import datetime
+from datetime import datetime, date
 
 from MilkBasics import MilkBasics
 
@@ -39,7 +39,7 @@ class MilkAggregates:
         self.fullday,   self.fullday_xl,
         self.fullday_lastdate]                  = self.fullday_calc()
         
-        self.tenday, self.tenday1               = self.ten_day()
+        tendayT, self.tenday1               = self.ten_day()
         
         [self.monthly, self.weekly,
          self.start, self.stop]                 = self.create_monthly_weekly()
@@ -189,23 +189,31 @@ class MilkAggregates:
        
         self.tenday1 = self.fullday.iloc[-10:,:].copy() # has all wy's
         tenday2 = self.tenday1.loc[:,ld]           # has milkers only
-        # tenday3 = self.tenday1.iloc[:,ld_nums]      #unnecessary?
+        
+        tenday_cols1 = self.tenday1.index.to_list()
+        tenday_cols  = [date.strftime('%m-%d') for date in tenday_cols1]     
      
         tendayT=tenday2.T
     
-        tendayT.columns=[1,2,3,4,5,6,7,8,9,10]
-        self.tenday = tendayT
-        avg = self.tenday.mean(axis=1).astype(float)
-        tendayT['avg']=avg.round(1) 
-        tendayT['pct chg from avg'] = (tendayT.loc[:,10] / tendayT['avg'] ) - 1
-        self.tenday.index.name='WY_id'
+        tendayT.columns=tenday_cols
+  
+        avg = tendayT.mean(axis=1).astype(float)
+        tendayT['avg']=avg.round(1)
+
+        
+        tendayT.index.name='WY_id'
     
-        # sumx = self.tenday.sum(axis=0).astype(float)
-        # avgx = self.tenday.mean(axis=0).astype(float)
-        # self.tenday.loc[''] = sumx.round(0)                   # [''] means 'empty row'
-        self.tenday.loc['avg']   = self.tenday.mean(axis=0)
-        self.tenday.loc['total'] = self.tenday.sum(axis=0)
-        # print('self.tenday ', self.tenday.head(3))
+        sumx  = tendayT.sum (axis=0).astype(float)
+        avg_y = tendayT.mean(axis=0).astype(float)
+
+        tendayT.loc['avg']   = tendayT.mean(axis=0)
+        tendayT.loc['total'] = tendayT.sum(axis=0)
+                
+        lastcol = tendayT.iloc[:,9]
+        tendayT['pct chg from avg'] = ((lastcol/ tendayT['avg'] ) - 1) .apply(lambda x: f"{x:.1%}") 
+ 
+        self.tenday = tendayT
+        # print('tendayT ', tendayT.iloc[:,-3:])
         
         return self.tenday, self.tenday1
     
@@ -248,7 +256,7 @@ class MilkAggregates:
     def write_to_csv(self):
         self.fullday    .to_csv('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv')
         self.fullday_xl .to_csv('F:\\COWS\\data\\milk_data\\fullday_xl_format\\fullday_xl.csv')
-        # self.tenday     .to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\tenday.csv')
+        self.tenday     .to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\tenday.csv')
         self.tenday1    .to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\tenday1.csv')
         self.monthly    .to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\monthly.csv')
         self.weekly     .to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\weekly.csv')
