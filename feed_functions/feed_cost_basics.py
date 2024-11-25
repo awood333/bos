@@ -1,19 +1,17 @@
 '''feed_related\\feed_cost_basics.py'''
 
 import os       #don't erase
-from datetime import datetime
+# from datetime import datetime
 import pandas as pd
-
 
 from CreateStartDate import DateRange
 from milk_functions.status_data import StatusData
 from MilkBasics import MilkBasics 
 
-from utilities.logging_setup import LoggingSetup
+# from utilities.logging_setup import LoggingSetup
 
 class DataLoader:
     def __init__(self,base_path):
-        
 
         self.base_path = base_path
 
@@ -23,29 +21,25 @@ class DataLoader:
         data['datex'] = pd.to_datetime(data['datex'], errors='coerce')
         data = data.set_index(data['datex']).drop(columns=['datex'])
         data = data.sort_index()
-        # print(data)
         return data
         
         
 class FeedCostBasics:
     def __init__(self):
-        
-        self.data = MilkBasics().data 
+        self.data_loader = DataLoader('F:/COWS/data/feed_data/feed_csv')
+       
+        self.data = MilkBasics().data
         self.DR = DateRange()
         self.SD = StatusData()
-        self.feed_type =  ['corn','cassava','beans','straw'] 
-        
-        #DataLoader is the class above
-        self.data_loader = DataLoader('F:/COWS/data/feed_data/feed_csv')
-        
+        self.feed_type =  ['corn','cassava','beans','straw']
+
         self.rng_monthly    = self.DR.date_range_monthly
         self.rng_monthly2   = self.DR.date_range_monthly2
         self.rng_daily      = self.DR.date_range_daily
-        
-                
+
         self.herd          = self.create_monthly_alive()
-        
-        self.price_seq_dict, self.daily_amt_dict    = self.create_feed_cost()   
+
+        self.price_seq_dict, self.daily_amt_dict    = self.create_feed_cost()
         self.feed_series_dict      = self.create_separate_feed_series()
         
         self.cost_dict_A          = self.create_cost_A()

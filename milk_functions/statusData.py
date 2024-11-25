@@ -41,6 +41,7 @@ class StatusData:
         
         self.find_duplicates()
         self.herd_df                  = self.create_herd_list()
+        self.herd_list_monthly        = self.create_herd_list_monthly()
 
         self.create_write_to_csv()
 
@@ -172,11 +173,27 @@ class StatusData:
         self.herd_df = pd.DataFrame(data, index=self.f.index)
         
         return self.herd_df
+    
+    def create_herd_list_monthly(self):
+        
+        self.herd_df.index = pd.to_datetime(self.herd_df.index)
+        hm = self.herd_df.groupby(pd.Grouper(freq='ME')).mean()
+        
+        hm['year'] = hm.index.year
+        hm['month'] = hm.index.month
+    
+        # Set year and month as a multi-index
+        hm.set_index(['year', 'month'], inplace=True)
+        self.herd_list_monthly = hm
+        
+        return self.herd_list_monthly
+    
         
 
     def create_write_to_csv(self):
         
         self.herd_df    .to_csv('F:\\COWS\\data\\status\\herd_df.csv')
+        self.herd_list_monthly   .to_csv('F:\\COWS\\data\\status\\herd_list_monthly.csv')        
 
 if __name__ =="__main__":
     status_data = StatusData()

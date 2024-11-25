@@ -1,7 +1,7 @@
 '''finance\\milk_income.py'''
 
 import pandas as pd
-from datetime import datetime
+# from datetime import datetime
 from CreateStartDate import DateRange
 from feed_functions.feed_cost_basics import FeedCostBasics
 from milk_functions.status_data import StatusData
