@@ -4,7 +4,7 @@ import pandas as pd
 # from datetime import datetime
 from CreateStartDate import DateRange
 from feed_functions.feed_cost_basics import FeedCostBasics
-from milk_functions.status_data import StatusData
+from milk_functions.statusData import StatusData
 
 DR = DateRange()
 
@@ -19,7 +19,7 @@ class MilkIncome:
 
         self.income2         = self.DataLoader()
         self.income         = self.calcMilkIncome()
-        self.income_monthly   =  self.convert_daily_milk_income_to_monthly()
+        self.income_daily, self.income_monthly   =  self.create_reindexed_daily_monthly()
 
         self.write_to_csv()
         
@@ -42,34 +42,45 @@ class MilkIncome:
         income3['bonus']        = income3['gross/liter']  - income3['base']
         income3['bonus value']  = income3['bonus'] * income3['liters']
         
-        cols = list(income3.columns)
-        net_index = cols.index('net')
-        cols.insert(net_index - 1, cols.pop(net_index))
-        income3 = income3[cols]
-        income3 = income3.set_index(['datex'])
-        self.income = income3
+        # cols = list(income3.columns)
+        # net_index = cols.index('net')   #returns col num (for position)
+        # cols.insert(net_index - 1, cols.pop(net_index))
+        # income3 = income3[cols]
+        # income3 = income3.set_index(['datex'])
+        
+      
+        income3['daily_avg_net'] = income3['net'] / income3['day']
+        income4 = income3[['datex','daily_avg_net']]
+        self.income = income4
 
         return self.income
     
-    def convert_daily_milk_income_to_monthly(self):
+    def create_reindexed_daily_monthly(self):
         
         start = self.income.index[0]
-        end     = DR.enddate_monthly
-        rng     = pd.date_range(start, end, freq='D')
+        end_daily     = DR.enddate_monthly
+        end_monthly   = DR.enddate_daily
+        rng_daily     = self.DR.date_range_daily
+        rng_monthly   = self.DR.date_range_monthly
         
-        # the last entry in income['datex'] might not be in the 'right' format
-        self.income.index = pd.to_datetime(self.income.index, errors='coerce')
+        self.income.loc[:,'datex'] = pd.to_datetime(self.income['datex'], errors='coerce')
+        self.income2 = self.income.set_index('datex', drop=True)
         
-        income_daily = self.income.reindex(rng, method='bfill').ffill()
         
-        income_daily.loc[:,'days'] = income_daily.index.to_period('M').days_in_month
         
-        income_monthly1 = income_daily.groupby(['year','month', 'days']).mean()
+        income_daily    = self.income2.reindex(rng_daily, method='bfill').ffill()
+        income_daily2 = income_daily
+        income_daily2['year'] = income_daily.index.year
+        income_daily2['month'] = income_daily.index.month
+        self.income_daily = income_daily2
+        
+
+        income_monthly1 = income_daily.groupby(['year','month']).mean()
         
         self.income_monthly = income_monthly1.loc[2024:,:]
         
         
-        return self.income_monthly
+        return self.income_daily, self.income_monthly
     
     def write_to_csv(self):
         self.income     .to_csv('F:\\COWS\\data\\PL_data\\milk_income\\output\\milk_income_output.csv')
