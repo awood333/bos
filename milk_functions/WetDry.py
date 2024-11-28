@@ -18,15 +18,16 @@ class WetDry:
         self.milk1      = self.MB.data['milk'] # this is 'milk' betw the cutoff dates/WY's
         self.datex      = self.MB.datex
                 
-        self.wet_days_data = self.create_wet_days()
+        self.wet_days_df, self.wet_sum_df, self.wet_max_df  = self.create_wet_days()
         self.wdd_monthly = self.create_monthly_wet_days()
 
     def create_wet_days(self):
+        wet_days1       = pd.DataFrame()
         wet_days2       = pd.DataFrame()
         self.wet_days3  = pd.DataFrame()
                 
-        wet_sum2, wet_max2 = [],[]
-        self.wet_sum3, self.wet_max3 = [],[]
+        wet_sum1, wet_sum2, self.wet_sum3= [],[],[]
+        wet_max1, wet_max2, self.wet_max3 = [],[], []
 
         WY_ids  = self.MB.data['stop'].columns  # WY_ids integer
         lacts   = self.MB.data['stop'].index      # lact# float
@@ -94,21 +95,18 @@ class WetDry:
         self.wet_sum_df    = pd.DataFrame(self.wet_sum3) 
         self.wet_max_df       = pd.DataFrame(self.wet_max3)
         
-        self.wet_days_data = [self.wet_days_df, self.wet_sum_df, self.wet_max_df ]
         
-        return self.wet_days_data
+        return self.wet_days_df, self.wet_sum_df, self.wet_max_df 
     
     def create_monthly_wet_days(self):
         
         wdd = self.wet_days_df
         wdsum = self.wet_sum_df
         wdmax = self.wet_max_df
-        wdd.to_csv('F:\\COWS\\data\\wet_dry\\wdd.csv')       
-        wdsum.to_csv('F:\\COWS\\data\\wet_dry\\wdsum.csv')
-        wdmax.to_csv('F:\\COWS\\data\\wet_dry\\wdmax.csv')
+
         
-        groupA_count = (wdd <= 172).sum(axis=1)
-        groupB_count = (wdd > 172) .sum(axis=1)
+        groupA_count = (wdd <= 210).sum(axis=1)
+        groupB_count = (wdd > 210) .sum(axis=1)
         
         
         wdd['groupA_count'] = groupA_count
@@ -118,10 +116,6 @@ class WetDry:
         month = wdd.index.month
         days = wdd.index.days_in_month
         
-        # wdd['year'] = year
-        # wdd['month'] = month
-        # wdd['days'] = days
-        
         wdd.index = pd.MultiIndex.from_arrays([ year, month, days], \
             names=['year','month', 'days' ])
         
@@ -129,13 +123,16 @@ class WetDry:
         
         self.wdd_monthly = wdd_monthly1.groupby(['year','month', 'days']).mean()
         
-        
         self.wdd_monthly = self.wdd_monthly.loc[2024:,:]
         
-        
-        self.wdd_monthly.to_csv('F:\\COWS\\data\\wet_dry\\wdd_monthly.csv')
-        
         return self.wdd_monthly
+    
+    def write_to_csv(self):
+        
+        self.wet_days_df.to_csv('F:\\COWS\\data\\wet_dry\\wdd.csv')       
+        self.wet_sum_df.to_csv('F:\\COWS\\data\\wet_dry\\wdsum.csv')
+        self.wet_max_df.to_csv('F:\\COWS\\data\\wet_dry\\wdmax.csv')
+        self.wdd_monthly.to_csv('F:\\COWS\\data\\wet_dry\\wdd_monthly.csv')
         
 
 

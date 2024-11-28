@@ -5,7 +5,7 @@ import os       #don't erase
 import pandas as pd
 
 from CreateStartDate import DateRange
-from milk_functions.status_data import StatusData
+from milk_functions.statusData import StatusData
 from MilkBasics import MilkBasics 
 
 # from utilities.logging_setup import LoggingSetup
@@ -37,12 +37,12 @@ class FeedCostBasics:
         self.rng_monthly2   = self.DR.date_range_monthly2
         self.rng_daily      = self.DR.date_range_daily
 
-        self.herd          = self.create_monthly_alive()
-
-        self.price_seq_dict, self.daily_amt_dict    = self.create_feed_cost()
-        self.feed_series_dict      = self.create_separate_feed_series()
+        self.last_values_all_df, self.current_feed_cost      = self.create_feed_cost()
         
-        self.cost_dict_A          = self.create_cost_A()
+        self.feed_series_dict      = self.create_separate_feed_series()
+        self.last_values_all_df     =  self.create_last_values()
+        
+        self.cost_dict_A, self.last_cost_details_A_df           = self.create_cost_A()
         self.cost_dict_B          = self.create_cost_B()
         self.cost_dict_D          = self.create_cost_D()
         
@@ -50,17 +50,11 @@ class FeedCostBasics:
         self.totalcostB, self.totalcost_B_df    = self.create_total_cost_B()
         self.totalcostD, self.totalcost_D_df    = self.create_total_cost_D()
         
-        self.feedcostByGroup                    = self.create_milkers_feedcost()
+        self.FBG_daily, self.FBG_monthly        = self.create_feedcostByGroup()
+        self.create_last_cost()
          
         self.milk_income_dash_vars = self.get_dash_vars()
-        
-    def create_monthly_alive(self):
-
-        self.herd    = self.SD.herd_monthly
-        self.herd['dry_15pct']  = (self.herd['milkers count'] * .15).to_frame(name = 'dry 15pct')    
-        self.herd['dry_85pct']  = (self.herd['milkers count'] * .85).to_frame(name = 'dry 85pct')
-        return   self.herd
-
+    
 
     def create_feed_cost(self):
         self.price_seq_dict = {}
@@ -72,29 +66,6 @@ class FeedCostBasics:
             
             price_seq = price_seq.reindex(self.rng_daily, method='ffill')
             daily_amt = daily_amt.reindex(self.rng_daily, method='ffill')
-            
-            # Extract year and month from datex column
-            price_seq['year'] = price_seq.index.year
-            price_seq['month'] = price_seq.index.month
-            daily_amt['year'] = daily_amt.index.year
-            daily_amt['month'] = daily_amt.index.month
-            
-              # Set MultiIndex using year and month columns
-            price_seq = price_seq.set_index(['year', 'month'])
-            daily_amt = daily_amt.set_index(['year', 'month'])
-            
-            # Group by year and month and calculate the mean
-            price_seq = price_seq.groupby(['year', 'month']).agg({
-                'unit_price' : 'mean'
-            })
-            daily_amt = daily_amt.groupby(['year', 'month']).agg({
-                'group_a_kg' : 'mean',
-                'group_b_kg' : 'mean',
-                'dry_kg'    : 'mean'
-            })
-            
-            price_seq = price_seq.reindex(self.rng_monthly, method='ffill')
-            daily_amt = daily_amt.reindex(self.rng_monthly, method='ffill')
             
             self.price_seq_dict[feed] = price_seq
             self.daily_amt_dict[feed] = daily_amt
@@ -111,27 +82,85 @@ class FeedCostBasics:
                 'dad': dad[feed]
                 } for feed in self.feed_type
             }
-        
         return self.feed_series_dict
+
+       
+    def create_last_values(self):
+        
+        last_values_all = {
+            feed: {
+                'psd': self.feed_series_dict[feed]['psd'].iloc[-1],
+                'dad': self.feed_series_dict[feed]['dad'].iloc[-1],
+            } for feed in self.feed_type
+            }
+        
+        self.last_values_all_df = pd.DataFrame.from_dict(last_values_all, orient='index')
+        
+        unit_prices, group_a_kg, group_b_kg, dry_kg  = {},{},{},{}
+        for feed in self.feed_type:
+            unit_prices[feed] = self.last_values_all_df.loc[feed, 'psd'] ['unit_price']
             
+        for feed in self.feed_type:
+            group_a_kg[feed]        = self.last_values_all_df.loc[feed, 'dad']['group_a_kg']
+            
+        for feed in self.feed_type:
+            group_b_kg[feed]        = self.last_values_all_df.loc[feed, 'dad']['group_b_kg']
+            
+        for feed in self.feed_type:
+            dry_kg[feed]        = self.last_values_all_df.loc[feed, 'dad']['dry_kg']            
+                
+        # Convert dictionaries to DataFrames
+        unit_prices_df = pd.DataFrame.from_dict(unit_prices, orient='index', columns=['unit_price'])
+        group_a_kg_df = pd.DataFrame.from_dict(group_a_kg,  orient='index', columns=['group_a_kg'])
+        group_b_kg_df = pd.DataFrame.from_dict(group_b_kg,  orient='index', columns=['group_b_kg'])
+        dry_kg_df =     pd.DataFrame.from_dict(dry_kg,      orient='index', columns=['dry_kg'])
+
+        # Concatenate DataFrames
+        result_df = pd.concat([unit_prices_df, group_a_kg_df, group_b_kg_df, dry_kg_df], axis=1)
+        result_df['group_a_cost']   = result_df['unit_price'] * result_df['group_a_kg']
+        result_df['group_b_cost']   = result_df['unit_price'] * result_df['group_b_kg']
+        result_df['dry_cost']       = result_df['unit_price'] * result_df['dry_kg']
+        
+        sum_row = result_df[['group_a_cost', 'group_b_cost', 'dry_cost']].sum(axis=0)
+        sum_row['unit_price'] = ''
+        sum_row['group_a_kg'] = ''
+        sum_row['group_b_kg'] = ''
+        sum_row['dry_kg'] = ''
+        
+        sum_row_df = pd.DataFrame(sum_row).T
+        result_df = pd.concat([result_df, sum_row_df], ignore_index=False)
+        self.current_feed_cost = result_df
+        
+        self.last_values_all_df  .to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\last_values_all_df.csv')
+        self.current_feed_cost  .to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\current_feed_cost.csv')        
+        
+        return self.last_values_all_df, self.current_feed_cost
+    
+    
     
     def create_cost_A(self):
         self.cost_dict_A = {feed: [] for feed in self.feed_type}
         
-        for i in self.rng_monthly:
+        for i in self.rng_daily:
             for feed in self.feed_type:
                 unit_price = self.price_seq_dict[feed].loc[i, 'unit_price']
                 group_a_kg = self.daily_amt_dict[feed].loc[i, 'group_a_kg']
                 cost_A = unit_price * group_a_kg
                 self.cost_dict_A[feed].append(cost_A)
+                
+        last_cost_details_A = {
+            key: value[-1] for key, value in self.cost_dict_A.items()
+            }
+            
+        self.last_cost_details_A_df = pd.DataFrame.from_dict(last_cost_details_A, orient='index')
         
-        return self.cost_dict_A
+        return self.cost_dict_A, self.last_cost_details_A_df 
         
          
     def create_cost_B(self):
         self.cost_dict_B = { feed: [] for feed in self.feed_type }
         
-        for i in self.rng_monthly:
+        for i in self.rng_daily:
             for feed in self.feed_type:
                 unit_price = self.price_seq_dict[feed].loc[i, 'unit_price']
                 group_b_kg = self.daily_amt_dict[feed].loc[i, 'group_b_kg']
@@ -145,7 +174,7 @@ class FeedCostBasics:
 
         self.cost_dict_D = {feed: [] for feed in self.feed_type}
         
-        for i in self.rng_monthly:
+        for i in self.rng_daily:
             for feed in self.feed_type:
                 unit_price = self.price_seq_dict[feed].loc[i, 'unit_price']
                 dry_kg = self.daily_amt_dict[feed].loc[i, 'dry_kg']
@@ -173,9 +202,7 @@ class FeedCostBasics:
             'totalcostA': totalcostA
         })
         
-        df.index = self.rng_monthly
-        df.index.names = ['year', 'month']
-        
+        df.index = self.rng_daily
         self.totalcost_A_df = df  
 
         return totalcostA, self.totalcost_A_df
@@ -198,8 +225,7 @@ class FeedCostBasics:
                 'totalcostB': self.totalcostB
             })
                 
-        df.index = self.rng_monthly
-        df.index.names = ['year', 'month']   
+        df.index = self.rng_daily
         self.totalcost_B_df = df      
            
         return self.totalcostB, self.totalcost_B_df
@@ -222,41 +248,52 @@ class FeedCostBasics:
                 'totalcostD': self.totalcostD
             })
                 
-        df.index = self.rng_monthly
-        df.index.names = ['year', 'month']  
+        df.index = self.rng_daily
         self.totalcost_D_df = df          
            
         return self.totalcostD, self.totalcost_D_df
             
 
-    def create_milkers_feedcost(self):
+    def create_feedcostByGroup(self):
         
         feedcost1a  = pd.DataFrame(self.totalcost_A_df  ['totalcostA'])
         feedcost1b  = pd.DataFrame(self.totalcost_B_df  ['totalcostB'])
         feeccost1d  = pd.DataFrame(self.totalcost_D_df  ['totalcostD'])
         feedcost1   = pd.concat((feedcost1a, feedcost1b, feeccost1d), axis=1)
         
-        feedcost2 = feedcost1.merge(self.SD.herd_monthly,
+        feedcost2 = feedcost1.merge(self.SD.herd_daily,
                                                   how='outer',
                                                   left_index=True,
                                                   right_index=True)
         
-        feedcost2['milkers agg cost'] = feedcost2['milkers count'] * feedcost2['totalcostA']
+        feedcost2['milkers agg cost'] = feedcost2['milkers'] * feedcost2['totalcostA']
         feedcost2['dry 15pct agg cost'] = feedcost2['dry_15pct'] * feedcost2['totalcostD']
-        feedcost2['dry_agg_cost'] = feedcost2['dry count'] * feedcost2['totalcostD']
-        feedcost4 = feedcost2.drop(columns=['total','alive count']) 
+        feedcost2['dry_agg_cost'] = feedcost2['dry'] * feedcost2['totalcostD']
+        feedcost4 = feedcost2.drop(columns=['alive']) 
         feedcost5 = feedcost4.rename(columns={'totalcostA' : 'cost A', 'totalcostB' : 'cost B', 'totalcostD' : 'dry cost'})
-        feedcost6 = feedcost5.reindex(self.rng_monthly2)
+
+        FBG_daily1   = pd.DataFrame(feedcost5)
         
-        self.feedcostByGroup = pd.DataFrame(feedcost6)
-        self.feedcostByGroup.to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\feedcostByGroup.csv')
+        FBG_monthly1 = pd.DataFrame(feedcost5)
+        FBG_monthly1['year']    = FBG_monthly1.index.year
+        FBG_monthly1['month'] = FBG_monthly1.index.month
+        FBG_monthly1['days']  = FBG_monthly1.index.days_in_month    
+           
+        self.FBG_daily    = FBG_daily1   .reindex(self.rng_daily,    method='ffill')
+                
+        self.FBG_monthly  = FBG_monthly1.groupby(['year','month']). agg('sum')
         
-        return  self.feedcostByGroup
+
+        self.FBG_daily  .to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\feedcostByGroup_daily.csv')
+        self.FBG_monthly.to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\feedcostByGroup_monthly.csv')
+        
+        return  self.FBG_daily, self.FBG_monthly
     
-    # def calc_total_feedcost(self):
-    #     tfc1 = self.feedcostByGroup
-    #     tfc2['tfc A'] = tfc1['cost A'] * tfc1['']
-                     
+    def create_last_cost(self):
+        a = self.totalcost_A_df
+        
+        return 
+    
     
     def get_dash_vars(self):
         self.milk_income_dash_vars = {name: value for name, value in vars(self).items()

@@ -1,4 +1,4 @@
-'''milk_functions\\status_ids.py'''
+'''milk_functions\\statusData.py'''
 
 import pandas as pd
 
@@ -36,12 +36,13 @@ class StatusData:
         # functions        
        
         self.milkers_lists            = self.create_milking_list()
+        self.milker_ids_df            = self.create_milker_df()
         self.id_lists_data            = self.create_id_lists()
         self.dry_ids, self.dry_count  = self.create_dry_id_list()
         
         self.find_duplicates()
-        self.herd_df                  = self.create_herd_list()
-        self.herd_list_monthly        = self.create_herd_list_monthly()
+        self.herd_daily          = self.create_herd_daily()
+        self.herd_monthly        = self.create_herd_monthly()
 
         self.create_write_to_csv()
 
@@ -71,6 +72,8 @@ class StatusData:
             self.milkers_count.append(len_milkers1)
             self.non_milkers_count.append(len_non_milkers1)
             
+            
+            
             milking_mask=[]
             not_milking_mask=[]
             milker1=[]
@@ -80,6 +83,13 @@ class StatusData:
         self.milkers_lists = [self.milker_ids, self.non_milker_ids, self.milkers_count, self.non_milkers_count]
             
         return self.milkers_lists
+    
+    def create_milker_df (self):
+        
+        df = pd.DataFrame(self.milker_ids)
+        self.milker_ids_df = df.set_index(self.f.index)
+       
+        return self.milker_ids_df
     
     
     def create_id_lists(self):   
@@ -162,38 +172,41 @@ class StatusData:
         print("Duplicates between alive and gone (first row):", alive_gone_duplicates)
 
  
-    def create_herd_list(self):
+    def create_herd_daily(self):
         data = {
             'alive': self.alive_count,
-            'milker_ids': self.milkers_count,
+            'milkers': self.milkers_count,
             'dry':      self.dry_count
             # 'gone': self.gone_count,
         }
         
-        self.herd_df = pd.DataFrame(data, index=self.f.index)
+        herd1 = pd.DataFrame(data, index=self.f.index)
         
-        return self.herd_df
+        herd1['dry_15pct']  = (herd1['milkers'] * .15).to_frame(name = 'dry 15pct')    
+        herd1['dry_85pct']  = (herd1['milkers'] * .85).to_frame(name = 'dry 85pct')
+        self.herd_daily = herd1
+        return   self.herd_daily
     
-    def create_herd_list_monthly(self):
-        
-        self.herd_df.index = pd.to_datetime(self.herd_df.index)
-        hm = self.herd_df.groupby(pd.Grouper(freq='ME')).mean()
+    
+    def create_herd_monthly(self):
+          
+        hm = self.herd_daily.groupby(pd.Grouper(freq='ME')).mean()
         
         hm['year'] = hm.index.year
         hm['month'] = hm.index.month
     
         # Set year and month as a multi-index
         hm.set_index(['year', 'month'], inplace=True)
-        self.herd_list_monthly = hm
+        self.herd_monthly = hm
         
-        return self.herd_list_monthly
+        return self.herd_monthly
     
-        
 
     def create_write_to_csv(self):
-        
-        self.herd_df    .to_csv('F:\\COWS\\data\\status\\herd_df.csv')
-        self.herd_list_monthly   .to_csv('F:\\COWS\\data\\status\\herd_list_monthly.csv')        
+
+        self.milker_ids_df    .to_csv('F:\\COWS\\data\\status\\milker_ids.csv')
+        self.herd_daily    .to_csv('F:\\COWS\\data\\status\\herd_daily.csv')
+        self.herd_monthly   .to_csv('F:\\COWS\\data\\status\\herd_monthly.csv')        
 
 if __name__ =="__main__":
     status_data = StatusData()
