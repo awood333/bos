@@ -1,0 +1,30 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"sqltools.useNodeRuntime": true,
+		"sqltools.connections": [
+			{
+				"previewLimit": 50,
+				"driver": "SQLite",
+				"name": "cows",
+				"database": "${workspaceFolder:bos}/cows.db"
+			}
+		],
+		"explorerExclude.backup": {},
+		"terminal.integrated.env.windows": {
+			"PYTHONPATH": "D:/Git_repos/bos"
+		},
+		"files.exclude": {
+			"**/.git": false,
+			"**/.svn": true,
+			"**/.hg": true,
+			"**/CVS": true,
+			"**/.DS_Store": true,
+			"**/Thumbs.db": true
+		}
+	}
+}
