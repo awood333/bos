@@ -3,7 +3,7 @@ import pandas as pd
 from insem_functions.insem_ultra_basics import InsemUltraBasics
 from insem_functions.Insem_ultra_data   import InsemUltraData
 from MilkBasics import MilkBasics
-from insem_functions.statusData2 import StatusData2
+from milk_functions.statusData2 import StatusData2
 
 class Ipiv:
     def __init__ (self):
