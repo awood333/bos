@@ -5,7 +5,6 @@ import numpy as np
 from MilkBasics    import MilkBasics
 from milk_functions.WetDry          import WetDry
 
-
 class Lactation_basics:
 
     def __init__(self):

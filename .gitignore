@@ -1,5 +1,6 @@
 *.ipynb
 *.pyc
+**/__init__.py
 Pipfile
 Pipfile.lock
 .vscode/launch.json
