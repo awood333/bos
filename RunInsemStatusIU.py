@@ -1,7 +1,7 @@
 '''run_insem_status_IU.py'''
 
-from milk_functions.status_data2            import StatusData2
-from milk_functions.status_data             import StatusData
+from milk_functions.statusData2            import StatusData2
+from milk_functions.statusData             import StatusData
 
 from insem_functions.insem_ultra_basics     import InsemUltraBasics
 from insem_functions.Insem_ultra_data       import InsemUltraData
