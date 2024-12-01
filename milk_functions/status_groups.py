@@ -8,6 +8,7 @@ from CreateStartDate import DateRange
 from milk_functions.statusData import StatusData
 from MilkBasics import MilkBasics
 from insem_functions.insem_ultra_basics import InsemUltraBasics
+from milk_functions.WetDry import WetDry
 
 
 class statusGroups:
@@ -17,8 +18,10 @@ class statusGroups:
         self.CSD    = DateRange()
         self.MB     = MilkBasics()
         self.IUB    = InsemUltraBasics()
+        self.WD     = WetDry()
         
         self.DRM    = self.CSD.date_range_monthly_data
+        self.startdate = self.CSD.startdate
         
         [self.fresh, self.group_A, 
          self.group_B, self.fresh_ids, 
@@ -33,9 +36,11 @@ class statusGroups:
         
     def create_groups (self):
         
-        milker_ids = self.SD.milker_ids_df.fillna(np.nan)   #SD.milker_ids_df gets the list of milkers - the following code divides that into groups A and B
-        last_calf_age = self.IUB.lastcalf_age
-        self.milk1 = self.MB.milk
+        # get list of milkers - this code divides that into groups A and B
+
+        # last_calf_age = self.IUB.lastcalf_age
+        # milk1 = self.MB.milk
+        wet1 = self.WD.wdd.loc[self.startdate:,:]
         
     
         fresh,      groupA,         groupB          = [],[],[]
@@ -47,33 +52,33 @@ class statusGroups:
 
 
                 
-        for date in milker_ids.index:
-            date1 = pd.Timestamp(date)
+        for date in wet1.index:
+            date1   = pd.Timestamp(date)
             lastday = self.MB.lastday
-            gap   = (lastday - date).days
-            milk = self.milk1.loc[date1]
+            # gap     = (lastday - date).days
+            # milk    = milk1.loc[date1]
+            wet     = wet1
             j1 = 0
             
-            for i in milker_ids.columns:
-                j1 = milker_ids.loc[date, i]
+            for i in wet1.columns:
+                j1 = wet.loc[date1, i]
+                
                 
                 if not pd.isna(j1) :
-                    k1 = milk.loc[j1]   #sets min milk prod for groups a/b 
+                    days1 = j1
                     j = int(j1) - 1
-                    
-                    days1 = last_calf_age[j] - gap
 
                     if days1 < 10 :
                         freshx += 1
-                        F_ids = int(j1)
+                        F_ids = i
 
-                    elif days1 >=10  and k1 > 14:
+                    elif days1 >=10  and j1 > 14:   #sets min milk prod for groups a/b 
                         groupAx += 1
-                        A_ids = int(j1)
+                        A_ids = i
 
-                    elif days1 >= 70 and k1 <= 14:
+                    elif days1 >= 70 and j1 <= 14:
                         groupBx += 1
-                        B_ids = int(j1)
+                        B_ids = i
                     
                     i += 1
                 
