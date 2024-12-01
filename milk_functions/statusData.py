@@ -34,18 +34,11 @@ class StatusData:
        
         # self.create_alive_mask()
        
-        [self.milker_ids, self.dry_ids, 
-         self.milker_count, self.dry_count]  = self.create_milking_list()
+        [self.milker_ids, self.dry_ids, self.alive_ids,
+        self.alive_count, self.milker_count, self.dry_count]  = self.create_milking_list()
         
         self.milker_ids_df, self.dry_ids_df  = self.create_df()
         
-        # [self.alive_ids, self.alive_count, self.alive_mask,
-        # self.gone_ids, self.gone_count 
-        # ]                                   = self.create_id_lists()
-        
-        # self.dry_ids, self.dry_count        = self.create_dry_id_list()
-        
-        # self.find_duplicates()
         self.herd_daily          = self.create_herd_daily()
         self.herd_monthly        = self.create_herd_monthly()
 
@@ -54,9 +47,9 @@ class StatusData:
 
     def create_milking_list(self):
         
-        alive2=[]        
+        alive_mask, alive_ids, alive_series=[],[],[]
         self.milker_ids, self.dry_ids = [],[]
-        self.milker_count, self.dry_count = [],[]
+        self.alive_count, self.milker_count, self.dry_count = [],[],[]
         datex = self.f.index
         bd  = self.bd1['birth_date']
         bd.index +=1
@@ -71,34 +64,39 @@ class StatusData:
             
             for i in self.f.columns:
                 alive1 = date > bd.loc[i] and (date < dd.loc[i] or pd.isna( dd.loc[i] ))
-                alive2.append(alive1)
+                alive_mask.append(alive1)
             
-            milk_row = self.f.loc[date,alive2]
+            alive_series = self.f.loc[date,alive_mask].copy()  #series 
             
-            milking_mask =  milk_row>0
-            dry_mask     =  pd.isna(milk_row)
+            milking_mask =  alive_series>0
+            dry_mask     =  pd.isna(alive_series)
             
-            len_milker1 = sum(milking_mask)
-            len_dry1     = sum(dry_mask)
+            len_milkers = sum(milking_mask)
+            len_dry    = sum(dry_mask)
+            len_alive   = sum(alive_mask)
             
-            milker1 = milk_row.index[milking_mask]
-            dry1    = milk_row.index[dry_mask]
+            milker1 = alive_series.index[milking_mask]
+            dry1    = alive_series.index[dry_mask]
             
+            self.alive_ids = alive_series.index
             self.milker_ids .append(milker1)
             self.dry_ids    .append(dry1)
             
-            self.milker_count.append(len_milker1)
-            self.dry_count   .append(len_dry1)
+            self.alive_count .append(len_alive)
+            self.milker_count.append(len_milkers)
+            self.dry_count   .append(len_dry)
             
             
-            alive2 = []
+            alive_mask = []
             milking_mask=[]
             dry_mask=[]
             milker1=[]
-            len_milker1=[]
-            len_dry1=[]
+            len_milkers=[]
+            len_dry=[]
+            len_alive=[]
             
-        return [self.milker_ids, self.dry_ids, self.milker_count, self.dry_count]
+        return [self.milker_ids, self.dry_ids, self.alive_ids,
+                self.alive_count, self.milker_count, self.dry_count]
     
     def create_df (self):
         
@@ -113,7 +111,7 @@ class StatusData:
     
     def create_herd_daily(self):
         data = {
-            # 'alive': self.alive_count,
+            'alive': self.alive_count,
             'milkers': self.milker_count,
             'dry':      self.dry_count
             # 'gone': self.gone_count,
@@ -122,7 +120,7 @@ class StatusData:
         herd1 = pd.DataFrame(data, index=self.f.index)
         
         herd1['dry_15pct']  = (herd1['milkers'] * .15).to_frame(name = 'dry 15pct')    
-        herd1['dry_85pct']  = (herd1['milkers'] * .85).to_frame(name = 'dry 85pct')
+        # herd1['dry_85pct']  = (herd1['milkers'] * .85).to_frame(name = 'dry 85pct')
         self.herd_daily = herd1
         return   self.herd_daily
     
