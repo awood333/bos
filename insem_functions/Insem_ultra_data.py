@@ -120,7 +120,15 @@ class InsemUltraData:
                              how = 'left',
                              on = 'WY_id'
                              )
-        valid_ultra2['expected bdate'] = valid_ultra2['i_date'] + pd.to_timedelta(282, unit='D')
+# use .loc to set the 'if' conditions
+        valid_ultra2.loc[
+                valid_ultra2['u_read'] == ( 'ok'),'expected bdate'
+                ] = valid_ultra2['i_date'] + pd.to_timedelta(282, unit='D')
+            
+        valid_ultra2.loc[
+                valid_ultra2['u_read'] == ( 'x'),'expected bdate'
+                ] = ''
+
    
         self.last_valid_ultra = valid_ultra2.drop(columns =  ['last calf#','i_date'])
         
@@ -149,10 +157,7 @@ class InsemUltraData:
         #merge the valid and invalid dfs
         df3  = self.last_valid_insem .merge( right = self.last_valid_ultra,
                               how='left',
-                              on='WY_id' )
-        
-        # df3               .to_csv('F:\\COWS\\data\\insem_data\\df3.csv') 
-        
+                              on='WY_id' )        
         
         last_calf_cols = self.IUB.last_calf[['WY_id','last calf bdate', 'last calf age']]
         
@@ -161,46 +166,40 @@ class InsemUltraData:
                            on = 'WY_id'
                            )
         
-        
-        
+
         last_stop_cols = self.IUB.last_stop[['WY_id','stop calf#','last stop date']]
         
         df4 =       df3a.merge(right=last_stop_cols ,
                               on='WY_id', 
                               how='left' )  
         
-        df4               .to_csv('F:\\COWS\\data\\insem_data\\df4.csv') 
+        # df4               .to_csv('F:\\COWS\\data\\insem_data\\df4.csv') 
 
         df4['age insem'] =  (self.today - df4['i_date']).dt.days
         df4['age ultra'] =  (self.today - df4['u_date']).dt.days
         df4['i_check']    = df4['i_calf#'] - df4['last calf#']
-        df4['u_check']    = df4['u_calf#'] - df4['last calf#']
+
+        df4['u_check1']  =  df4['u_calf#'] - df4['last calf#'] 
+        df4['u_check2']  = (df4['u_date'] - df4['i_date']).dt.days
         
-        df4 = df4.rename(columns={'last calf age' : 'days milking'})
-        
-        df5 = df4
+        df5 = df4.rename(columns={'last calf age' : 'days milking'})
         
         df6 = df5.merge(right=self.status_col[['ids','status']], 
                              left_on= 'WY_id', right_on ='ids',
                              suffixes=('', 'R'))
    
 
-
         df6         = df6[df6['status'] != 'G']
         df6         = df6.drop(columns=['ids'])
         df6         = df6.reset_index(drop=True)
 
         self.df7 = df6
-
         
         return self.df7
     
     
     def create_allx(self):
         
-
-        
-
         self.allx = self.df7[
             [
             'WY_id',
@@ -219,7 +218,8 @@ class InsemUltraData:
             'age ultra',
             'expected bdate',
             'i_check',
-            'u_check'
+            'u_check1',
+            'u_check2'
             ]
         ]
         
