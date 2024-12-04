@@ -35,12 +35,9 @@ class statusGroups:
         
         
     def create_groups (self):
-        
-        # get list of milkers - this code divides that into groups A and B
 
-        # last_calf_age = self.IUB.lastcalf_age
-        # milk1 = self.MB.milk
-        wet1 = self.WD.wdd.loc[self.startdate:,:]
+        wet1 = self.WD.wdd.loc[self.startdate:, :]
+        milk1 = self.MB.data['milk'].loc[self.startdate:, :]
         
     
         fresh,      groupA,         groupB          = [],[],[]
@@ -54,14 +51,12 @@ class statusGroups:
                 
         for date in wet1.index:
             date1   = pd.Timestamp(date)
-            lastday = self.MB.lastday
-            # gap     = (lastday - date).days
-            # milk    = milk1.loc[date1]
             wet     = wet1
             j1 = 0
             
             for i in wet1.columns:
                 j1 = wet.loc[date1, i]
+                m1 = milk1.loc[date1, str(i)]
                 
                 
                 if not pd.isna(j1) :
@@ -72,11 +67,11 @@ class statusGroups:
                         freshx += 1
                         F_ids = i
 
-                    elif days1 >=10  and j1 > 14:   #sets min milk prod for groups a/b 
+                    elif days1 >=10  and m1 > 14:   #sets min milk prod for groups a/b 
                         groupAx += 1
                         A_ids = i
 
-                    elif days1 >= 70 and j1 <= 14:
+                    elif days1 >= 70 and m1 <= 14:
                         groupBx += 1
                         B_ids = i
                     

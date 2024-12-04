@@ -58,7 +58,7 @@ class MilkBasics:
 
         self.extended_date_range_milk = pd.date_range(start='9/1/2016', end= self.milk.index[-1])
       
-        self.rng = bd1.index.tolist()
+        self.rng = bd1['WY_id'].tolist()
         start2a = start1a.T #.reindex(self.rng)
         stop2a  = stop1a.T  #.reindex(self.rng)
         
