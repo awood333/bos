@@ -49,14 +49,15 @@ class MilkBasics:
         
         cutoff1 = None
         cutoff2 = None
-        cutoff3 = None  
+        cutoff3 = None
         
         
         self.milk   = milk1a.iloc[cutoff3:,cutoff1:cutoff2].copy()
         self.lastday = self.milk.index[-1]
         self.datex = self.milk.index
 
-        self.extended_date_range_milk = pd.date_range(start='9/1/2016', end= self.milk.index[-1])
+        # Note extended range is renamed ext_rng in 'data'
+        self.extended_date_range_milk = pd.date_range(start='2016-09-01', end= self.milk.index[-1])
       
         self.rng = bd1['WY_id'].tolist()
         start2a = start1a.T #.reindex(self.rng)
