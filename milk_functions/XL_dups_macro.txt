@@ -1,0 +1,118 @@
+Option Explicit
+
+
+Sub conforAM()
+Workbooks("DAILY_MILK.xlsm").Worksheets("AM_wy").Activate
+
+'clears previous formatting
+Cells.FormatConditions.Delete
+
+'MsgBox "Put cursor in top box of column with data"
+'(ThisWorkbook.Name & " " & ActiveSheet.Name & " " & ActiveCell.Address)
+
+Dim start As Range
+Set start = Selection
+Dim r As Integer
+r = 70                          'this is the #rows, so increase when cow count> 70
+
+Dim cownum As Integer
+cownum = r
+
+'this sets the range for the double col dup check
+
+Dim newr1 As Range
+Set newr1 = start.Resize((cownum + 2), 2)
+newr1.Select
+
+
+    Selection.FormatConditions.AddUniqueValues
+    Selection.FormatConditions(Selection.FormatConditions.Count).SetFirstPriority
+    Selection.FormatConditions(1).DupeUnique = xlDuplicate
+    
+    With Selection.FormatConditions(1).Interior
+        .Color = RGB(115, 245, 196)
+'        .PatternColorIndex = 1
+'        .ThemeColor = xlThemeColorAccent6
+'        .TintAndShade = 0
+    End With
+    Selection.FormatConditions(1).StopIfTrue = False
+    Application.CutCopyMode = False
+    
+ 'this sets the range for the single column dup check
+ 
+    Dim newr2 As Range
+    Set newr2 = start.Offset(0, 1).Resize((cownum + 2), 1)
+    newr2.Select
+    
+    
+    Selection.FormatConditions.AddUniqueValues
+    Selection.FormatConditions(Selection.FormatConditions.Count).SetFirstPriority
+    Selection.FormatConditions(1).DupeUnique = xlDuplicate
+    
+    With Selection.FormatConditions(1).Interior
+        .PatternColorIndex = xlAutomatic
+        .ThemeColor = xlThemeColorAccent2
+        .TintAndShade = 0.2
+    End With
+    Selection.FormatConditions(1).StopIfTrue = False
+    Application.CutCopyMode = False
+End Sub
+
+
+
+
+
+Sub conforPM()
+Workbooks("DAILY_MILK.xlsm").Worksheets("PM_wy").Activate
+
+
+Cells.FormatConditions.Delete   'clears previous formatting
+
+'MsgBox "Put cursor in top box of column with data" ' (ThisWorkbook.Name & " " & ActiveSheet.Name & " " & ActiveCell.Address)
+
+Dim start As Range
+Set start = Selection
+'Debug.Print start
+
+
+Dim cownum As Integer
+cownum = 70
+
+
+Dim newr1 As Range              'this sets the range for the double col dup check
+Set newr1 = start.Resize((cownum + 2), 2)
+newr1.Select
+
+
+    Selection.FormatConditions.AddUniqueValues
+    Selection.FormatConditions(Selection.FormatConditions.Count).SetFirstPriority
+    Selection.FormatConditions(1).DupeUnique = xlDuplicate
+    
+    With Selection.FormatConditions(1).Interior
+        .PatternColorIndex = xlAutomatic
+        .ThemeColor = xlThemeColorAccent6
+        .TintAndShade = 0.599963377788629
+    End With
+    Selection.FormatConditions(1).StopIfTrue = False
+    Application.CutCopyMode = False
+    
+ 'this sets the range for the single column dup check
+ 
+    Dim newr2 As Range
+    Set newr2 = start.Offset(0, 1).Resize((cownum + 2), 1)
+    newr2.Select
+    
+    
+    Selection.FormatConditions.AddUniqueValues
+    Selection.FormatConditions(Selection.FormatConditions.Count).SetFirstPriority
+    Selection.FormatConditions(1).DupeUnique = xlDuplicate
+    
+    With Selection.FormatConditions(1).Interior
+        .Color = RGB(245, 157, 10)
+'        .PatternColorIndex = xlAutomatic
+'        .ThemeColor = xlThemeColorAccent2
+'        .TintAndShade = 0.2
+    End With
+    Selection.FormatConditions(1).StopIfTrue = False
+    Application.CutCopyMode = False
+End Sub

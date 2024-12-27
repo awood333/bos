@@ -1,7 +1,9 @@
-'''lactations2.py'''
+'''lactations_weekly.py'''
 
+import pandas as pd
 from MilkBasics import MilkBasics
-from milk_functions.WetDry import WetDry
+from milk_functions.lactations import Lactations
+
 
 
 
@@ -9,7 +11,7 @@ class WeeklyLactations():
     def __init__(self):
         
         self.data   = MilkBasics().data
-        self.WD     = WetDry()
+        self.L  = Lactations()
 
         (self.lact1, 
          self.lact2, 
@@ -19,25 +21,29 @@ class WeeklyLactations():
         
         self.wk_lacts            = self.create_weekly()
 
-        (self.lactation_1,
-         self.lactation_2,
-         self.lactation_3,
-         self.lactation_4,
-         self.lactation_5 )      = self.create_separate_lactations()
+        (self.lactation_wk_1,
+         self.lactation_wk_2,
+         self.lactation_wk_3,
+         self.lactation_wk_4,
+         self.lactation_wk_5 )      = self.create_separate_lactations()
+        
+        self.max_liters_list2   = self.create_max_liters()
+        self.max_df            = self.unpack_max_liters()
 
-        # self.individual_lactations  = self.create_individual_lactations()
         self.write_to_csv()
 
 
     def create_308day(self):
 
-        lact1 = WD.lact_1.iloc[:308,:].copy()
-        lact2 = WD.lact_2.iloc[:308,:].copy()
-        lact3 = WD.lact_3.iloc[:308,:].copy()
-        lact4 = WD.lact_4.iloc[:308,:].copy()
-        lact5 = WD.lact_5.iloc[:308,:].copy()
+        self.lact1 = self.L.L1.iloc[:308,:].copy()
+        self.lact2 = self.L.L2.iloc[:308,:].copy()
+        self.lact3 = self.L.L3.iloc[:308,:].copy()
+        self.lact4 = self.L.L4.iloc[:308,:].copy()
+        self.lact5 = self.L.L5.iloc[:308,:].copy()
 
-        return (lact1, lact2, lact3, lact4, lact5    )
+        return (self.lact1, self.lact2, self.lact3,
+                self.lact4, self.lact5    )
+        
 
 
     def create_weekly(self):
@@ -57,18 +63,59 @@ class WeeklyLactations():
     def create_separate_lactations(self):   # CONTAINS ALL COWS LACTATING
         wl = self.wk_lacts
 
-        self.lactation_1 = wl[0]
-        self.lactation_2 = wl[1]
-        self.lactation_3 = wl[2]
-        self.lactation_4 = wl[3]
-        self.lactation_5 = wl[4]
+        self.lactation_wk_1 = wl[0]
+        self.lactation_wk_2 = wl[1]
+        self.lactation_wk_3 = wl[2]
+        self.lactation_wk_4 = wl[3]
+        self.lactation_wk_5 = wl[4]
 
-        return     (self.lactation_1,
-                    self.lactation_2,
-                    self.lactation_3,
-                    self.lactation_4,
-                    self.lactation_5
+        return     (self.lactation_wk_1,
+                    self.lactation_wk_2,
+                    self.lactation_wk_3,
+                    self.lactation_wk_4,
+                    self.lactation_wk_5
                     )
+        
+    def create_max_liters(self):
+        lacts = (
+                    self.lactation_wk_2,
+                    self.lactation_wk_3
+                    )
+        
+        max_liters = {} 
+        self.max_liters_list2 = max_liters_list1=[]
+        
+        max_liters = {} 
+        for lact in lacts:
+            for col in lact.columns:
+                max_liters[col] = lact[col].max()
+            max_liters_list1 = [max_liters]
+        self.max_liters_list2.append(max_liters_list1)
+        max_liters_list1=[]
+        
+        return self.max_liters_list2   
+    
+    def unpack_max_liters(self):
+        max_list = self.max_liters_list2
+        max_dfs = []
+        for i in range(len(max_list)):
+            max_dfs.append(pd.DataFrame(max_list[i], index=[0]))
+    
+        self.max_df = pd.concat(max_dfs, ignore_index=True)
+    
+        return self.max_df
+              
 
     def write_to_csv(self):
-        return None
+        
+        self.lactation_wk_1.to_csv('F:\\COWS\\data\\milk_data\\lactations\\weekly\\lactation_wk_1.csv')
+        self.lactation_wk_2.to_csv('F:\\COWS\\data\\milk_data\\lactations\\weekly\\lactation_wk_2.csv')
+        self.lactation_wk_3.to_csv('F:\\COWS\\data\\milk_data\\lactations\\weekly\\lactation_wk_3.csv')
+        self.lactation_wk_4.to_csv('F:\\COWS\\data\\milk_data\\lactations\\weekly\\lactation_wk_4.csv')
+        self.lactation_wk_5.to_csv('F:\\COWS\\data\\milk_data\\lactations\\weekly\\lactation_wk_5.csv')
+        
+        self.max_df         .to_csv('F:\\COWS\\data\\milk_data\\lactations\\weekly\\max.csv')
+        
+
+if __name__ == "__main__":
+    WeeklyLactations()

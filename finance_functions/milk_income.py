@@ -18,7 +18,7 @@ class MilkIncome:
         self.DR = DateRange()
 
         self.income2         = self.DataLoader()
-        self.income         = self.calcMilkIncome()
+        self.income_net, self.income_full         = self.calcMilkIncome()
         self.income_daily, self.income_monthly   =  self.create_reindexed_daily_monthly()
 
         self.write_to_csv()
@@ -26,6 +26,7 @@ class MilkIncome:
     def DataLoader(self):  
 
         income1 = pd.read_csv('F:\\COWS\\data\\PL_data\\milk_income\\data\\milk_income_data.csv')
+        income1     .to_csv('E:\\COWS\\data_backup\\milk_income_backup\\milk_income_data'+tdy+'.csv')
         self.income2 = income1
 
         return self.income2
@@ -51,20 +52,21 @@ class MilkIncome:
       
         income3['daily_avg_net'] = income3['net'] / income3['day']
         income4 = income3[['datex','daily_avg_net']]
-        self.income = income4
+        self.income_net = income4
+        self.income_full = income3
 
-        return self.income
+        return self.income_net, self.income_full
     
     def create_reindexed_daily_monthly(self):
         
-        start = self.income.index[0]
+        start = self.income_net.index[0]
         end_daily     = DR.enddate_monthly
         end_monthly   = DR.enddate_daily
         rng_daily     = self.DR.date_range_daily
         rng_monthly   = self.DR.date_range_monthly
         
-        self.income.loc[:,'datex'] = pd.to_datetime(self.income['datex'], errors='coerce')
-        self.income2 = self.income.set_index('datex', drop=True)
+        self.income_net.loc[:,'datex'] = pd.to_datetime(self.income_net['datex'], errors='coerce')
+        self.income2 = self.income_net.set_index('datex', drop=True)
         
         
         
@@ -83,8 +85,9 @@ class MilkIncome:
         return self.income_daily, self.income_monthly
     
     def write_to_csv(self):
-        self.income     .to_csv('F:\\COWS\\data\\PL_data\\milk_income\\output\\milk_income_output.csv')
-        self.income     .to_csv('E:\\COWS\\data_backup\\milk_income_backup\\milk_income_'+tdy+'.csv')
+        self.income_net     .to_csv('F:\\COWS\\data\\PL_data\\milk_income\\output\\milk_income_output.csv')
+        self.income_net     .to_csv('E:\\COWS\\data_backup\\milk_income_backup\\milk_income_'+tdy+'.csv')
+        self.income_full    .to_csv('F:\\COWS\\data\\PL_data\\milk_income\\output\\milk_income_full.csv')
 
 if __name__ == '__main__':
     MilkIncome()

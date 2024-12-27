@@ -35,10 +35,14 @@ class Lactation_basics:
         milk_cols1 = milk.columns
         lact = lactations = []
         model = pd.DataFrame(index=range(1,1000))
+        WY_int = range(0,len(self.MB.data['bd'].index))
+        # WY_str  = WY_int.astype(str)
+        
+
 
         for i in startx.index:   #lactations  
             lact = {}
-            milk3a = pd.DataFrame(index=range(1,1000)).fillna(0).infer_objects(copy=False)
+            milk3a = model
             
             for j in startx.columns:    #WY_ids
                 
@@ -68,52 +72,46 @@ class Lactation_basics:
                     milk2 = model
                     
                 milk2.name = j
-                
-                # print('milk2: ',milk2[:5])
-                # milk1.to_csv('F:\\COWS\\data\\milk_data\\lactations\\milk1.csv')
-                # milk2.to_csv('F:\\COWS\\data\\milk_data\\lactations\\milk2.csv')
-   
+
                 milk3a  = pd.concat([milk3a, milk2], axis=1)
-                # print('milk3a: ',milk3a[:10])                
-                                
                 milk2 = pd.Series()
             
-            milk3b1 = milk3a.T.reset_index(drop=False)
-            # milk3b1['index'] = milk3b1['index'].astype(int)
-            milk3b1.index += 1
-            milk3b = milk3b1.T
-            # print('milk3b: ',milk3b.iloc[:5,:]) 
             
-            
+            milk3b = milk3a.T
+            milk3b.index = milk3b.index.astype(int)
+           
+            milk3b2 = milk3b.reindex(index=WY_int, fill_value=0)
+ 
+            milk3 = milk3b2.T
+      
+            col_pad = len(milk.columns) - milk3.shape[1]  
 
-            milk3c = model.merge(
-                milk3b, left_index=True, right_index=True, 
-                how='left')
-            milk3 = milk3c.fillna(0) .infer_objects(copy=False)
-            # print('milk3c: ',milk3c.iloc[:5,:]) 
-    
-            milk3_col_count = milk3.shape[1]
-            col_pad            = milk3.shape[1] - milk3_col_count
-            
             if col_pad > 0:
                 for _ in range(col_pad):
-                    milk3[f'pad_{_}'] = 0
+                    milk3[f'pad_{_}'] = 0   #The underscore _ is used to indicate that the loop variable is not used elsewhere in the loop.
+                                            # adds col_pad number of cols to the milk3 array
             
-            if milk3.shape[1] > 0:
+            
+            if milk3.shape[1] > 0:  #array is not empty
                 lact[i] =  np.array(milk3.fillna(0).infer_objects(copy=False))
-                if lact[i].size == 0:
+                
+                if lact[i].size == 0:   # for an empty array
                     lact[i] = np.zeros((1000, len(startx.shape[1])))
                 else:
-                    # Pad lact[i] to ensure it has the shape (1000, startx.shape[1])
-                    padded_lact = np.zeros((1000, startx.shape[1]))
+                    #defines an to ensure it has the shape (1000, startx.shape[1])
+                    padded_lact = np.zeros((1000, startx.shape[1])) #creates a zeros array
+                    # takes the array in lact[i] and places it in the shape[0] ,shape[1] quadrent 
                     padded_lact[:lact[i].shape[0], :lact[i].shape[1]] = lact[i]
+                    # and then redefines lact[i] as the reshaped array
                     lact[i] = padded_lact
                     
                 
-                print(f'lact {i} shape: {lact[i].shape}')
+                # print(f'lact {i} shape: {lact[i].shape}')
                 lactations.append(lact[i])
                 
-            milk3.to_csv('F:\\COWS\\data\\milk_data\\lactations\\milk3.csv')            
+            milk3.to_csv('F:\\COWS\\data\\milk_data\\lactations\\milk3.csv') 
+            
+            #    reinitialize milk3
             milk3 = pd.DataFrame(index=range(1,1000)).fillna(0).infer_objects(copy=False)
         
         self.headers = milk_cols1        
