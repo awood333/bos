@@ -41,8 +41,8 @@ class MilkBasics:
         self.i       ['insem_date']     = pd.to_datetime (self.i     ['insem_date'], errors='coerce')
         
 
-        start1a  = self.startx.pivot (index='WY_id', columns='calf#',    values='b_date')       
-        stop1a   = self.stopx .pivot (index='WY_id', columns='lact_num', values='stop')
+        start1a  = self.startx.pivot_table (index='WY_id', columns='calf#',    values='b_date')       
+        stop1a   = self.stopx .pivot_table (index='WY_id', columns='lact_num', values='stop')
         
         start1a = start1a.dropna(axis=1, how='all')
         stop1a  = stop1a.dropna(axis=1, how='all')
