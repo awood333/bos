@@ -3,26 +3,22 @@
 
 import sys
 import os
-
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from RemoteFilesaveUtils import RemoteFilesaveUtils as rfu
-import subprocess
-import pyexcel_io
-from concurrent.futures import ThreadPoolExecutor
-
-import time
 import pandas as pd
 import numpy as np
 from datetime import datetime, date
 
 from MilkBasics import MilkBasics
+from insem_functions.Insem_ultra_data import InsemUltraData
 
+IUD = InsemUltraData()
 
 class MilkAggregates:
     def __init__(self):
         
         self.data = MilkBasics().data
+        self.allx = IUD.allx
 
         self.lag     = -10
         print('lag = ', self.lag)
@@ -207,10 +203,19 @@ class MilkAggregates:
         tendayT.loc['total'] = tendayT.iloc[:-2,:].sum(axis=0)
                 
         lastcol = tendayT.iloc[:,9]
-        tendayT['pct chg from avg'] = ((lastcol/ tendayT['avg'] ) - 1) .apply(lambda x: f"{x:.1%}") 
+        tendayT['pct chg from avg'] = ((lastcol/ tendayT['avg'] ) - 1)
+        
+        days1 = pd.DataFrame(self.allx.loc[:,['WY_id','days milking', 'u_read']])
+        days = days1.set_index('WY_id')
+        days.index = days.index.astype('int').astype('str')
+        tendayT.index = tendayT.index.astype('str')
  
-        self.tenday = tendayT
-        # print('tendayT ', tendayT.iloc[:,-3:])
+        self.tenday = tendayT.merge(days, 
+                    how='left', 
+                    left_index=True, 
+                    right_index=True
+                                    )
+
         
         return self.tenday, self.tenday1
     

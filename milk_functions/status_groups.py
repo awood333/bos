@@ -36,7 +36,8 @@ class statusGroups:
         
     def create_groups (self):
 
-        wet1 = self.WD.wdd.loc[self.startdate:, :]
+        # wet1 = self.WD.wdd.loc[self.startdate:, :]
+        wet1 = self.WD.wdd.iloc[-1:, :]
         milk1 = self.MB.data['milk'].loc[self.startdate:, :]
         
     
@@ -67,11 +68,11 @@ class statusGroups:
                         freshx += 1
                         F_ids = i
 
-                    elif days1 >=10  and m1 > 14:   #sets min milk prod for groups a/b 
+                    elif days1 >=10  and m1 >= 14:   #sets min milk prod for groups a/b 
                         groupAx += 1
                         A_ids = i
 
-                    elif days1 >= 70 and m1 <= 14:
+                    elif days1 >= 10 and m1 < 14:
                         groupBx += 1
                         B_ids = i
                     
