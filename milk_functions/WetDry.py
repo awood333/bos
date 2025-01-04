@@ -17,7 +17,8 @@ class WetDry:
         self.ext_rng    = self.MB.data['ext_rng'] # start is 9-1/2016, end is last milking day
         self.milk1      = self.MB.data['milk'] # this is 'milk' betw the cutoff dates/WY's
         self.datex      = self.MB.datex #same index as fullday
-        self.WY_ids  = self.MB.data['stop'].columns  # self.WY_ids integer
+        self.WY_ids     = self.MB.data['start'].columns  # self.WY_ids integer
+
                 
         self.wet_days_df1, self.wet_sum_df1, self.wet_max_df1  = self.create_wet_days()
         self.wdd, self.wsd, self.wmd =  self.reindex_columns()
@@ -30,9 +31,12 @@ class WetDry:
         wet_max1 = wet_max2 = wet_max3 = np.array([], dtype=float)
         
         idx     = self.ext_rng
+        WY_ids  = self.MB.data['rng']   #put a 1 to slice
+        # WY_ids = WY_ids1[277:280]
+        
         lacts   = self.MB.data['stop'].index      # lact# float
 
-        for i in self.WY_ids:
+        for i in WY_ids:
             for j in lacts:
 
                 lastday = self.MB.data['lastday']  # last day of the milk df datex
@@ -121,7 +125,7 @@ class WetDry:
         wdmax_m = self.wmd.copy()
 
         
-        groupA_count = (wdd_m <= 210).sum(axis=1)
+        groupA_count = (wdd_m <= 210).sum(axis=1)  #210 days = 30 weeks
         groupB_count = (wdd_m > 210) .sum(axis=1)
         
         
@@ -146,10 +150,10 @@ class WetDry:
     
     def write_to_csv(self):
         
-        self.wdd.to_csv('F:\\COWS\\data\\wet_dry\\wdd.csv')       
-        self.wsd.to_csv('F:\\COWS\\data\\wet_dry\\wdsum.csv')
-        self.wmd.to_csv('F:\\COWS\\data\\wet_dry\\wdmax.csv')
-        self.wdd_monthly.to_csv('F:\\COWS\\data\\wet_dry\\wdd_monthly.csv')
+        self.wdd.iloc[-25:,:].to_csv('F:\\COWS\\data\\wet_dry\\wdd.csv')       
+        self.wsd             .to_csv('F:\\COWS\\data\\wet_dry\\wdsum.csv')
+        self.wmd             .to_csv('F:\\COWS\\data\\wet_dry\\wdmax.csv')
+        self.wdd_monthly     .to_csv('F:\\COWS\\data\\wet_dry\\wdd_monthly.csv')
         
 
 

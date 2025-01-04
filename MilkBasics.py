@@ -11,10 +11,21 @@ class MilkBasics:
         
     def dataLoader(self):
          
-        self.startx  = pd.read_csv    ('F:\\COWS\\data\\csv_files\\live_births.csv',     header = 0)
-        self.stopx   = pd.read_csv    ('F:\\COWS\\data\\csv_files\\stop_dates.csv',      header = 0)
-        milk1a       = pd.read_csv    ('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv', header = 0, index_col='datex')
+        self.startx  = pd.read_csv    ('F:\\COWS\\data\\csv_files\\live_births.csv', index_col=None,     header = 0)
+        self.stopx   = pd.read_csv    ('F:\\COWS\\data\\csv_files\\stop_dates.csv',  index_col=None,     header = 0)
         
+        # date cols
+        self.startx   ['b_date']        = pd.to_datetime(self.startx['b_date'])    
+        self.stopx    ['stop']          = pd.to_datetime(self.stopx['stop'])
+
+        
+        
+        self.startx = self.startx.fillna({'b_date': pd.NaT, 'calf#': pd.NA})
+        self.stopx = self.stopx.fillna({'stop': pd.NaT, 'calf#': pd.NA})
+        
+        
+        milk1a       = pd.read_csv    ('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv', header = 0, index_col='datex')
+        milk1a.index                    = pd.to_datetime(milk1a.index)
         
 
         bd1      = pd.read_csv    ('F:\\COWS\\data\\csv_files\\birth_death.csv',     header = 0)
@@ -27,9 +38,9 @@ class MilkBasics:
 
         # date cols
         
-        self.startx   ['b_date']        = pd.to_datetime(self.startx['b_date'])    
-        self.stopx    ['stop']          = pd.to_datetime(self.stopx['stop'])
-        milk1a.index                    = pd.to_datetime(milk1a.index)
+        # self.startx   ['b_date']        = pd.to_datetime(self.startx['b_date'])    
+        # self.stopx    ['stop']          = pd.to_datetime(self.stopx['stop'])
+        # milk1a.index                    = pd.to_datetime(milk1a.index)
         
         bd1         ['birth_date']      = pd.to_datetime(bd1['birth_date'])
         bd1         ['death_date']      = pd.to_datetime(bd1['death_date'], errors='coerce')        
@@ -41,18 +52,15 @@ class MilkBasics:
         self.i       ['insem_date']     = pd.to_datetime (self.i     ['insem_date'], errors='coerce')
         
 
-        start1a  = self.startx.pivot_table (index='WY_id', columns='calf#',    values='b_date')       
-        stop1a   = self.stopx .pivot_table (index='WY_id', columns='lact_num', values='stop')
-        
-        start1a = start1a.dropna(axis=1, how='all')
-        stop1a  = stop1a.dropna(axis=1, how='all')
-        
+        start1a  = self.startx.pivot_table (index='WY_id', columns='calf#',    values='b_date', fill_value=pd.NaT)
+        stop1a   = self.stopx .pivot_table (index='WY_id', columns='lact_num', values='stop',   fill_value=pd.NaT)
+   
         cutoff1 = None
         cutoff2 = None
         cutoff3 = None
         
         
-        self.milk   = milk1a.iloc[cutoff3:,cutoff1:cutoff2].copy()
+        self.milk   = milk1a.loc[cutoff3:, cutoff1:cutoff2].copy()
         self.lastday = self.milk.index[-1]
         self.datex = self.milk.index
 
@@ -60,15 +68,16 @@ class MilkBasics:
         self.extended_date_range_milk = pd.date_range(start='2016-09-01', end= self.milk.index[-1])
       
         self.rng = bd1['WY_id'].tolist()
-        start2a = start1a.T #.reindex(self.rng)
-        stop2a  = stop1a.T  #.reindex(self.rng)
+     
+        start2a = start1a.reindex(self.rng)
+        stop2a  = stop1a  .reindex(self.rng)
         
-        # need to increment the index to match the cutoffs in 'milk'
-        start2b = start2a.iloc[:, cutoff1:cutoff2].copy()    
-        stop2b  = stop2a .iloc[:, cutoff1:cutoff2].copy()
+        # # need to increment the index to match the cutoffs in 'milk'
+        start2b = start2a.loc[ cutoff1:cutoff2, : ].copy()    
+        stop2b  = stop2a .loc[ cutoff1:cutoff2, : ].copy()
 
-        self.start = start2b
-        self.stop  = stop2b
+        self.start = start2b.T
+        self.stop  = stop2b.T
         self.bd = bd1
 
         
