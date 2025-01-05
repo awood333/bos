@@ -89,7 +89,7 @@ class StatusData2:
     
         
     def create_write_to_csv(self):
-        milkers_ids_df = pd.DataFrame(self.milkers_ids)
+        milkers_ids_df = pd.DataFrame(self.milkers_ids, columns=['ids'])
         dry_ids_df     = pd.DataFrame(self.dry_ids)
         
         
