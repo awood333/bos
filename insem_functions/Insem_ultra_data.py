@@ -35,7 +35,9 @@ class InsemUltraData:
         
         self.df7                = self.create_df()
         
-        self.allx, self.all_milking, self.all_dry      = self.create_allx()
+        [self.allx, self.all_milking, 
+        self.all_dry, self.all_preg, 
+        self.all_not_preg, self.days_milking]     = self.create_allx()
         
         self.create_write_to_csv()
         self.IUD_dash_vars = self.get_dash_vars()
@@ -225,8 +227,13 @@ class InsemUltraData:
         
         self.all_milking = self.allx[self.allx['status'] == 'M']
         self.all_dry     = self.allx[self.allx['status'] == 'D']
+        self.all_preg    = self.allx[self.allx['u_read'] == 'ok']
+        self.all_not_preg = self.allx[ (self.allx['u_read'] != 'ok') ]
+        self.days_milking = self.allx[['WY_id','days milking']]
         
-        return self.allx, self.all_milking, self.all_dry
+        return [self.allx, self.all_milking, 
+                self.all_dry, self.all_preg, 
+                self.all_not_preg, self.days_milking]
     
     
     def create_write_to_csv(self):
