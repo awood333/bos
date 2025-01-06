@@ -55,7 +55,7 @@ class Ipiv:
         
         xxx = self.IUD.allx[['WY_id', 'u_read', 'days milking']]
         
-        self.ipiv = self.ipiv_all_basic.merge(xxx, how='left', right_on='WY_id', left_on='WY_id')
+        self.ipiv = xxx.merge(self.ipiv_all_basic, how='left', right_on='WY_id', left_on='WY_id')
         return self.ipiv
     
     def write_to_csv(self):
