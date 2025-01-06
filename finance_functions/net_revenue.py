@@ -29,8 +29,9 @@ class NetRevenue:
 
         self.milker_lists_comp      = self.compare_lists()
         self.net_revenue            = self.create_net_revenue()
-        self.net_revenue_model,self.net_revenue_model2      = self.create_net_revenue_model()        
         self.net_revenue_monthly    = self.create_monthly_net()
+      
+        self.scenario_report      = self.create_net_revenue_scenarios()        
         self.write_to_csv()
         
     def compare_lists(self):
@@ -79,11 +80,8 @@ class NetRevenue:
         return self.milker_lists_comp
     
     
-   
-
     def create_net_revenue(self):
         
-
         nr1 = pd.concat((self.SG.group_A, self.SG.group_B, self.SG.fresh, self.SD.herd_daily, self.FCB.feedcost_daily ), axis=1)
         nr1 = pd.concat((nr1, self.MI.income_daily['daily_avg_net']), axis=1)
         nr1['days'] = nr1.index.days_in_month
@@ -91,16 +89,16 @@ class NetRevenue:
 
         # print('nr1 ', nr1.iloc[:5,:])
 
-        nr1['fresh_agg_cost']   = nr1['fresh']      * nr1['totalcostA'] 
+        nr1['fresh_agg_cost']   = nr1['fresh']      * nr1['totalcostA']
         nr1['A_agg_cost']       = nr1['groupA']     * nr1['totalcostA'] 
         nr1['B_agg_cost']       = nr1['groupB']     * nr1['totalcostB'] 
-        nr1['D15_agg_cost']     = nr1['dry_15pct']  * nr1['totalcostD'] 
         
-        nr1['total feed cost'] = nr1['fresh_agg_cost'] + nr1['A_agg_cost'] + nr1['B_agg_cost'] + nr1['D15_agg_cost']
-        nr1['net revenue'] = nr1['daily_avg_net'] - nr1['total feed cost']
+        nr1['D15_agg_cost']     = nr1['dry_15pct']  * nr1['totalcostD'] 
+        nr1['total feed cost']  = nr1['fresh_agg_cost'] + nr1['A_agg_cost'] + nr1['B_agg_cost'] + nr1['D15_agg_cost']
+        nr1['net rev_yr']       = nr1['daily_avg_net'] - nr1['total feed cost']
         
         # nr1 = nr1.drop(columns=(['milkers', 'milkers agg cost']))
-        nr3 = nr1.rename(columns={
+        nr2 = nr1.rename(columns={
             'groupA' : "A count",
             'groupB' : 'B count',
             'fresh'  : 'fresh count',
@@ -114,7 +112,7 @@ class NetRevenue:
             
         }) 
 
-        self.net_revenue = nr3.loc[:,[
+        self.net_revenue = nr2.loc[:,[
                             'milkers',
                             'fresh count',
                             'A count',
@@ -131,76 +129,12 @@ class NetRevenue:
                             'D15_agg_cost',
                             'total feed cost',
                             'baht',                            
-                            'net revenue'
+                            'net rev_yr'
             ]
         ]
         
         
         return self.net_revenue
-    
-    
-    def create_net_revenue_model(self):
-
-
-        nr1 = self.FCB.feedcost_daily.iloc[-1:,:].copy()
-        
-        
-        nr1['D15_cost']     = .15 * nr1['totalcostD'] 
-        
-        nr1['total feed cost'] = (nr1['totalcostA'] * 30 *7) + ( nr1['totalcostB'] * 14 * 7)   +   (nr1['D15_cost'] * 8 * 7)
-        nr1['avg feedcost day'] = nr1['total feed cost'] / 365
-        nr1['avg feedcost month'] = nr1['total feed cost'] / 12
-        nr1['avg feedcost annual'] = nr1['total feed cost']
-        nr1['liters_lact'] = 4500
-        nr1['baht_liter'] = 22
-        nr1['gross_revenue'] = nr1['liters_lact'] * nr1['baht_liter']
-        nr1['lactations'] = 3
-        nr1['cow cost'] = 65000
-        nr1['cow depreciation'] = nr1['cow cost'] / nr1['lactations']       
-        nr1['net revenue'] = nr1['gross_revenue'] - nr1['total feed cost']
-        nr1['op profit'] = nr1['net revenue'] -  nr1['cow depreciation']
-        nr1['op costs'] = 1500000
-        nr1['min herd size'] = nr1['op costs']/nr1['op profit']
-
-
-
-        nr2 = nr1.rename(columns={   
-            'totalcostA' : "cost A",
-            'totalcostB' : "cost B"
-        }) 
-
-        nr3 = nr2.loc[:,[
-                            'cost A',
-                            'cost B',
-                            'D15_cost',
-                            'avg feedcost day',
-                            'avg feedcost month',
-                            'avg feedcost annual',
-                            'liters_lact',
-                            'baht_liter',
-                            'gross_revenue',
-                            'total feed cost',
-                            'net revenue'                  
-            ]
-        ]
-         
-        nrx1 = nr2.loc[:,[
-                      'net revenue',
-                        'lactations',
-                        'cow cost',
-                        'cow depreciation',  
-                        'op profit',
-                        'op costs',
-                        'min herd size'     ]
-        ]
-         
-        nr4 = nr3.T
-        nrx2 = nrx1.T
-        
-        self.net_revenue_model =  pd.DataFrame(nr4)
-        self.net_revenue_model2 =  pd.DataFrame(nrx2)
-        
-        return  self.net_revenue_model, self.net_revenue_model2        
     
     
     def create_monthly_net(self):
@@ -214,13 +148,70 @@ class NetRevenue:
 
         return self.net_revenue_monthly
     
+    def create_net_revenue_scenarios(self):
+
+        nrm = self.FCB.feedcost_daily.iloc[-1:,:].copy()
+        nrm = nrm.rename(columns={   
+            'totalcostA' : "cost A",
+            'totalcostB' : "cost B",
+            'totalcostD' : 'cost D'
+        }) 
+        
+        scenarios = {
+            'lactations_num'          : [3,4,5]  ,
+            'lact dur_wks'            : [52,56,60],
+            'A_dur'                   : [30,30,30],
+            'B_dur'                   : [14,18,22],
+            'D_dur'                   : [8,8,8],
+            'milk_price'              : [21.75, 21.75, 21.75],
+            'liters_lact'             : [4000,4250,4500],
+            'cow_cost'                : [65000,65000,65000],
+            'op_costs'                : [1500000,150000,150000]
+        }
+            
+        scenario_names = ['1','2','3']
+        reports = []
+        
+        for i, scenario in enumerate(scenario_names):
+            nrm_scenario = nrm.copy()          
+
+
+            nrm_scenario['D15 cost'] = .15 * nrm_scenario['cost D']
+            nrm_scenario['scenario'] = scenario
+            nrm_scenario['lact dur_wks'] = scenarios['lact dur_wks'][i]
+            # nrm_scenario['lactations'] = scenarios['lactations_num'][i]
+            nrm_scenario['A_dur'] = scenarios['A_dur'][i]
+            nrm_scenario['B_dur'] = scenarios['B_dur'][i]
+            nrm_scenario['D_dur'] = scenarios['D_dur'][i]       
+                 
+            nrm_scenario['baht_liter']  = scenarios['milk_price'][i]
+            nrm_scenario['liters_lact'] = scenarios['liters_lact'][i]
+            # nrm_scenario['cow cost'] = scenarios['cow_cost'][i]
+            # nrm_scenario['op_costs'] = scenarios['op_costs'][i]
+
+            nrm_scenario['total feed cost'] = (nrm_scenario['cost A'] * scenarios['A_dur'][i] * 7) + (nrm_scenario['cost B'] * scenarios['B_dur'][i] * 7) + (nrm_scenario['D15 cost'] * scenarios['D_dur'][i] * 7)
+            nrm_scenario['avg feedcost day'] = nrm_scenario['total feed cost'] / (nrm_scenario  ['lact dur_wks'] * 7)
+            nrm_scenario['avg feedcost week'] = nrm_scenario['avg feedcost day']  * 7
+            nrm_scenario['avg feedcost month'] = nrm_scenario['avg feedcost day'] * 30.25
+            nrm_scenario['feedcost per lact'] = nrm_scenario['total feed cost']
+            
+            nrm_scenario['milk income'] = scenarios['milk_price'][i] * scenarios['liters_lact'][i]
+            nrm_scenario['net_revenue'] = nrm_scenario['milk income'] - nrm_scenario['feedcost per lact']
+
+            reports.append(nrm_scenario)
+            
+        self.scenario_report = pd.concat(reports)
+        return  self.scenario_report       
+            
+    
+    
     def write_to_csv(self):
-        self.milker_lists_comp      .to_csv('F:\\COWS\\data\\status\\milker_lists_comp.csv')
-                
+        self.milker_lists_comp      .to_csv('F:\\COWS\\data\\status\\milker_lists_comp.csv')       
         self.net_revenue            .to_csv('F:\\COWS\\data\\PL_data\\net.csv')
         self.net_revenue_monthly    .to_csv('F:\\COWS\\data\\PL_data\\net_revenue_monthly.csv')
-        self.net_revenue_model      .to_csv('F:\\COWS\\data\\PL_data\\net_revenue_model.csv')
-        self.net_revenue_model2     .to_csv('F:\\COWS\\data\\PL_data\\net_revenue_model2.csv')
+        self.scenario_report        .to_csv('F:\\COWS\\data\\PL_data\\net_revenue_scenario_report.csv')
+        # self.net_revenue_model      .to_csv('F:\\COWS\\data\\PL_data\\net_revenue_model.csv')
+        # self.net_revenue_model2     .to_csv('F:\\COWS\\data\\PL_data\\net_revenue_model2.csv')
         
         
         

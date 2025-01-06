@@ -36,8 +36,8 @@ class statusGroups:
         
     def create_groups (self):
 
-        # wet1 = self.WD.wdd.loc[self.startdate:, :]
-        wet1 = self.WD.wdd.iloc[-1:, :]
+        wet1 = self.WD.wdd.loc[self.startdate:, :]
+        # wet1 = self.WD.wdd.iloc[-1:, :]
         milk1 = self.MB.data['milk'].loc[self.startdate:, :]
         
     
@@ -77,7 +77,7 @@ class statusGroups:
                         B_ids = i
                     
                     i += 1
-                
+                    
                 
                 if F_ids:    
                     fresh_ids1.append( F_ids )               
