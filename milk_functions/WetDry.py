@@ -27,9 +27,11 @@ class WetDry:
 
     def create_wet_days(self):
         wet_days1 = wet_days2 =  wet_days3 = pd.DataFrame()         
-        wet_sum1 = wet_sum2 = wet_sum3= np.array([], dtype=float)
-        wet_max1 = wet_max2 = wet_max3 = np.array([], dtype=float)
-        header2 = header3 = []
+        wet_sum2 = pd.DataFrame()
+        wet_sum3=  pd.DataFrame()
+        
+        wet_max2 =pd.DataFrame()
+        wet_max3 = pd.DataFrame()
         
         idx     = self.ext_rng
         WY_ids1  = self.MB.data['rng']   #put a 1 to slice
@@ -42,7 +44,6 @@ class WetDry:
             for j in lacts:
 
                 lastday = self.MB.data['lastday']  # last day of the milk df datex
-
                 start = self.MB.data ['start'].loc[j, i]
                 stop  = self.MB.data ['stop'] .loc[j, i]
 
@@ -50,7 +51,6 @@ class WetDry:
                 b = pd.isna(stop)   is False  # stop value exists
                 e = pd.isna(start)  is True   # start value missing
                 f = pd.isna(stop)   is True   # stop value missing
-                
 
                 # completed lactation:
                 if a and b:
@@ -58,14 +58,13 @@ class WetDry:
                     day_nums = pd.Series(range(1,len(days_range)+1), index=days_range)
                     wet_days1 = pd.DataFrame(day_nums, days_range)
                 
-                    
                     # get sum/max of series
                     wet1a = self.milk1.loc[start:stop, str(i)]
-                    wet_sum1 = np.array([wet1a.sum()])
-                    wet_max1 = np.array([wet1a.max()])
-                   
+                    wet_sum1 = pd.Series([wet1a.sum()])
+                    wet_max1 = pd.Series([wet1a.max()])
                     
-
+                
+                # ongoing lactation
                 elif a and f:
                     days_range = pd.date_range(start, lastday)
                     day_nums = pd.Series(range(1,len(days_range)+1), index=days_range)
@@ -73,48 +72,47 @@ class WetDry:
                     
                     # get sum/max of series
                     wet1a = self.milk1.loc[start:stop, str(i)]
-                    wet_sum1 = np.array([wet1a.sum()])
-                    wet_max1 = np.array([wet1a.max()])
+                    wet_sum1 = pd.Series([wet1a.sum()])
+                    wet_max1 = pd.Series([wet1a.max()])
 
                 elif a and e:
-                    wet1a = pd.DataFrame(columns=[i])
-                    wet_sum1 = np.array([np.nan])
-                    wet_max1 = np.array([np.nan])
-                
+                    wet1a    = pd.DataFrame(columns=[i])
+                    wet_sum1 = pd.Series([wet1a.sum()])
+                    wet_max1 = pd.Series([3])
+                    
+                                
                 wet_days2 = pd.concat([wet_days2, wet_days1],axis=0)
-                wet_sum2  = np.concatenate([wet_sum2, wet_sum1], axis=0) 
-                wet_max2  = np.concatenate([wet_max2, wet_max1], axis=0)
-                header2   = i
+                wet_sum2  = pd.concat([wet_sum2, wet_sum1], axis=1 )
+                wet_max2  = pd.concat([wet_max2, wet_max1], axis=1 )
+                print(f"wet_max2 max1 after processing lact {j} for WY_id {i}: {wet_max2}")
                 
                 wet_days1 = pd.DataFrame()
-                wet_sum1 = wet_max1 = np.array([np.nan], dtype=float)
-
+                wet_sum1 = wet_max1 = pd.DataFrame()
 
 
             wet_days2a = wet_days2.reindex(idx)
             wet_days2b = wet_days2a.rename(columns = {0: i})
             
-            if not wet_days2b.empty:
-                wet_days3 = pd.concat([wet_days3, wet_days2b], axis=1) 
-                wet_sum3  = np.vstack([wet_sum3,wet_sum2])  if wet_sum3.size else wet_sum2
-                wet_max3  = np.vstack([wet_max3,wet_max2])  if wet_max3.size else wet_max2
-                header3 .append(header2)
+            wet_sum2 = wet_sum2.rename(columns={0: i})
+            wet_max2 = wet_max2.rename(columns={0: i})
+            print('wet_max2b dtype', wet_max2.dtypes)
+            print('wet_max2b contents', wet_max2)
+            
+            # if not wet_days2b.empty:
+            wet_days3 = pd.concat( [wet_days3, wet_days2b],  axis=1) 
+            wet_sum3 = pd.concat(  [wet_sum3, wet_sum2],    axis=1)
+            wet_max3 = pd.concat(  [wet_max3, wet_max2],    axis=1)
+            print(f"wet_max3 after appending wet_max2 for WY_id {i}: {wet_max3}")
                 
-            header2 = []    
             wet_days2 = pd.DataFrame()
-            wet_sum2 = wet_max2 = np.empty((0,), dtype=float)
+            wet_sum2 = pd.DataFrame()
+            wet_max2 = pd.DataFrame()
                 
         if not wet_days3.empty:            
             self.wet_days_df1    = pd.DataFrame(wet_days3)
             self.wet_sum_df1    = pd.DataFrame(wet_sum3) 
             self.wet_max_df1       = pd.DataFrame(wet_max3)
             
-            self.wet_sum_df1.index=WY_ids
-            self.wet_max_df1.index=WY_ids
-            
-            # wet_days3 = pd.DataFrame()
-            # wet_sum3 = wet_max3 = np.array([], dtype=float)
-       
         return self.wet_days_df1, self.wet_sum_df1, self.wet_max_df1 
     
     
