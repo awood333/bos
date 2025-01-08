@@ -57,10 +57,10 @@ class MilkAggregates:
 
     def basics(self):       
 
-        self.AM_liters = pd.read_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_liters.csv',index_col=0)
-        self.AM_wy     = pd.read_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_wy.csv',index_col=0)
-        self.PM_liters = pd.read_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_liters.csv',index_col=0)
-        self.PM_wy     = pd.read_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_wy.csv',index_col=0)
+        self.AM_liters = pd.read_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_liters.csv',index_col=0, header=0)
+        self.AM_wy     = pd.read_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_wy.csv',index_col=0, header=0)
+        self.PM_liters = pd.read_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_liters.csv',index_col=0, header=0)
+        self.PM_wy     = pd.read_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_wy.csv',index_col=0, header=0)
        
         wy      = self.data['bd']['WY_id']
         alive1  = self.data['bd']['death_date'].isnull()
