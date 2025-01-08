@@ -20,9 +20,9 @@ class WetDry:
         self.WY_ids     = self.MB.data['start'].columns  # self.WY_ids integer
 
                 
-        self.wet_days_df1, self.wet_sum_df1, self.wet_max_df1  = self.create_wet_days()
-        self.wdd, self.wsd, self.wmd =  self.reindex_columns()
-        self.wdd_monthly = self.create_monthly_wet_days()
+        self.wet_days_df1,  self.wsd, self.wmd  = self.create_wet_days()
+        self.wdd                                =  self.reindex_columns()
+        self.wdd_monthly                        = self.create_monthly_wet_days_by_group()
         self.write_to_csv()
 
     def create_wet_days(self):
@@ -34,8 +34,8 @@ class WetDry:
         wet_max3 = pd.DataFrame()
         
         idx     = self.ext_rng
-        WY_ids1  = self.MB.data['rng']   #put a 1 to slice
-        WY_ids = WY_ids1[250:254]
+        WY_ids  = self.MB.data['rng']   #put a 1 to slice
+        # WY_ids = WY_ids1[250:254]
         i=0
         
         lacts   = self.MB.data['stop'].index      # lact# float
@@ -60,8 +60,8 @@ class WetDry:
                 
                     # get sum/max of series
                     wet1a = self.milk1.loc[start:stop, str(i)]
-                    wet_sum1 = pd.Series([wet1a.sum()])
-                    wet_max1 = pd.Series([wet1a.max()])
+                    wet_sum1 = pd.DataFrame([wet1a.sum()], columns=[j], index=[i])
+                    wet_max1 = pd.DataFrame([wet1a.max()], columns=[j], index=[i])
                     
                 
                 # ongoing lactation
@@ -72,19 +72,19 @@ class WetDry:
                     
                     # get sum/max of series
                     wet1a = self.milk1.loc[start:stop, str(i)]
-                    wet_sum1 = pd.Series([wet1a.sum()])
-                    wet_max1 = pd.Series([wet1a.max()])
+                    wet_sum1 = pd.DataFrame([wet1a.sum()], columns=[j], index=[i])
+                    wet_max1 = pd.DataFrame([wet1a.max()], columns=[j], index=[i])
 
-                elif a and e:
-                    wet1a    = pd.DataFrame(columns=[i])
-                    wet_sum1 = pd.Series([wet1a.sum()])
-                    wet_max1 = pd.Series([3])
+                elif e and f:
+                    wet1a    = pd.DataFrame(columns=[j])
+                    wet_sum1 = pd.DataFrame(columns=[j], index=[i])
+                    wet_max1 = pd.DataFrame(columns=[j], index=[i])
                     
                                 
                 wet_days2 = pd.concat([wet_days2, wet_days1],axis=0)
                 wet_sum2  = pd.concat([wet_sum2, wet_sum1], axis=1 )
                 wet_max2  = pd.concat([wet_max2, wet_max1], axis=1 )
-                print(f"wet_max2 max1 after processing lact {j} for WY_id {i}: {wet_max2}")
+                # print(f"wet_max2 max1 after processing lact {j} for WY_id {i}: {wet_max2}")
                 
                 wet_days1 = pd.DataFrame()
                 wet_sum1 = wet_max1 = pd.DataFrame()
@@ -93,16 +93,17 @@ class WetDry:
             wet_days2a = wet_days2.reindex(idx)
             wet_days2b = wet_days2a.rename(columns = {0: i})
             
-            wet_sum2 = wet_sum2.rename(columns={0: i})
-            wet_max2 = wet_max2.rename(columns={0: i})
-            print('wet_max2b dtype', wet_max2.dtypes)
-            print('wet_max2b contents', wet_max2)
             
-            # if not wet_days2b.empty:
-            wet_days3 = pd.concat( [wet_days3, wet_days2b],  axis=1) 
-            wet_sum3 = pd.concat(  [wet_sum3, wet_sum2],    axis=1)
-            wet_max3 = pd.concat(  [wet_max3, wet_max2],    axis=1)
-            print(f"wet_max3 after appending wet_max2 for WY_id {i}: {wet_max3}")
+            # Fill NaN values with 0 before concatenation
+            wet_days2b  = wet_days2b.astype(float)  .fillna(0)
+            wet_sum2    = wet_sum2  .astype(float)  .fillna(0)
+            wet_max2    = wet_max2  .astype(float)  .fillna(0)
+                        
+            if not wet_days2b.empty:
+                wet_days3 = pd.concat( [wet_days3, wet_days2b],  axis=1) 
+                wet_sum3 = pd.concat(  [wet_sum3, wet_sum2],    axis=0)
+                wet_max3 = pd.concat(  [wet_max3, wet_max2],    axis=0)
+            # print(f"wet_max3 after appending wet_max2 for WY_id {i}: {wet_max3}")
                 
             wet_days2 = pd.DataFrame()
             wet_sum2 = pd.DataFrame()
@@ -110,35 +111,31 @@ class WetDry:
                 
         if not wet_days3.empty:            
             self.wet_days_df1    = pd.DataFrame(wet_days3)
-            self.wet_sum_df1    = pd.DataFrame(wet_sum3) 
-            self.wet_max_df1       = pd.DataFrame(wet_max3)
+            wet_sum_df1    = pd.DataFrame(wet_sum3) 
+            wet_max_df1       = pd.DataFrame(wet_max3)
             
-        return self.wet_days_df1, self.wet_sum_df1, self.wet_max_df1 
+        wsd1 = wet_sum_df1
+        wsd2 = wsd1.reindex(self.MB.data['rng'])
+        self.wsd = wsd2
+        
+        wmd1 = wet_max_df1
+        wmd2 = wmd1.reindex(self.MB.data['rng'])
+        self.wmd = wmd2
+            
+        return self.wet_days_df1, self.wsd, self.wmd 
     
     
     def reindex_columns(self):
-        cols = self.MB.data['rng']
-        wddt1 = self.wet_days_df1.T
-        wddt2 = wddt1.reindex(cols)
+        cols    = self.MB.data['rng']
+        wddt1   = self.wet_days_df1.T
+        wddt2   = wddt1.reindex(cols)
         self.wdd = wddt2.T
-        
-        wsdt1 = self.wet_sum_df1.T
-        wsdt2 = wsdt1.reindex(cols)
-        self.wsd = wsdt2.T
-        
-        wmdt1 = self.wet_max_df1.T
-        wmdt2 = wmdt1.reindex(cols)
-        self.wmd = wmdt2.T
-        
-        return self.wdd, self.wsd, self.wmd
+        return self.wdd
     
     
-    def create_monthly_wet_days(self):
+    def create_monthly_wet_days_by_group(self):
         
         wdd_m = self.wdd.copy()
-        wdsum_m = self.wsd.copy()
-        wdmax_m = self.wmd.copy()
-
         
         groupA_count = (wdd_m <= 210).sum(axis=1)  #210 days = 30 weeks
         groupB_count = (wdd_m > 210) .sum(axis=1)
@@ -152,12 +149,12 @@ class WetDry:
         days = wdd_m.index.days_in_month
         
         wdd_m.index = pd.MultiIndex.from_arrays(
-            [ year, month, days], names=['year','month', 'days' ]
+            [ year, month], names=['year','month' ]
             )
         
         wdd_monthly1 = wdd_m.iloc[:,-2:].copy()
         
-        self.wdd_monthly = wdd_monthly1.groupby(['year','month', 'days']).mean()
+        self.wdd_monthly = wdd_monthly1.groupby(['year','month']).mean()
         
         self.wdd_monthly = self.wdd_monthly.loc[2024:,:]
         
