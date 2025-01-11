@@ -31,7 +31,7 @@ class FeedCostBasics:
         self.data = MilkBasics().data
         self.DR = DateRange()
         self.SD = StatusData()
-        self.feed_type =  ['corn','cassava','beans','straw']
+        self.feed_type =  ['corn','cassava','beans','straw', 'bypass_fat']
 
         self.rng_monthly    = self.DR.date_range_monthly
         self.rng_monthly2   = self.DR.date_range_monthly2

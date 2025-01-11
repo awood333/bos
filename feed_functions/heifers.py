@@ -2,7 +2,7 @@
 
 import pandas as pd
 import numpy as np
-from datetime import datetime,timedelta
+from datetime import datetime, timedelta
 from feed_functions.feed_cost_basics import FeedCostBasics
 from insem_functions.Insem_ultra_data import InsemUltraData
 
@@ -11,43 +11,50 @@ class Heifers:
 
         self.FCB = FeedCostBasics()
         self.IUD = InsemUltraData()
-        self.today = datetime.now()
+        
+        self.dry_feed_cost  = self.FCB.current_feed_cost['dry_cost'].iloc[-1]
+        self.dry_feed_kg    = self.FCB.current_feed_cost['dry_kg'].iloc[-1]
+        self.dry_TMR_costper_kg = self.dry_feed_cost / self.dry_feed_kg
+    
+        now = datetime.now()
+        self.today = pd.to_datetime(now)
         self.rng = pd.date_range('2023-01-01', self.today)
  
         
         self.heifers, self.WY_ids,        = self.create_heifer_df()
         self.days3, self.date_col       = self.create_heifer_days()
         
-        self.milk_drinking_days = self.calc_milkdrinking_days()
+        self.milk_drinking_days, self.cost_milk = self.calc_milkdrinking_days()
         self.TMR_amt_days = self.calc_TMR_days()
         self.yellow_beans_amt_days = self.create_yellow_beans_days()
         
         
     def create_heifer_df(self):
-        today = datetime.now()
-        heifers1 = pd.read_csv("F:\\COWS\\data\\csv_files\\heifers.csv", 
+        
+        heifers1 = pd.read_csv("F:\\COWS\\data\\csv_files\\heifers_birth_death.csv", 
             header=0, index_col=None)
         heifers1['b_date'] = pd.to_datetime(heifers1['b_date'])
         heifers1['age_days'] = (self.today - heifers1['b_date']).dt.days
 
-        self.WY_ids = heifers1['WY_id'].to_list()
+        heifers1.reset_index()
+        self.WY_ids = heifers1['WY_ids'].to_list()
+        
         self.heifers = heifers1
                  
         return self.heifers, self.WY_ids
     
     def create_heifer_days(self):
-        heifer_age3 = pd.DataFrame(
-            columns = self.heifers['WY_id'],
+        heifers = pd.DataFrame(
+            columns = self.heifers['WY_ids'],
             index=  self.rng                    #creates an array with WY_id cols and datex index
             )
         
-        self.date_col = heifer_age3.index.to_list()      
+        self.date_col = heifers.index.to_list()      
         days2 = days3 = pd.DataFrame()
-        WY_ids_integer = [int(i) for i in self.WY_ids]
         
-        for i in WY_ids_integer:
-            for j in self.date_col:
-                start = self.heifers['b_date'][i-1]
+        for i in self.heifers.index: #integer index from 0
+            for j in self.date_col:  #defined in constructor
+                start = self.heifers.loc[i,'b_date']
                 stop = self.today
                 
                 days_range = pd.date_range(start, stop)
@@ -62,49 +69,60 @@ class Heifers:
         self.days = days3
         
         return self.days,  self.date_col
-
+    
     
     def calc_milkdrinking_days(self):
         milk_drinking2=[]
-        milk_drinking3 = [] #pd.DataFrame(columns=['WY_id'])
+        cost_milk2 = []
+        str_cols = [str(x) for x in self.days.columns]
+        
         for i in self.WY_ids:
             
-            days = self.days[i]
+            days = self.days.loc[:,i]
                 
-            milk_drinking1a = days.loc[(days > 0) & (days <= 100)].dropna()
+            milk_drinking1a = days[ 
+                (days > 0) & (days <= 90)
+                ].dropna()
+            
             milk_drinking1b = len(milk_drinking1a)
+            cost_milk1       = milk_drinking1b * 22
+            
             milk_drinking2.append(milk_drinking1b)
-            
-        milk_drinking3.append(milk_drinking2)
-        self.milk_drinking_days = pd.DataFrame(milk_drinking3, columns=[self.WY_ids])
-            
-        return self.milk_drinking_days
+            cost_milk2.append(cost_milk1)
+
+        
+        self.milk_drinking_days = pd.DataFrame([milk_drinking2], columns=self.WY_ids)
+        self.cost_milk = pd.DataFrame([cost_milk2], columns=self.WY_ids)    
+        return self.milk_drinking_days, self.cost_milk
     
     def calc_TMR_days(self):
         
         for i in self.WY_ids:
+            heif = self.heifers
+            heif = heif.set_index('WY_ids', drop=True)
+            days = self.days.loc[:,i]
+            preg_date = pd.to_datetime(heif.loc[i,'preg_date'])
+            end_date = self.today
             
-            days = self.days[i]
-            preg_date = self.heifers['preg_date'][i]
+            start_TMR_growth1 = days[days == 90].index  #date when calf is 90 days old
+            stop_TMR_growth1 = days[days == 365].index
             
-            start_TMR_growth1 = days[days == 90].index
-            stop_TMR_growth1  = days[days == 365].index
-            
-            start_TMR_growth   = start_TMR_growth1[0]
+            start_TMR_growth   = start_TMR_growth1[0]   # converts from timestamp to datetime
             stop_TMR_growth = stop_TMR_growth1[0]
             
             start_TMR_growth_regular = stop_TMR_growth + timedelta(days=1)
  
-            if preg_date:
-                end_date1   = self.heifers['preg_date'][i-1]
+            if not pd.isna(preg_date):
+                end_date1   = preg_date
                 end_date   = pd.to_datetime(end_date1)
             
-            elif not preg_date:
+            elif pd.isna(preg_date):
                 end_date = self.today
             
             
             
             # these create an array of the amounts of TMR/day over the date range
+            
 
             TMR_growth_range = pd.date_range(start_TMR_growth, stop_TMR_growth)
             len_TMR_growth_range = len(TMR_growth_range)
