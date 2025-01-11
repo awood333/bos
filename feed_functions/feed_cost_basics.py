@@ -127,11 +127,13 @@ class FeedCostBasics:
         result_df['group_b_cost']   = result_df['unit_price'] * result_df['group_b_kg']
         result_df['dry_cost']       = result_df['unit_price'] * result_df['dry_kg']
         
-        sum_row = result_df[['group_a_cost', 'group_b_cost', 'dry_cost']].sum(axis=0)
+        sum_row = result_df[['group_a_cost', 'group_b_cost', 'dry_cost',
+                             'group_a_kg', 'group_b_kg', 'dry_kg' ]].sum(axis=0)
+        sum_row.name = 'sum'
         sum_row['unit_price'] = ''
-        sum_row['group_a_kg'] = ''
-        sum_row['group_b_kg'] = ''
-        sum_row['dry_kg'] = ''
+        # sum_row['group_a_kg'] = ''
+        # sum_row['group_b_kg'] = ''
+        # sum_row['dry_kg'] = ''
         
         sum_row_df = pd.DataFrame(sum_row).T
         result_df = pd.concat([result_df, sum_row_df], ignore_index=False)
