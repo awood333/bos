@@ -26,6 +26,8 @@ class MilkIncome:
     def DataLoader(self):  
 
         income1 = pd.read_csv('F:\\COWS\\data\\PL_data\\milk_income\\data\\milk_income_data.csv')
+        income1['datex'] = pd.to_datetime(income1['datex'] )
+        
         income1     .to_csv('E:\\COWS\\data_backup\\milk_income_backup\\milk_income_data'+tdy+'.csv')
         self.income2 = income1
 
@@ -43,13 +45,6 @@ class MilkIncome:
         income3['bonus']        = income3['gross/liter']  - income3['base']
         income3['bonus value']  = income3['bonus'] * income3['liters']
         
-        # cols = list(income3.columns)
-        # net_index = cols.index('net')   #returns col num (for position)
-        # cols.insert(net_index - 1, cols.pop(net_index))
-        # income3 = income3[cols]
-        # income3 = income3.set_index(['datex'])
-        
-      
         income3['daily_avg_net'] = income3['net'] / income3['day']
         income4 = income3[['datex','daily_avg_net']]
         self.income_net = income4
@@ -65,7 +60,8 @@ class MilkIncome:
         rng_daily     = self.DR.date_range_daily
         rng_monthly   = self.DR.date_range_monthly
         
-        self.income_net.loc[:,'datex'] = pd.to_datetime(self.income_net['datex'], errors='coerce')
+        self.income_net.loc[:,'datex'] = pd.to_datetime(self.income_net['datex'], 
+                errors='coerce')   
         self.income2 = self.income_net.set_index('datex', drop=True)
         
         
@@ -76,14 +72,14 @@ class MilkIncome:
         income_daily2['month'] = income_daily.index.month
         self.income_daily = income_daily2
         
-
         income_monthly1 = income_daily.groupby(['year','month']).mean()
         
         self.income_monthly = income_monthly1.loc[2024:,:]
-        
-        
+
         return self.income_daily, self.income_monthly
     
+    
+    # BACKUP
     def write_to_csv(self):
         self.income_net     .to_csv('F:\\COWS\\data\\PL_data\\milk_income\\output\\milk_income_output.csv')
         self.income_net     .to_csv('E:\\COWS\\data_backup\\milk_income_backup\\milk_income_'+tdy+'.csv')
