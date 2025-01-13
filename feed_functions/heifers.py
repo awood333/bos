@@ -12,24 +12,35 @@ class Heifers:
         self.FCB = FeedCostBasics()
         self.IUD = InsemUltraData()
         
+        
+        #feed costs
         self.dry_feed_cost  = self.FCB.current_feed_cost['dry_cost'].iloc[-1]
         self.dry_feed_kg    = self.FCB.current_feed_cost['dry_kg'].iloc[-1]
         self.dry_TMR_costper_kg = self.dry_feed_cost / self.dry_feed_kg
+        self.bean_cost  =  self.FCB.current_feed_cost['unit_price'].loc['beans']
+        
     
         now = datetime.now()
         self.today = pd.to_datetime(now)
         self.rng = pd.date_range('2023-01-01', self.today)
  
         
-        self.heifers, self.WY_ids,        = self.create_heifer_df()
+
+        self.heifers, self.WY_ids       = self.create_heifer_df()
         self.days3, self.date_col       = self.create_heifer_days()
         
-        self.milk_drinking_days, self.cost_milk = self.calc_milkdrinking_days()
-        self.TMR_amt_days = self.calc_TMR_days()
-        self.yellow_beans_amt_days = self.create_yellow_beans_days()
+        [self.milk_drinking_days, 
+        self.cost_milk ]                = self.calc_milkdrinking_days()
+        
+        self.TMR_amt_days               = self.calc_TMR_days()
+        
+        [self.yellow_beans_amt_days, 
+        self.yellow_beans_cost]         = self.create_yellow_beans_days()
+        
         self.align_days()
         
         
+    
     def create_heifer_df(self):
         
         heifers1 = pd.read_csv("F:\\COWS\\data\\csv_files\\heifers_birth_death.csv", 
@@ -178,6 +189,7 @@ class Heifers:
     def create_yellow_beans_days(self):
         
         yellow_beans_amt_days2 = pd.DataFrame()
+        yellow_beans_cost2 = pd.DataFrame()
         
         for i in self.WY_ids:
             
@@ -185,9 +197,13 @@ class Heifers:
             heif = heif.set_index('WY_ids', drop=True)
             days = self.days.loc[:,i]     
             max_days = days.max()
+            amt_beans = 1   #manually enter current amount (kgs)
+            
+            
             
             if max_days<120:
-                pass
+                yellow_beans_amt_days2  = pd.Series()
+                yellow_beans_cost2      = pd.Series()
             
             elif max_days>=120:
                 start1 = days[days == 120].index
@@ -197,17 +213,30 @@ class Heifers:
                 elif max_days >=150:
                     stop1 = days[days == 150].index
                 
-            start = start1[0]
+            start = start1[0]       #120 days after birth
             stop = stop1[0]
             
-            yellow_beans_date_range = pd.date_range(start, stop )
-            yellow_beans_amt_days1 = np.full(len(yellow_beans_date_range), 1)
-            yellow_beans_amt_days_series = pd.Series(yellow_beans_amt_days1, name = i)
-            yellow_beans_amt_days2 = pd.concat([yellow_beans_amt_days2, yellow_beans_amt_days_series], axis=1)
-            yellow_beans_amt_days1 = np.array([])
-        self.yellow_beans_amt_days = yellow_beans_amt_days2
+            yellow_beans_date_range     = pd.date_range(start, stop )
+            yellow_beans_amt_days1      = np.full(len(yellow_beans_date_range), amt_beans)
+            yellow_beans_amt_days_series= pd.Series(yellow_beans_amt_days1, name = i)
             
-        return self.yellow_beans_amt_days
+            yellow_beans_cost1      = yellow_beans_amt_days_series * self.bean_cost
+            
+            yellow_beans_amt_days2  = pd.concat([yellow_beans_amt_days2, yellow_beans_amt_days_series], axis=1)
+            yellow_beans_cost2      = pd.concat([yellow_beans_cost2, yellow_beans_cost1], axis=1)
+            
+            yellow_beans_amt_days1 = yellow_beans_cost1  = np.array([])
+            yellow_beans_cost1 = pd.Series()
+            
+            
+        
+        yellow_beans_amt_days2.index    = pd.RangeIndex(120, 120 + len(yellow_beans_amt_days2))
+        yellow_beans_cost2.index        = pd.RangeIndex(120, 120 + len(yellow_beans_cost2))
+            
+        self.yellow_beans_amt_days  = yellow_beans_amt_days2
+        self.yellow_beans_cost      = yellow_beans_cost2
+            
+        return self.yellow_beans_amt_days, self.yellow_beans_cost
      
     def align_days(self):
         
@@ -215,7 +244,7 @@ class Heifers:
         
         wy = self.WY_ids
         heif1 = self.heifers
-        heif1 = heif1.set_index('WY_ids',drop=True)
+        heif1 = heif1.set_index('WY_ids', drop=True)
         age = heif1['age_days']
         
         for i in wy:
