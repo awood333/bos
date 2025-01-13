@@ -162,19 +162,15 @@ class Heifers:
               
             TMR_amt_days1 = np.concatenate([TMR_growth_amt_series,TMR_regular_amt_series], axis=0)
 
+             #convert from numpy to df
+            TMR_amt_days1_series = pd.Series(TMR_amt_days1, name=i)
             
-            TMR_amt_days1_series = pd.Series(TMR_amt_days1, name=i) #convert from numpy to df
+            #reindex to start at 90 so that the 90 days of milkdrinking will fit
             TMR_amt_days1_series.index = pd.RangeIndex(start=90, stop= 90 + len(TMR_amt_days1_series) )
-            
-            
             
             TMR_amt_days2 = pd.concat([TMR_amt_days2,TMR_amt_days1_series], axis=1) #stack up
             
-            
-            
-            
             TMR_growth_amt_series = TMR_regular_amt_series = TMR_amt_days1 =  np.array([]) #reinitialize
-            
             
         self.TMR_amt_days = TMR_amt_days2    
         return self.TMR_amt_days   
