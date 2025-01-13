@@ -35,6 +35,8 @@ class MilkAggregates:
         self.fullday,   self.fullday_xl,
         self.fullday_lastdate]                  = self.fullday_calc()
         
+        self.halfday_AM, self.halfday_PM, self.halfday        = self.halfday_AM_PM()
+        
         tendayT, self.tenday1               = self.ten_day()
         
         [self.monthly, self.weekly,
@@ -175,6 +177,24 @@ class MilkAggregates:
         return  [self.am, self.pm,
             self.fullday, self.fullday_xl, 
             self.fullday_lastdate]
+        
+        
+    def halfday_AM_PM(self):
+        lastday_AM = self.am.iloc[:,-1:]
+        ldam=lastday_AM.loc[(lastday_AM.notna() ).any(axis=1),:].index.tolist()  
+        
+        lastday_PM = self.pm.iloc[:,-1:]
+        ldpm=lastday_PM.loc[(lastday_PM.notna() ).any(axis=1),:].index.tolist() 
+        
+        self.halfday_AM = lastday_AM.loc[ldam,:]
+        self.halfday_PM = lastday_PM.loc[ldam,:]    
+        
+        self.halfday = self.halfday_AM.merge(self.halfday_PM, how='left', left_index=True, right_index=True)
+        self.halfday.columns = ['AM', 'PM']
+        self.halfday.index.name = str(pd.to_datetime(self.datex[-1]).strftime('%Y-%m-%d'))
+        
+            
+        return self.halfday_AM, self.halfday_PM, self.halfday
 
 
     def ten_day(self):
@@ -262,6 +282,7 @@ class MilkAggregates:
         self.tenday1    .to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\tenday1.csv')
         self.monthly    .to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\monthly.csv')
         self.weekly     .to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\weekly.csv')
+        self.halfday    .to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\halfday.csv')        
 
 if __name__ == '__main__':
     milk_aggregates = MilkAggregates()
