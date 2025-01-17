@@ -20,21 +20,20 @@ class WetDry:
         self.WY_ids     = self.MB.data['start'].columns  # self.WY_ids integer
 
                 
-        self.wet_days_df1,  self.wsd, self.wmd  = self.create_wet_days()
+        [self.wet_days_df1,  self.wsd, 
+         self.wmd, self.milking_liters3]  = self.create_wet_days()
         self.wdd                                =  self.reindex_columns()
         self.wdd_monthly                        = self.create_monthly_wet_days_by_group()
         self.write_to_csv()
 
     def create_wet_days(self):
-        wet_days1 = wet_days2 =  wet_days3 = pd.DataFrame()         
-        wet_sum2 = pd.DataFrame()
-        wet_sum3=  pd.DataFrame()
-        
-        wet_max2 =pd.DataFrame()
-        wet_max3 = pd.DataFrame()
+        wet_days1   = wet_days2 = wet_days3     = pd.DataFrame()         
+        wet_sum_df1 = wet_sum2  = wet_sum3      = pd.DataFrame()
+        wet_max1    = wet_max2  = wet_max3      = pd.DataFrame()
+        milking_liters1 = milking_liters2 = self.milking_liters3       = pd.DataFrame()
         
         idx     = self.ext_rng
-        WY_ids  = self.MB.data['rng']   #put a 1 to slice
+        WY_ids  = self.MB.data['WY_ids']   #NOTE:put a 1 to slice
         # WY_ids = WY_ids1[250:254]
         i=0
         
@@ -72,6 +71,8 @@ class WetDry:
                     
                     # get sum/max of series
                     wet1a = self.milk1.loc[start:stop, str(i)]
+                    milking_liters1 = pd.Series(wet1a)
+                    
                     wet_sum1 = pd.DataFrame([wet1a.sum()], columns=[j], index=[i])
                     wet_max1 = pd.DataFrame([wet1a.max()], columns=[j], index=[i])
 
@@ -84,14 +85,19 @@ class WetDry:
                 wet_days2 = pd.concat([wet_days2, wet_days1],axis=0)
                 wet_sum2  = pd.concat([wet_sum2, wet_sum1], axis=1 )
                 wet_max2  = pd.concat([wet_max2, wet_max1], axis=1 )
-                # print(f"wet_max2 max1 after processing lact {j} for WY_id {i}: {wet_max2}")
+                
+                milking_liters1 = milking_liters1.reset_index(drop=True)
+                milking_liters2 = pd.concat([milking_liters2, milking_liters1], axis=1)
+
                 
                 wet_days1 = pd.DataFrame()
                 wet_sum1 = wet_max1 = pd.DataFrame()
+                milking_liters1 = pd.DataFrame()
 
 
-            wet_days2a = wet_days2.reindex(idx)
-            wet_days2b = wet_days2a.rename(columns = {0: i})
+            wet_days2a = wet_days2  .reindex(idx)
+            wet_days2b = wet_days2a .rename(columns = {0: i})
+
             
             
             # Fill NaN values with 0 before concatenation
@@ -115,18 +121,20 @@ class WetDry:
             wet_max_df1       = pd.DataFrame(wet_max3)
             
         wsd1 = wet_sum_df1
-        wsd2 = wsd1.reindex(self.MB.data['rng'])
+        wsd2 = wsd1.reindex(self.MB.data['WY_ids'])
         self.wsd = wsd2
         
         wmd1 = wet_max_df1
-        wmd2 = wmd1.reindex(self.MB.data['rng'])
+        wmd2 = wmd1.reindex(self.MB.data['WY_ids'])
         self.wmd = wmd2
+        
+        self.milking_liters3 = milking_liters2
             
-        return self.wet_days_df1, self.wsd, self.wmd 
+        return self.wet_days_df1, self.wsd, self.wmd , self.milking_liters3
     
     
     def reindex_columns(self):
-        cols    = self.MB.data['rng']
+        cols    = self.MB.data['WY_ids']
         wddt1   = self.wet_days_df1.T
         wddt2   = wddt1.reindex(cols)
         self.wdd = wddt2.T
@@ -161,8 +169,10 @@ class WetDry:
         return self.wdd_monthly
     
     def write_to_csv(self):
-        
-        self.wdd.iloc[-25:,:].to_csv('F:\\COWS\\data\\wet_dry\\wdd.csv')       
+
+
+        self.wdd.iloc[-25:,:].to_csv('F:\\COWS\\data\\wet_dry\\wdd.csv')               
+        self.wdd             .to_csv('F:\\COWS\\data\\wet_dry\\full_wdd.csv')       
         self.wsd             .to_csv('F:\\COWS\\data\\wet_dry\\wdsum.csv')
         self.wmd             .to_csv('F:\\COWS\\data\\wet_dry\\wdmax.csv')
         self.wdd_monthly     .to_csv('F:\\COWS\\data\\wet_dry\\wdd_monthly.csv')

@@ -3,6 +3,7 @@
 import pandas as pd
 from MilkBasics import MilkBasics
 from milk_functions.lactations import Lactations
+from milk_functions.statusData import StatusData
 
 
 
@@ -12,6 +13,8 @@ class WeeklyLactations():
         
         self.data   = MilkBasics().data
         self.L  = Lactations()
+        self.SD = StatusData()
+        self.alive_ids = self.SD.alive_ids.astype(int).to_list()
 
         (self.lact1, 
          self.lact2, 
@@ -29,6 +32,7 @@ class WeeklyLactations():
         
         self.max_liters_list2   = self.create_max_liters()
         self.max_df            = self.unpack_max_liters()
+        self.create_live_lactations()
 
         self.write_to_csv()
 
@@ -104,9 +108,22 @@ class WeeklyLactations():
         self.max_df = pd.concat(max_dfs, ignore_index=True)
     
         return self.max_df
+    
+    def create_live_lactations(self):
+        
+        self.live_lact_wk_1 = self.lactation_wk_1.loc[:,self.alive_ids]
+        self.live_lact_wk_2 = self.lactation_wk_2.loc[:,self.alive_ids]
+        self.live_lact_wk_3 = self.lactation_wk_3.loc[:,self.alive_ids]
+        self.live_lact_wk_4 = self.lactation_wk_4.loc[:,self.alive_ids]
+        self.live_lact_wk_5 = self.lactation_wk_5.loc[:,self.alive_ids]
+        
+        return [self.live_lact_wk_1, self.live_lact_wk_2, self.live_lact_wk_3,
+                self.live_lact_wk_4, self.live_lact_wk_5]
               
 
     def write_to_csv(self):
+        
+        self.live_lact_wk_1.to_csv('F:\\COWS\\data\\milk_data\\lactations\\weekly\\live_lact_wk_1.csv')
         
         self.lactation_wk_1.to_csv('F:\\COWS\\data\\milk_data\\lactations\\weekly\\lactation_wk_1.csv')
         self.lactation_wk_2.to_csv('F:\\COWS\\data\\milk_data\\lactations\\weekly\\lactation_wk_2.csv')

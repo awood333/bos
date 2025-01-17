@@ -51,13 +51,7 @@ class FeedCostBasics:
         self.totalcostD, self.totalcost_D_df    = self.create_total_cost_D()
         
         self.feedcost_daily, self.feedcost_monthly       = self.create_feedcostByGroup()
-        # self.create_last_cost()
-         
-        self.milk_income_dash_vars = self.get_dash_vars()
-    
-
-
-# Feed_cost_basics creates the cost dfs for all groups in FCB_daily
+        self.write_to_csv()
 
 
     def create_feed_cost(self):
@@ -103,8 +97,9 @@ class FeedCostBasics:
         self.last_values_all_df = pd.DataFrame.from_dict(last_values_all, orient='index')
         
         unit_prices, group_a_kg, group_b_kg, dry_kg  = {},{},{},{}
+        
         for feed in self.feed_type:
-            unit_prices[feed] = self.last_values_all_df.loc[feed, 'psd'] ['unit_price']
+            unit_prices[feed]       = self.last_values_all_df.loc[feed, 'psd'] ['unit_price']
             
         for feed in self.feed_type:
             group_a_kg[feed]        = self.last_values_all_df.loc[feed, 'dad']['group_a_kg']
@@ -113,10 +108,10 @@ class FeedCostBasics:
             group_b_kg[feed]        = self.last_values_all_df.loc[feed, 'dad']['group_b_kg']
             
         for feed in self.feed_type:
-            dry_kg[feed]        = self.last_values_all_df.loc[feed, 'dad']['dry_kg']            
+            dry_kg[feed]            = self.last_values_all_df.loc[feed, 'dad']['dry_kg']            
                 
         # Convert dictionaries to DataFrames
-        unit_prices_df = pd.DataFrame.from_dict(unit_prices, orient='index', columns=['unit_price'])
+        unit_prices_df= pd.DataFrame.from_dict(unit_prices, orient='index', columns=['unit_price'])
         group_a_kg_df = pd.DataFrame.from_dict(group_a_kg,  orient='index', columns=['group_a_kg'])
         group_b_kg_df = pd.DataFrame.from_dict(group_b_kg,  orient='index', columns=['group_b_kg'])
         dry_kg_df =     pd.DataFrame.from_dict(dry_kg,      orient='index', columns=['dry_kg'])
@@ -138,9 +133,6 @@ class FeedCostBasics:
         sum_row_df = pd.DataFrame(sum_row).T
         result_df = pd.concat([result_df, sum_row_df], ignore_index=False)
         self.current_feed_cost = result_df
-        
-        self.last_values_all_df  .to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\last_values_all_df.csv')
-        self.current_feed_cost  .to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\current_feed_cost.csv')        
         
         return self.last_values_all_df, self.current_feed_cost
     
@@ -278,19 +270,18 @@ class FeedCostBasics:
         self.feedcost_daily = feedcost_daily1
         self.feedcost_monthly  = feedcost_monthly1.groupby(['year','month', 'days']). agg('mean')
         
-
-        self.feedcost_daily  .to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\feedcostByGroup_daily.csv')
-        self.feedcost_monthly.to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\feedcostByGroup_monthly.csv')
-        
         return  self.feedcost_daily, self.feedcost_monthly
     
+    def write_to_csv(self):
+        
+        self.last_values_all_df .to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\last_values_all_df.csv')
+        self.current_feed_cost  .to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\current_feed_cost.csv')        
+        
+        self.feedcost_daily     .to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\feedcostByGroup_daily.csv')
+        self.feedcost_monthly   .to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\feedcostByGroup_monthly.csv')
+        
     
     
-    def get_dash_vars(self):
-        self.milk_income_dash_vars = {name: value for name, value in vars(self).items()
-               if isinstance(value, (pd.DataFrame, pd.Series))}
-        return self.milk_income_dash_vars  
-
 
 if __name__ == "__main__":
     FBB = FeedCostBasics()
