@@ -19,23 +19,23 @@ class CowPL:
         self.FCB = FeedCostBasics()
         self.IUD = InsemUltraData()
         
-        
         #feed costs
-        self.dry_feed_cost  = self.FCB.current_feed_cost['dry_cost'].loc['sum']
-        self.dry_feed_kg    = self.FCB.current_feed_cost['dry_kg'].loc['sum']
-        self.dry_feed_cost_kg = self.dry_feed_cost / self.dry_feed_kg
-        self.TMR_costper_kg = self.dry_feed_cost / self.dry_feed_kg
-        self.bean_cost  =  self.FCB.current_feed_cost['unit_price'].loc['beans']
+        self.feed_cost_A    =  self.FCB.current_feed_cost['group_a_cost'].loc['sum']
+        self.feed_cost_B    =  self.FCB.current_feed_cost['group_b_cost'].loc['sum']        
+        self.feed_cost_dry  =  self.FCB.current_feed_cost['dry_cost'].loc['sum']        
         
         self.mask_int = self.SD.milker_ids[-1].copy().astype(int).to_list()
         self.mask_str = self.SD.milker_ids[-1].copy().astype(str).to_list()
         now = datetime.now()
         self.today = pd.to_datetime(now)
         
-        self.group_days = self.get_days_in_groups()
-        self.bd1 = self.create_possible_days()
-        self.group_days = self.create_dry_days()
-        self.revenue = self.create_income()
+        self.group_days     = self.get_days_in_groups()
+        self.bd2            = self.create_possible_days()
+        self.group_table     = self.create_dry_days()
+        self.group_table    = self.create_cost()
+   
+        self.revenue        = self.create_revenue()
+        self.net_revenue = self.create_net_revenue()
      
         self.write_to_csv()
         
@@ -81,29 +81,57 @@ class CowPL:
         return self.bd2
         
     def create_dry_days(self):
-        
-        x = self.group_days.merge(self.bd2[['possible_days']], 
+       
+        x1 = self.group_days.merge(self.bd2, 
                 how='left', left_index=True, right_index=True)
         
-        x['dry_days'] = x['possible_days'] - (x['milking days'])
-        self.group_days = x
+        x2= x1.drop(columns=['birth_date','death_date','dam_num','arrived','adj_bdate', 'typex', 'readex'])
         
-
-        return self.group_days
+        x2['dry_days'] = x2['possible_days'] - (x2['milking days'])
+        self.group_table = x2
+        
+        return self.group_table
     
     
     def create_cost(self):
         
-    def create_income(self):        
+        gt= self.group_table.copy()
+        gt['cost A'] = gt['A count'] * self.feed_cost_A
+        gt['cost B'] = gt['B count'] * self.feed_cost_B
+        gt['cost dry'] = gt['dry_days'] * self.feed_cost_dry
+        gt['total feedcost'] = gt['cost A'] + gt['cost B'] + gt['cost dry']
+        
+        self.group_table = gt
+        return self.group_table
+        
+        
+    def create_revenue(self):        
         
         milk1 = self.MB.data['milk']
         milk2 = milk1.loc[:,self.mask_str].copy()
-        self.revenue = milk2.sum(axis=0)
+        rev = (milk2.sum(axis=0) ) * 22
+        
+        rev.name = 'revenue'
+        self.revenue = pd.DataFrame(rev, columns=['revenue'])
+        # self.revenue.index = self.revenue.index.astype(str)
+        
         return self.revenue
+    
+    def create_net_revenue(self):
+        
+        self.group_table = self.group_table .reset_index().rename(columns={'index': 'WY_id'})
+        self.revenue = self.revenue          .reset_index().rename(columns={'index': 'WY_id'})
+        
+        nr1 = pd.concat([self.revenue, self.group_table ], axis=1)
+        
+        nr1['net revenue'] = nr1['revenue'] - nr1['total feedcost']
+        self.net_revenue = nr1
+        
+        return self.net_revenue
         
     
     def write_to_csv(self):
-        self.group_days.to_csv('F:\\COWS\\data\\status\\group_days.csv')   
+        self.net_revenue.to_csv('F:\\COWS\\data\\PL_data\\net_revenue\\net_revenue_from_cowPL.csv')   
         
         
         
