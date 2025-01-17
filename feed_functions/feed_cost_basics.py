@@ -133,6 +133,7 @@ class FeedCostBasics:
         sum_row_df = pd.DataFrame(sum_row).T
         result_df = pd.concat([result_df, sum_row_df], ignore_index=False)
         self.current_feed_cost = result_df
+
         
         return self.last_values_all_df, self.current_feed_cost
     
@@ -274,7 +275,7 @@ class FeedCostBasics:
     
     def write_to_csv(self):
         
-        self.last_values_all_df .to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\last_values_all_df.csv')
+        # self.last_values_all_df .to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\last_values_all_df.csv')
         self.current_feed_cost  .to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\current_feed_cost.csv')        
         
         self.feedcost_daily     .to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\feedcostByGroup_daily.csv')
