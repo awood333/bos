@@ -14,11 +14,11 @@ class Heifers:
         
         
         #feed costs
-        self.dry_feed_cost  = self.FCB.current_feed_cost['dry_cost'].loc['sum']
-        self.dry_feed_kg    = self.FCB.current_feed_cost['dry_kg'].loc['sum']
-        self.dry_feed_cost_kg = self.dry_feed_cost / self.dry_feed_kg
-        self.TMR_costper_kg = self.dry_feed_cost / self.dry_feed_kg
-        self.bean_cost  =  self.FCB.current_feed_cost['unit_price'].loc['beans']
+        self.dry_feed_cost      = self.FCB.current_feed_cost['dry_cost'].loc['sum']
+        self.dry_feed_kg        = self.FCB.current_feed_cost['dry_kg'].loc['sum']
+        self.dry_feed_cost_kg   = self.dry_feed_cost / self.dry_feed_kg
+        self.TMR_costper_kg     = self.dry_feed_cost / self.dry_feed_kg
+        self.bean_cost          = self.FCB.current_feed_cost['unit_price'].loc['beans']
 
         self.milk_price = pd.Series(22.0)
         self.milk_liters_day = pd.Series(6)

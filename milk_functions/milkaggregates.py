@@ -220,7 +220,7 @@ class MilkAggregates:
         tendayT.index.name='WY_id'
     
         tendayT.loc['avg']   = tendayT.mean(axis=0)
-        tendayT.loc['total'] = tendayT.iloc[:-2,:].sum(axis=0)
+        tendayT.loc['total'] = tendayT.iloc[:-1,:].sum(axis=0)
                 
         lastcol = tendayT.iloc[:,9]
         tendayT['pct chg from avg'] = ((lastcol/ tendayT['avg'] ) - 1)

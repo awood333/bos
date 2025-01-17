@@ -55,22 +55,21 @@ class MilkBasics:
         start1a  = self.startx.pivot_table (index='WY_id', columns='calf#',    values='b_date', fill_value=pd.NaT)
         stop1a   = self.stopx .pivot_table (index='WY_id', columns='lact_num', values='stop',   fill_value=pd.NaT)
    
-        cutoff1 = None
-        cutoff2 = None
-        cutoff3 = None
-        
+        cutoff1 = None   #'240'
+        cutoff2 = None   #'250'
+        cutoff3 = None   #pd.to_datetime('2024-01-01')
         
         self.milk   = milk1a.loc[cutoff3:, cutoff1:cutoff2].copy()
         self.lastday = self.milk.index[-1]
         self.datex = self.milk.index
 
-        # Note extended range is renamed ext_rng in 'data'
+        # NOTE: extended range is renamed ext_rng in 'data'
         self.extended_date_range_milk = pd.date_range(start='2016-09-01', end= self.milk.index[-1])
       
-        self.rng = bd1['WY_id'].tolist()
+        self.WY_ids = bd1['WY_id'].tolist()
      
-        start2a = start1a.reindex(self.rng)
-        stop2a  = stop1a  .reindex(self.rng)
+        start2a = start1a.reindex(self.WY_ids)
+        stop2a  = stop1a  .reindex(self.WY_ids)
         
         # # need to increment the index to match the cutoffs in 'milk'
         start2b = start2a.loc[ cutoff1:cutoff2, : ].copy()    
@@ -94,7 +93,7 @@ class MilkBasics:
             'i'         : self.i,
             'u'         : self.u,
             'lastday'   : self.lastday,
-            'rng'       : self.rng,
+            'WY_ids'    : self.WY_ids,
             'ext_rng'   : self.extended_date_range_milk
                 }
         

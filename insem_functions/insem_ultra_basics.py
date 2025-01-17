@@ -11,10 +11,10 @@ tdy = pd.Timestamp.today()
 class InsemUltraBasics:
     def __init__(self):
         
-        self.mb = MilkBasics()
+        self.MB = MilkBasics()
         self.df      = pd.DataFrame()
         
-        self.data = self.mb.dataLoader()  
+        self.data = self.MB.dataLoader()  
 
         self.first_calf = self.create_first_calf()
         [self.last_calf, 
@@ -31,7 +31,7 @@ class InsemUltraBasics:
             'calf#'   : 'min'
             }).reset_index()
         
-        self.first_calf = first_calf1.reindex(self.data['rng'])
+        self.first_calf = first_calf1.reindex(self.data['WY_ids'])
         # self.first_calf['WY_id'] = self.data['bd']['WY_id']     
            
         self.first_calf.rename(columns={'calf#': 'first calf#',
@@ -47,7 +47,7 @@ class InsemUltraBasics:
             'calf#'   : 'max'
             }).reset_index()
         
-        last_calf1 = last_calf1.reindex(self.data['rng'])
+        last_calf1 = last_calf1.reindex(self.data['WY_ids'])
         # last_calf1['WY_id'] = self.data['bd']['WY_id']
         
         self.last_calf = last_calf1.rename(columns={'calf#': 'last calf#',
@@ -69,7 +69,7 @@ class InsemUltraBasics:
             'stop'        : 'max'
         })  .reset_index() 
 
-        self.last_stop = last_stop1.reindex(self.data['rng'])
+        self.last_stop = last_stop1.reindex(self.data['WY_ids'])
         # print(self.last_stop.iloc[240:250,:])
         self.last_stop = self.last_stop.rename(columns = {'lact_num':'stop calf#','stop':'last stop date'})       
         self.last_stop = self.last_stop.fillna({'last stop date': np.nan})

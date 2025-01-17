@@ -33,7 +33,7 @@ class Lactation_basics:
         stop_cols = list(self.MB.data['stop'].columns)  # these will be the headers in stop, i.e., the lactations
 
         milk_cols1 = milk.columns
-        lact = lactations = []
+        lact,  lactations = [],[]
         model = pd.DataFrame(index=range(1,1000))
         WY_int = range(0,len(self.MB.data['bd'].index))
         # WY_str  = WY_int.astype(str)
