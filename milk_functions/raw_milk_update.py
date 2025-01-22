@@ -13,7 +13,7 @@ class RawMilkUpdate:
     def __init__(self):
 
         #Load data from LibreOffice Calc .ods file
-        data = get_data('F:\\cows_LO\\daily_milk.ods')
+        data = get_data('F:\\COWS\\data\\daily_milk.ods')
 
         def convert_to_dataframe(sheet_data):
             df = pd.DataFrame(sheet_data)

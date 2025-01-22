@@ -11,6 +11,7 @@ from datetime import datetime, date
 
 from MilkBasics import MilkBasics
 from insem_functions.Insem_ultra_data import InsemUltraData
+# from milk_functions.sahagon import sahagon
 
 IUD = InsemUltraData()
 
@@ -19,6 +20,7 @@ class MilkAggregates:
         
         self.data = MilkBasics().data
         self.allx = IUD.allx
+        # self.sahagon = sahagon()
 
         self.lag     = -10
         print('lag = ', self.lag)
@@ -63,6 +65,8 @@ class MilkAggregates:
         self.AM_wy     = pd.read_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_wy.csv',index_col=0, header=0)
         self.PM_liters = pd.read_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_liters.csv',index_col=0, header=0)
         self.PM_wy     = pd.read_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_wy.csv',index_col=0, header=0)
+        
+        self.daily_milk = pd.read_excel("F:\\COWS\\data\\daily_milk.ods")
        
         wy      = self.data['bd']['WY_id']
         alive1  = self.data['bd']['death_date'].isnull()
@@ -235,6 +239,7 @@ class MilkAggregates:
                     left_index=True, 
                     right_index=True
                                     )
+        
 
         
         return self.tenday, self.tenday1
