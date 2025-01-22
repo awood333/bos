@@ -22,10 +22,11 @@ class CowPL:
         #feed costs
         self.feed_cost_A    =  self.FCB.current_feed_cost['group_a_cost'].loc['sum']
         self.feed_cost_B    =  self.FCB.current_feed_cost['group_b_cost'].loc['sum']        
-        self.feed_cost_dry  =  self.FCB.current_feed_cost['dry_cost'].loc['sum']        
+        self.feed_cost_dry  =  self.FCB.current_feed_cost['dry_cost'].loc['sum']  
         
-        self.mask_int = self.SD.milker_ids[-1].copy().astype(int).to_list()
-        self.mask_str = self.SD.milker_ids[-1].copy().astype(str).to_list()
+        self.mask_str = self.SD.alive_ids.to_list()
+        self.mask_int = self.SD.alive_ids.astype(int).to_list()
+
         now = datetime.now()
         self.today = pd.to_datetime(now)
         
