@@ -1,13 +1,13 @@
 '''/milk_functions/sahagon.py'''
 
 import pandas as pd
+from datetime import datetime
 from milk_functions.milkaggregates import MilkAggregates
 
 class sahagon:
     def __init__(self):
 
-        # MA = MilkAggregates()
-        # self.tenday = MA.tenday
+        self.today = datetime.now()
         self.dm = self.get_data()
         self.dm_monthly = self.get_monthly()
         self.write_to_csv()
@@ -24,9 +24,12 @@ class sahagon:
         dm_t.columns = dm_t.iloc[0]
         dm_t = dm_t.drop(dm_t.index[0])
         dm_t.index = pd.to_datetime(dm_t.index, format='ISO8601')
-        start_date = '2024-01-01'
+        self.dm = dm_t
         
-        self.dm = dm_t.loc[start_date :,'saha total'].to_frame()
+        
+        # start_date = '2024-01-01'
+        
+        # self.dm = dm1.loc[start_date :,'saha total'].to_frame()
     
         
         return self.dm
@@ -42,6 +45,8 @@ class sahagon:
         return self.dm_monthly
     
     def write_to_csv(self):
+        today_str = self.today.strftime('%Y-%m-%d')
+        self.dm         .to_csv(f'F:\\COWS\\data\\milk_data\\totals\\sahagon\\sahagon_daily_{today_str}.csv')
         self.dm_monthly.to_csv('F:\\COWS\\data\\PL_data\\sahagon_monthly.csv')
     
     

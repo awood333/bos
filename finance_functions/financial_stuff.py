@@ -4,26 +4,27 @@ financial_stuff.py
 import pandas as pd
 # import numpy as np
 # from IPython.display import display
-from feed_cost import FeedCost 
-from startdate_funct import CreateStartdate
+from feed_functions.feed_cost_basics import FeedCostBasics
 
 
 
 class FinancialStuff:
     def __init__(self):
         
-        self.sdf = CreateStartdate()
-        self.fc  = FeedCost()
+
+        self.fc  = FeedCostBasics()
         
         
         self.f1      = pd.read_csv('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv',   index_col='datex',header=0,  parse_dates=['datex'])
-        self.monthly_income  = pd.read_csv('F:\\COWS\\data\\PL_data\\milk_income\\milk_income.csv',       index_col='datex',header=0,  parse_dates=['datex'])
+        self.monthly_income  = pd.read_csv('F:\\COWS\\data\\PL_data\\milk_income\\output\\milk_income_output.csv',
+                                           index_col='datex',header=0,  parse_dates=['datex'])
         self.bkk1        = pd.read_excel('F:\\COWS\\data\\BKKBankFarmAccount.xlsm',      index_col='datex',header=0,
                                         parse_dates=['datex'], sheet_name='consol statement')
-        self.bkk1.index = pd.to_datetime(self.bkk1.index, format=self.sdf.date_format)
+        self.bkk1.index = pd.to_datetime(self.bkk1.index, format="%Y-%m-%d")
         
         self.maxdate     = self.f1.index.max()  
-        self.startdate        = self.sdf.startdate 
+        startdate1        = "2024-07-01" 
+        self.startdate      = pd.to_datetime(startdate1)
         self.stopdate    = self.maxdate
         
         self.idx        = pd.date_range(self.startdate, self.stopdate, freq='D')
@@ -42,11 +43,12 @@ class FinancialStuff:
         
     def create_monthly_feedcost_actual(self):
         
-        bkk2023 = self.bkk1[   ( 
-              (self.bkk1['year'] == 2023 )
-            & (self.bkk1['month'] >= 6)
-            & (self.bkk1['capex'].isnull() )
-            & (self.bkk1['brahman'].isnull())   
+        bkk2023 = self.bkk1[   
+            (
+                (self.bkk1['year'] == 2023 )
+                & (self.bkk1['month'] >= 6)
+                & (self.bkk1['capex'].isnull() )
+                & (self.bkk1['brahman'].isnull())   
             )  ]
         
         bkk2023 = bkk2023.set_index(['year', 'month'])
@@ -55,6 +57,13 @@ class FinancialStuff:
         
         bkk3 = bkk2.drop(columns=['day','transaction',
             'credit','descr 3','capex','brahman'])
+        
+        # Ensure 'debit' column is numeric (convert blanks to NaN)
+        bkk3['debit'] = pd.to_numeric(bkk3['debit'], errors='coerce')
+
+        # Replace '???' in 'descr 2' with None
+        bkk3['descr 2'] = bkk3['descr 2'].replace('???', None)
+        
         
         bkk_feed = bkk3[bkk3['descr 1'] == 'feed']
         
@@ -90,8 +99,13 @@ class FinancialStuff:
     
    
     def adjust_bimonthly_income(self):
+        
+        self.monthly_income['year'] = self.monthly_income.index.year
+        self.monthly_income['month'] = self.monthly_income.index.month
+        self.monthly_income = self.monthly_income.reset_index(drop=True)
+        
         minc1 = self.monthly_income.groupby(['year', 'month']).sum() 
-        minc2 = minc1['net_baht']
+        minc2 = minc1['daily_avg_net']
         minc = pd.DataFrame(minc2)
         minc.reset_index()
         monthly_income = minc2
@@ -101,7 +115,7 @@ class FinancialStuff:
 
     def create_net_revenue(self):      # revenue after
         
-        feed1 = self.fc.monthly_feedcost.reset_index()
+        feed1 = self.fc.feedcost_monthly.reset_index()
         feed = feed1[['month','year','total feed cost']]
         # revenue = self.monthly_income[['month','year','net_baht']]  
         net = feed.merge(self.monthly_income, on=['month', 'year'], how='outer')
@@ -119,10 +133,12 @@ class FinancialStuff:
     
     def create_write_to_csv(self):
         
-        self.net_revenue.to_csv('F:\\COWS\\data\\PL_data\\net_revenue.csv')
-        self.bkk_all_xFeed.to_csv('F:\\COWS\\data\\PL_data\\bkk_all_xFeed.csv')
-        self.bkk_all.to_csv('F:\\COWS\\data\\PL_data\\bkk_all.csv')
-        self.bkk_feed.to_csv('F:\\COWS\\data\\PL_data\\bkk_feed.csv')
-        self.monthly_income.to_csv('F:\\COWS\\data\\PL_data\\adj_monthly_income.csv')
+        self.net_revenue    .to_csv('F:\\COWS\\data\\PL_data\\net_revenue.csv')
+        self.bkk_all_xFeed  .to_csv('F:\\COWS\\data\\PL_data\\bkk_all_xFeed.csv')
+        self.bkk_all        .to_csv('F:\\COWS\\data\\PL_data\\bkk_all.csv')
+        self.bkk_feed       .to_csv('F:\\COWS\\data\\PL_data\\bkk_feed.csv')
+        self.monthly_income .to_csv('F:\\COWS\\data\\PL_data\\adj_monthly_income.csv')
         
-
+    
+if __name__ == "__main__":
+    FinancialStuff()

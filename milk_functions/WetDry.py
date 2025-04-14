@@ -29,7 +29,7 @@ class WetDry:
     def create_wet_days(self):
         wet_days1   = wet_days2 = wet_days3     = pd.DataFrame()         
         wet_sum_df1 = wet_sum2  = wet_sum3      = pd.DataFrame()
-        wet_max1    = wet_max2  = wet_max3      = pd.DataFrame()
+        wet_max_df1    = wet_max2  = wet_max3      = pd.DataFrame()
         milking_liters1 = milking_liters2 = self.milking_liters3       = pd.DataFrame()
         
         idx     = self.ext_rng
@@ -76,6 +76,7 @@ class WetDry:
                     wet_sum1 = pd.DataFrame([wet1a.sum()], columns=[j], index=[i])
                     wet_max1 = pd.DataFrame([wet1a.max()], columns=[j], index=[i])
 
+                # first calf - still milking
                 elif e and f:
                     wet1a    = pd.DataFrame(columns=[j])
                     wet_sum1 = pd.DataFrame(columns=[j], index=[i])
@@ -116,9 +117,9 @@ class WetDry:
             wet_max2 = pd.DataFrame()
                 
         if not wet_days3.empty:            
-            self.wet_days_df1    = pd.DataFrame(wet_days3)
-            wet_sum_df1    = pd.DataFrame(wet_sum3) 
-            wet_max_df1       = pd.DataFrame(wet_max3)
+            self.wet_days_df1   = pd.DataFrame(wet_days3)
+            wet_sum_df1         = pd.DataFrame(wet_sum3) 
+            wet_max_df1         = pd.DataFrame(wet_max3)
             
         wsd1 = wet_sum_df1
         wsd2 = wsd1.reindex(self.MB.data['WY_ids'])
@@ -171,11 +172,11 @@ class WetDry:
     def write_to_csv(self):
 
 
-        self.wdd.iloc[-25:,:].to_csv('F:\\COWS\\data\\wet_dry\\wdd.csv')               
+        self.wdd.iloc[-25:,:].to_csv('F:\\COWS\\data\\wet_dry\\wd_days.csv')               
         self.wdd             .to_csv('F:\\COWS\\data\\wet_dry\\full_wdd.csv')       
-        self.wsd             .to_csv('F:\\COWS\\data\\wet_dry\\wdsum.csv')
-        self.wmd             .to_csv('F:\\COWS\\data\\wet_dry\\wdmax.csv')
-        self.wdd_monthly     .to_csv('F:\\COWS\\data\\wet_dry\\wdd_monthly.csv')
+        self.wsd             .to_csv('F:\\COWS\\data\\wet_dry\\wd_sum.csv')
+        self.wmd             .to_csv('F:\\COWS\\data\\wet_dry\\wd_max.csv')
+        self.wdd_monthly     .to_csv('F:\\COWS\\data\\wet_dry\\wd_days_monthly.csv')
         
 
 

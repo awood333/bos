@@ -38,7 +38,7 @@ class NetRevenue:
         
         #compare the last rows
         
-        filepath    = "F:\\cows_LO\\daily_milk.ods"
+        filepath    = "F:\\COWS\\data\\daily_milk.ods"
         sheetname   = 'AM_wy'
         data        = pd.read_excel(filepath,sheet_name=sheetname, skiprows=3, engine='odf')
         dailymilk_lastcol = data.iloc[:,-1].copy().sort_values().reset_index(drop=True)

@@ -4,6 +4,8 @@
 Pipfile
 Pipfile.lock
 .vscode/launch.json
+.vscode/settings.json
+.pylintrc
 run_milk.py
 run_non_milk.py
 #

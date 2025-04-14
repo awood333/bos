@@ -4,7 +4,7 @@ feed_inventory.py
 import pandas as pd
 import os
 import datetime
-from startdate_funct import CreateStartdate
+from CreateStartDate import DateRange
 # from feed_cost  import FeedCost
 # from insem_ultra import InsemUltraData
 # from status import StatusData
@@ -13,12 +13,11 @@ from startdate_funct import CreateStartdate
 class FeedInventory():
     def __init__(self):
         
-        csd    = CreateStartdate()   
+        DR    = DateRange()   
 
         self.maxdate     = datetime.datetime.today()
         self.stopdate    = self.maxdate
-        self.startdate   = csd.startdate
-        self.date_format = csd.date_format
+        self.startdate   = DR.startdate
         self.date_range  = pd.date_range(self.startdate, self.stopdate, freq='D')
         self.elapsed_days = len(self.date_range)
         
@@ -82,3 +81,5 @@ def create_inventory(self, feed_type):
         
         return varname
 
+if __name__ == "__main__":
+    FI = FeedInventory()

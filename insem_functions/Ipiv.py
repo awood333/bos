@@ -20,7 +20,7 @@ class Ipiv:
         self.alive_ids  = alive_ids2['WY_id']
         
         self.ipiv_all_basic   = self.create_ipiv()  
-        self.ipiv_notpreg       = self.limit_ipiv_to_milkers()    
+        self.ipiv_milkers       = self.limit_ipiv_to_milkers()  
         self.write_to_csv()
 
   
@@ -55,12 +55,12 @@ class Ipiv:
         
         xxx = self.IUD.allx[['WY_id', 'u_read', 'days milking']]
         
-        self.ipiv = xxx.merge(self.ipiv_all_basic, how='left', right_on='WY_id', left_on='WY_id')
-        return self.ipiv
+        self.ipiv_milkers = xxx.merge(self.ipiv_all_basic, how='left', right_on='WY_id', left_on='WY_id')
+        return self.ipiv_milkers
     
     def write_to_csv(self):
         self.ipiv_all_basic.to_csv('F:\\COWS\\data\\insem_data\\ipiv_all_basic.csv')
-        self.ipiv.to_csv('F:\\COWS\\data\\insem_data\\ipiv.csv')   
+        self.ipiv_milkers.to_csv('F:\\COWS\\data\\insem_data\\ipiv_milkers.csv')   
     
     
 if __name__ == "__main__":
