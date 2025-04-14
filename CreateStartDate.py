@@ -9,6 +9,7 @@ class DateRange:
     def __init__(self):
         
         self.data = MilkBasics().data
+        self.date_format = "ISO8601"
         self.startdate  = self.start_date()
         self.enddate_monthly    = self.end_date_monthly()
         self.enddate_daily = self.end_date_daily()
@@ -17,7 +18,7 @@ class DateRange:
         self.date_range_monthly_data  = self.create_date_range_monthly()
         
     def start_date(self):
-        self.startdate = pd.to_datetime("2024-09-01")
+        self.startdate = pd.to_datetime("2024-06-01")
         return self.startdate
     
     def end_date_monthly(self):

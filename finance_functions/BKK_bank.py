@@ -10,6 +10,7 @@ class BKK_bank:
         self.bkk2 = self.partition_data()
         self.bkk_groups_pivot = self.group_data()
         self.bkkbank_dash_vars = self.get_dash_vars()
+        self.write_to_csv()
         
     
     def load_data(self):
@@ -42,7 +43,11 @@ class BKK_bank:
     def get_dash_vars(self):
         self.bkkbank_dash_vars = {name: value for name, value in vars(self).items()
                if isinstance(value, (pd.DataFrame, pd.Series))}
-        return self.bkkbank_dash_vars  
+        return self.bkkbank_dash_vars
+    
+    
+    def write_to_csv(self):
+        self.bkk_groups_pivot.to_csv("F:\\COWS\\data\\finance\\bkk_groups_pivot.csv") 
     
 if __name__ == "__main__":
     bank = BKK_bank()

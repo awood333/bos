@@ -262,7 +262,6 @@ class FeedCostBasics:
         feeccost1d  = pd.DataFrame(self.totalcost_D_df  ['totalcostD'])
         feedcost_daily1   = pd.concat((feedcost1a, feedcost1b, feeccost1d), axis=1)
         
-        
         feedcost_monthly1 = pd.DataFrame(feedcost_daily1)
         feedcost_monthly1['year']    = feedcost_daily1.index.year
         feedcost_monthly1['month'] = feedcost_daily1.index.month
@@ -275,9 +274,7 @@ class FeedCostBasics:
     
     def write_to_csv(self):
         
-        # self.last_values_all_df .to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\last_values_all_df.csv')
         self.current_feed_cost  .to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\current_feed_cost.csv')        
-        
         self.feedcost_daily     .to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\feedcostByGroup_daily.csv')
         self.feedcost_monthly   .to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\feedcostByGroup_monthly.csv')
         
@@ -285,6 +282,6 @@ class FeedCostBasics:
     
 
 if __name__ == "__main__":
-    FBB = FeedCostBasics()
+    FCB = FeedCostBasics()
     
                  

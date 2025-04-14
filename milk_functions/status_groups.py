@@ -14,7 +14,7 @@ from milk_functions.WetDry import WetDry
 class statusGroups:
     def __init__ (self):
         
-        self.SD     = StatusData()
+        SD     = StatusData()
         self.CSD    = DateRange()
         self.MB     = MilkBasics()
         self.IUB    = InsemUltraBasics()
@@ -23,12 +23,12 @@ class statusGroups:
         self.DRM    = self.CSD.date_range_monthly_data
         self.startdate = self.CSD.startdate
         
-        [self.fresh, self.group_A, 
-         self.group_B, self.fresh_ids, 
-         self.group_A_ids, self.group_B_ids] = self.create_groups()
+        self.herd_daily = SD.herd_daily
         
-        [self.fresh_monthly, self.group_A_monthly, 
-        self.group_B_monthly] = self.create_monthly()
+        [self.fresh_ids, self.group_A_ids, self.group_B_ids,
+        self.all_groups_count]   = self.create_groups()
+        
+        self.all_groups_count_monthly = self.create_monthly()
         
         self.write_to_csv()
         
@@ -64,11 +64,11 @@ class statusGroups:
                     days1 = j1
                     j = int(j1) - 1
 
-                    if days1 < 10 :
+                    if 0 < days1<= 10 :
                         freshx += 1
                         F_ids = i
 
-                    elif days1 >=10  and m1 >= 14:   #sets min milk prod for groups a/b 
+                    elif days1 >10  and m1 >= 14:   #sets min milk prod for groups a/b 
                         groupAx += 1
                         A_ids = i
 
@@ -104,65 +104,58 @@ class statusGroups:
             fresh_ids1, groupA_ids1, groupB_ids1 = [],[],[]
             
 
-        self.fresh   = pd.DataFrame(fresh, columns=['date', 'fresh'])            
-        self.group_A = pd.DataFrame(groupA, columns=['date', 'groupA'])
-        self.group_B = pd.DataFrame(groupB, columns=['date', 'groupB'])
+        fresh_count   = pd.DataFrame(fresh, columns=['date', 'fresh'])            
+        group_A_count = pd.DataFrame(groupA, columns=['date', 'groupA'])
+        group_B_count = pd.DataFrame(groupB, columns=['date', 'groupB'])
         
-        self.fresh = self.fresh.set_index('date', drop=True)
-        self.group_A = self.group_A.set_index('date', drop=True)
-        self.group_B = self.group_B.set_index('date', drop=True)                      
+        fresh_count   = fresh_count.set_index('date', drop=True)
+        group_A_count = group_A_count.set_index('date', drop=True)
+        group_B_count = group_B_count.set_index('date', drop=True)
+                              
+        self.all_groups_count = pd.concat((fresh_count, group_A_count, group_B_count), axis=1)
+        
+        self.fresh_ids   = pd.DataFrame(fresh_ids).set_index(0)
+        self.group_A_ids = pd.DataFrame(groupA_ids).set_index(0)
+        self.group_B_ids = pd.DataFrame(groupB_ids).set_index(0)
+        
+        return [self.fresh_ids, self.group_A_ids, self.group_B_ids,
+                self.all_groups_count]
         
         
-        self.fresh_ids   = pd.DataFrame(fresh_ids)
-        self.group_A_ids = pd.DataFrame(groupA_ids)
-        self.group_B_ids = pd.DataFrame(groupB_ids)
         
-        return self.fresh, self.group_A, self.group_B, self.fresh_ids, self.group_A_ids, self.group_B_ids
         
     
     def create_monthly (self):
         
-        self.fresh_monthly = self.fresh.copy()
-        self.group_A_monthly = self.group_A.copy()
-        self.group_B_monthly = self.group_B.copy()   
+        self.all_groups_count_monthly1 = self.all_groups_count.copy() 
         
-        self.fresh_monthly['year']    = self.fresh_monthly.index.year
-        self.fresh_monthly['month']   = self.fresh_monthly.index.month
-        self.fresh_monthly['days']    = self.fresh_monthly.index.days_in_month
+        self.all_groups_count_monthly1['year']    = self.all_groups_count_monthly1.index.year
+        self.all_groups_count_monthly1['month']   = self.all_groups_count_monthly1.index.month
+        self.all_groups_count_monthly1['days']    = self.all_groups_count_monthly1.index.days_in_month
     
         
-        
-        self.group_A_monthly['year']    = self.group_A_monthly.index.year
-        self.group_A_monthly['month']   = self.group_A_monthly.index.month
-        self.group_A_monthly['days']    = self.group_A_monthly.index.days_in_month
-
-        
-        self.group_B_monthly['year']    = self.group_B_monthly.index.year
-        self.group_B_monthly['month']   = self.group_B_monthly.index.month
-        self.group_B_monthly['days']    = self.group_B_monthly.index.days_in_month
-              
-        
-        self.fresh_monthly   = self.fresh_monthly   .groupby(['year', 'month', 'days']).agg({'fresh': 'mean'}).reset_index()
-        self.group_A_monthly = self.group_A_monthly .groupby(['year', 'month', 'days']).agg({'groupA': 'mean'}).reset_index()
-        self.group_B_monthly = self.group_B_monthly .groupby(['year', 'month', 'days']).agg({'groupB': 'mean'}).reset_index()
+        self.all_groups_count_monthly   = self.all_groups_count_monthly1.groupby(['year', 'month', 'days']).agg(
+            {'fresh': 'mean',
+             'groupA': 'mean',
+             'groupB': 'mean'
+             }
+            ).reset_index()
         
         
-        return self.fresh_monthly, self.group_A_monthly, self.group_B_monthly
+        return self.all_groups_count_monthly
     
     def write_to_csv (self):
         
-
-        self.fresh  .to_csv('F:\\COWS\\data\\status\\fresh.csv', index=False)        
-        self.group_A.to_csv('F:\\COWS\\data\\status\\group_A.csv', index=False)
-        self.group_B.to_csv('F:\\COWS\\data\\status\\group_B.csv', index=False)
+        self.reconcile_counts = pd.concat((self.all_groups_count, self.herd_daily), axis=1)
         
-        self.fresh_ids  .to_csv('F:\\COWS\\data\\status\\fresh_ids.csv', index=False)
-        self.group_A_ids.to_csv('F:\\COWS\\data\\status\\group_A_ids.csv', index=False)
-        self.group_B_ids.to_csv('F:\\COWS\\data\\status\\group_B_ids.csv', index=False)
 
-        self.fresh_monthly  .to_csv('F:\\COWS\\data\\status\\fresh_monthly.csv', index=False)        
-        self.group_A_monthly.to_csv('F:\\COWS\\data\\status\\group_A_monthly.csv', index=False)
-        self.group_B_monthly.to_csv('F:\\COWS\\data\\status\\group_B_monthly.csv', index=False)
+        self.reconcile_counts  .to_csv('F:\\COWS\\data\\status\\reconcile_counts.csv')        
+        
+        self.fresh_ids  .to_csv('F:\\COWS\\data\\status\\fresh_ids.csv')
+        self.group_A_ids.to_csv('F:\\COWS\\data\\status\\group_A_ids.csv')
+        self.group_B_ids.to_csv('F:\\COWS\\data\\status\\group_B_ids.csv')
+
+        self.all_groups_count_monthly  .to_csv('F:\\COWS\\data\\status\\all_groups_count_monthly.csv')        
     
 if __name__ == "__main__":
     sg = statusGroups()
