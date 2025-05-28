@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 
-from milk_functions.statusData2    import StatusData2
+from status_functions.statusData2    import StatusData2
 from MilkBasics                     import MilkBasics
 from insem_functions.insem_ultra_basics import InsemUltraBasics
 
