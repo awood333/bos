@@ -1,0 +1,22 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		}
+	],
+	"settings": {
+		"sqltools.useNodeRuntime": true,
+		"sqltools.connections": [
+			{
+				"previewLimit": 50,
+				"driver": "SQLite",
+				"name": "cows",
+				"database": "${workspaceFolder:bos}/cows.db"
+			}
+		],
+		"explorerExclude.backup": {},
+		"terminal.integrated.env.windows": {
+			"PYTHONPATH": "D:/Git_repos/bos"
+		}
+	}
+}
