@@ -6,7 +6,6 @@ import numpy as np
 from feed_functions.feedcost_basics import Feedcost_basics
 from insem_functions.Insem_ultra_data import InsemUltraData
 
-
 class HeiferCostModel:
     def __init__(self):
 
