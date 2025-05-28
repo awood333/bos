@@ -18,13 +18,6 @@
 		"terminal.integrated.env.windows": {
 			"PYTHONPATH": "D:/Git_repos/bos"
 		},
-		"files.exclude": {
-			"**/.git": false,
-			"**/.svn": true,
-			"**/.hg": true,
-			"**/CVS": true,
-			"**/.DS_Store": true,
-			"**/Thumbs.db": true
-		}
+		"dotnetAcquisitionExtension.sharedExistingDotnetPath": "{     \"dotnetAcquisitionExtension.existingDotnetPath\": \"C:\\\\Program Files\\\\dotnet\\\\dotnet.exe\" }"
 	}
 }

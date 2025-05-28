@@ -1,52 +1,46 @@
 '''/milk_functions/sahagon.py'''
-
-import pandas as pd
 from datetime import datetime
-from milk_functions.milkaggregates import MilkAggregates
+import pandas as pd
+from CreateStartDate import DateRange
 
 class sahagon:
     def __init__(self):
 
+        self.DR = DateRange()
         self.today = datetime.now()
-        self.dm = self.get_data()
-        self.dm_monthly = self.get_monthly()
+        self.dm_daily = self.get_data()
+        self.dm_daily_monthly = self.get_monthly()
         self.write_to_csv()
     
     def get_data(self):
                 
         dm1 = pd.read_excel("F:\\COWS\\data\\daily_milk.ods", sheet_name='stats')
-        dm2 = dm1.iloc[:4,:]
+        dm2 = dm1.iloc[2,:].copy()
 
-        dm_t = dm2.head(4).transpose()
+        start_date = self.DR.start_date()
+        dm2.index = pd.to_datetime( dm2.index, format='ISO8601', errors='coerce')
+        dm3 = pd.DataFrame(dm2)
+        dm4 = dm3.iloc[1:,:].copy()
+        dm5 = dm4.rename(columns={ 2 : 'liters'})
+        dm6 = dm5.loc[start_date :].copy()
         
-
-        # Set the first row as the header and convert to datetime
-        dm_t.columns = dm_t.iloc[0]
-        dm_t = dm_t.drop(dm_t.index[0])
-        dm_t.index = pd.to_datetime(dm_t.index, format='ISO8601')
-        self.dm = dm_t
+        self.dm_daily = dm6
         
-        
-        # start_date = '2024-01-01'
-        
-        # self.dm = dm1.loc[start_date :,'saha total'].to_frame()
-    
-        
-        return self.dm
+        return self.dm_daily
     
     def get_monthly(self):
         
-        year = self.dm.index.year
-        month = self.dm.index.month
+        year = self.dm_daily.index.year
+        month = self.dm_daily.index.month
         
-        dm_m = self.dm.groupby([year,month], group_keys=True).sum()
+        dm_m = self.dm_daily.groupby([year,month], group_keys=True).sum()
         
         self.dm_monthly = dm_m
         return self.dm_monthly
     
     def write_to_csv(self):
         today_str = self.today.strftime('%Y-%m-%d')
-        self.dm         .to_csv(f'F:\\COWS\\data\\milk_data\\totals\\sahagon\\sahagon_daily_{today_str}.csv')
+        self.dm_daily         .to_csv(f'F:\\COWS\\data\\milk_data\\totals\\sahagon\\sahagon_daily_{today_str}.csv')
         self.dm_monthly.to_csv('F:\\COWS\\data\\PL_data\\sahagon_monthly.csv')
     
     
