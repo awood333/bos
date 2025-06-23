@@ -1,8 +1,9 @@
 
 '''milk_related\\milk_aggregates.py'''
 
-from datetime import datetime, date
-
+from datetime import datetime
+import sys
+import os
 import pandas as pd
 import numpy as np
 
@@ -11,10 +12,7 @@ from insem_functions.Insem_ultra_data import InsemUltraData
 # from milk_functions.sahagon import sahagon
 
 
-import sys
-import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 
 IUD = InsemUltraData()
 
@@ -42,7 +40,7 @@ class MilkAggregates:
         
         self.halfday_AM, self.halfday_PM, self.halfday        = self.halfday_AM_PM()
         
-        tendayT, self.tenday1               = self.ten_day()
+        self.tenday, self.tenday1               = self.ten_day()
         
         [self.monthly, self.weekly,
          self.start, self.stop]                 = self.create_monthly_weekly()
@@ -194,7 +192,7 @@ class MilkAggregates:
         ldpm=lastday_PM.loc[(lastday_PM.notna() ).any(axis=1),:].index.tolist() 
         
         self.halfday_AM = lastday_AM.loc[ldam,:]
-        self.halfday_PM = lastday_PM.loc[ldam,:]    
+        self.halfday_PM = lastday_PM.loc[ldpm,:]    
         
         self.halfday = self.halfday_AM.merge(self.halfday_PM, how='left', left_index=True, right_index=True)
         self.halfday.columns = ['AM', 'PM']
@@ -232,7 +230,7 @@ class MilkAggregates:
         lastcol = tendayT.iloc[:,9]
         tendayT['pct chg from avg'] = ((lastcol/ tendayT['avg'] ) - 1)
         
-        days1 = pd.DataFrame(self.allx.loc[:,['WY_id','days milking', 'u_read']])
+        days1 = pd.DataFrame(self.allx.loc[:,['WY_id','days milking', 'u_read', 'expected bdate']])
         days = days1.set_index('WY_id')
         days.index = days.index.astype('int').astype('str')
         tendayT.index = tendayT.index.astype('str')
@@ -290,8 +288,22 @@ class MilkAggregates:
         self.tenday1    .to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\tenday1.csv')
         self.monthly    .to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\monthly.csv')
         self.weekly     .to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\weekly.csv')
-        self.halfday    .to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\halfday.csv')        
-
+        self.halfday    .to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\halfday.csv')
+        
+        # with pd.ExcelWriter('F:\\COWS\\data\\milk_data\\fullday\\fullday.xlsx', engine='openpyxl') as writer:
+        #     self.fullday.to_excel(writer, sheet_name='fullday')
+        # with pd.ExcelWriter('F:\\COWS\\data\\milk_data\\fullday_xl_format\\fullday_xl.xlsx', engine='openpyxl') as writer:
+        #     self.fullday_xl.to_excel(writer, sheet_name='fullday_xl')
+        # with pd.ExcelWriter('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\tenday.xlsx', engine='openpyxl') as writer:
+        #     self.tenday.to_excel(writer, sheet_name='tenday')
+        # with pd.ExcelWriter('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\tenday1.xlsx', engine='openpyxl') as writer:
+        #     self.tenday1.to_excel(writer, sheet_name='tenday1')
+        # with pd.ExcelWriter('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\monthly.xlsx', engine='openpyxl') as writer:
+        #     self.monthly.to_excel(writer, sheet_name='monthly')
+        # with pd.ExcelWriter('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\weekly.xlsx', engine='openpyxl') as writer:
+        #     self.weekly.to_excel(writer, sheet_name='weekly')
+        # with pd.ExcelWriter('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\halfday.xlsx', engine='openpyxl') as writer:
+        #     self.halfday.to_excel(writer, sheet_name='halfday')
 if __name__ == '__main__':
     milk_aggregates = MilkAggregates()
     
