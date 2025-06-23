@@ -15,8 +15,8 @@ class MilkBasics:
         self.stopx   = pd.read_csv    ('F:\\COWS\\data\\csv_files\\stop_dates.csv',  index_col=None,     header = 0)
         
         # date cols
-        self.startx   ['b_date']        = pd.to_datetime(self.startx['b_date'])    
-        self.stopx    ['stop']          = pd.to_datetime(self.stopx['stop'])
+        self.startx   ['b_date']        = pd.to_datetime(self.startx['b_date'], errors='coerce')    
+        self.stopx    ['stop']          = pd.to_datetime(self.stopx['stop'], errors='coerce')
 
         
         

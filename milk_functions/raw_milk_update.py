@@ -12,7 +12,7 @@ class HaltScriptException(Exception):
 class RawMilkUpdate:
     def __init__(self):
 
-        #Load data from LibreOffice Calc .ods file
+        # Load data from LibreOffice Calc .ods file
         data = get_data('F:\\COWS\\data\\daily_milk.ods')
 
         def convert_to_dataframe(sheet_data):
@@ -30,13 +30,20 @@ class RawMilkUpdate:
         self.dmAM_wy1       = convert_to_dataframe(data['AM_wy'])
         self.dmPM_liters1   = convert_to_dataframe(data['PM_liters'])
         self.dmPM_wy1       = convert_to_dataframe(data['PM_wy'])
-        # self.stats          = convert_to_dataframe(data['stats'])
+
+        self.group_A1        =convert_to_dataframe(data['group A'])
+        self.group_B1        =convert_to_dataframe(data['group B'])
+        self.sick1           =convert_to_dataframe(data['sick'])
         
         self.dmAM_liters    = self.dmAM_liters1.iloc[:70, :]
         self.dmAM_wy        = self.dmAM_wy1.iloc[:70, :]
         self.dmPM_liters    = self.dmPM_liters1.iloc[:70, :]
         self.dmPM_wy        = self.dmPM_wy1.iloc[:70, :]
-        #self.stats        = self.stats.iloc[]
+        self.group_A        = self.group_A1.iloc[:80, :]
+        self.group_B        = self.group_B1.iloc[:80, :]
+        self.sick1          = self.sick1.iloc[:80, :]
+        
+
         
      
      
@@ -131,3 +138,7 @@ class RawMilkUpdate:
         self.pmwy       .to_csv(f"E:\\Cows\\data_backup\\milk backup\\rawmilk\\PM_wy\\PM_wy_{self.tdy}.csv")
         self.pmwy       .to_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_wy.csv',mode='w',header=True,index=True)
 
+
+
+if __name__ =="__main__":
+    RawMilkUpdate()
