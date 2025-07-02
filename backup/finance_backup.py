@@ -17,7 +17,7 @@ class FinanceDataBackup:
         
         bkkbank .to_csv(f'F:\\COWS\\data\\finance\\BKKbank\\backup\\BKKBankFarmAccount_{tdy}.csv')
         bkkbank .to_csv(f'E:\\Cows\\data_backup\\finance_backup\\farm_account\\BKKBankFarmAccount_{tdy}.csv')
-        depr    .to_csv(f'E:\\Cows\\data_backup\\finance_backup\\misc_finance_backup\\depreciation_schedule_{tdy}.csv')
+        depr    .to_csv(f'E:\\Cows\\data_backup\\finance_backup\\misc_finance\\depreciation_schedule_{tdy}.csv')
 
 
 if __name__ == "__main__":
