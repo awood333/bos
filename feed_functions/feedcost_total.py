@@ -1,9 +1,16 @@
 import pandas as pd
-
+from feed_functions.feedcost_beans import Feedcost_beans
+from feed_functions.feedcost_cassava import Feedcost_cassava
+from feed_functions.feedcost_corn import Feedcost_corn
+from feed_functions.feedcost_bypass_fat import Feedcost_bypass_fat
 
 class Feedcost_total:
     def __init__(self):
         
+        self.bean_cost = Feedcost_beans()
+        self.cassava_cost = Feedcost_cassava()
+        self.corn_cost = Feedcost_corn()
+        self.bypassfat_cost = Feedcost_bypass_fat()
         
         self.feedcost, self.total_feedcost_details_last =  self.create_feedcost_total()
         self.total_feedcost_monthly                     = self.create_monthly()
@@ -11,31 +18,25 @@ class Feedcost_total:
     
     def create_feedcost_total(self):
         
-        beans1      = pd.read_csv("F:\\COWS\\data\\feed_data\\feed_consumption\\cost_sequence_beans.csv", index_col=0)
-        cassava1    = pd.read_csv("F:\\COWS\\data\\feed_data\\feed_consumption\\cost_sequence_cassava.csv", index_col=0)
-        corn1       = pd.read_csv("F:\\COWS\\data\\feed_data\\feed_consumption\\cost_sequence_corn.csv", index_col=0)
-        bypass1     = pd.read_csv("F:\\COWS\\data\\feed_data\\feed_consumption\\cost_sequence_bypass_fat.csv", index_col=0)
+        beans   = self.bean_cost.cost_sequence_beans        .loc[:, ["daily cost"]]
+        cassava = self.cassava_cost.cost_sequence_cassava   .loc[:, ["daily cost"]]
+        corn    = self.corn_cost.cost_sequence_corn         .loc[:, ["daily cost"]]
+        bypass  = self.bypassfat_cost.cost_sequence_bypass_fat.loc[:, ["daily cost"]]
 
-        
-        beans   = beans1    .loc[:, ["daily cost"]]
-        cassava = cassava1  .loc[:, ['daily cost']]
-        corn    = corn1     .loc[:, ['daily cost']]
-        bypass  = bypass1   .loc[:, ['daily cost']]
-        
-        beans.rename(columns={'daily cost': 'beans daily cost'}, inplace=True)
-        cassava.rename(columns={'daily cost': 'cassava daily cost'}, inplace=True)
-        corn.rename(columns={'daily cost': 'corn daily cost'}, inplace=True)
-        bypass.rename(columns={'daily cost': 'bypass daily cost'}, inplace=True)
+        beans   .rename(columns={'daily cost': 'beans daily cost'}  , inplace=True)
+        cassava .rename(columns={'daily cost': 'cassava daily cost'}, inplace=True)
+        corn    .rename(columns={'daily cost': 'corn daily cost'}   , inplace=True)
+        bypass  .rename(columns={'daily cost': 'bypass daily cost'} , inplace=True)
         
         tfc = pd.concat((beans, cassava, corn, bypass), axis=1)
         # tfc.index = beans.index  # Ensure the index is preserved
         tfc['total feedcost'] = tfc.sum(axis=1)
         self.feedcost = tfc
         
-        beans_last      = beans1    .iloc[-2:-1, : ].copy()
-        cassava_last    = cassava1  .iloc[-2:-1, : ].copy()
-        corn_last       = corn1     .iloc[-2:-1, : ].copy()
-        bypass_last     = bypass1   .iloc[-2:-1, : ].copy()
+        beans_last      = beans    .iloc[-2:-1, : ].copy()
+        cassava_last    = cassava  .iloc[-2:-1, : ].copy()
+        corn_last       = corn     .iloc[-2:-1, : ].copy()
+        bypass_last     = bypass   .iloc[-2:-1, : ].copy()
         
         tfc_details     = pd.concat((beans_last, cassava_last, corn_last, bypass_last), axis=0)
         

@@ -10,7 +10,7 @@ class FinanceBasics:
         self.fc  = Feedcost_basics()
         bkk = pd.read_csv('F:\\COWS\\data\\finance\\BKKbank\\BKKBankFarmAccount.csv', index_col='datex')
         bkk.index = pd.to_datetime(bkk.index, format="%Y-%m-%d")
-        self.bkk1 = bkk.iloc[:,:11]
+        self.bkk1 = bkk.iloc[:,:12]
         
         
         self.startdate = pd.to_datetime("2024-07-01") 

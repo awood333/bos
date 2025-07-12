@@ -132,5 +132,4 @@ class TaxDocs_NonCapex:
     
         
 if __name__ == "__main__":
-    TaxDocs_NonCapex()
-()        
+    TaxDocs_NonCapex()       

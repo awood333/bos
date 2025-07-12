@@ -31,15 +31,16 @@ class CapexBasics:
         bkk1    .to_csv(f"F:\\COWS\\data\\finance\\BKKbank\\backup\\BKKbank_{timestamp}.csv")
         bkk1    .to_csv(f"E:\\Cows\\data_backup\\finance_backup\\farm_account\\BKKbank_{timestamp}.csv")
 
-        bkk1a = bkk1.iloc[:,:11].copy()
+        bkk1a = bkk1.iloc[:,:12].copy()
         bkk1b = bkk1a.loc[(
             ( bkk1['year'] >= 2017))
             & bkk1['credit'].isnull()
                         ].copy() 
         
         bkk1c = bkk1b.drop(columns={'credit'})
+        bkk1d = bkk1c.iloc[:,:14].copy()
         
-        bkk2  = bkk1c.loc[
+        bkk2  = bkk1d.loc[
             (bkk1b['descr 1'] != 'nonfarm')
             & (bkk1b['descr 1'] != '?')
             ].copy()

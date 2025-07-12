@@ -1,7 +1,6 @@
 '''finance_functions.CapexProjects.py'''
-
-import pandas as pd
 from datetime import datetime as dt
+import pandas as pd
 from finance_functions.capex.CapexBasics import CapexBasics
 
 class CapexProjects:
