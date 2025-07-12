@@ -5,10 +5,8 @@ import pandas as pd
 from CreateStartDate import DateRange
 from finance_functions.income.MilkIncome import MilkIncome
 from milk_functions.sahagon import sahagon
-# from milk_functions.status_groups import statusGroups
-# from feed_functions.feed_cost.feed_cost_basics import FeedCostBasics
-# from milk_functions.WetDry          import WetDry
 from feed_functions.feedcost_total import Feedcost_total
+from feed_functions.heifers.heifer_cost_model import HeiferCostModel
 
 
 class NetRevenue:
@@ -20,8 +18,13 @@ class NetRevenue:
         self.MI = MilkIncome()
         self.SG = sahagon()
         TF = Feedcost_total()
+        HFC = HeiferCostModel()
+        
+        
         self.feedcost1 = TF.feedcost
         self.feedcost1.index = pd.to_datetime(self.feedcost1.index, errors='coerce')
+        
+        self.heifer_monthly_cost = HFC.heifer_feedcost_monthly.loc[:,'heifer_cost'].copy()
 
         [self.net_revenue_daily,
          self.net_revenue_daily_last,
@@ -46,7 +49,7 @@ class NetRevenue:
         feedcost3.index = pd.to_datetime(feedcost3.index, errors='coerce')
         
         netrev1 = pd.concat((income3,feedcost3), axis=1)
-        netrev1['net revenue'] = netrev1['avg gross'] - netrev1['total feedcost']
+        netrev1['revenue'] = netrev1['avg gross'] - netrev1['total feedcost']
         
         self.net_revenue_daily = netrev1
         self.net_revenue_daily_last = self.net_revenue_daily.iloc[-5:, :]
@@ -74,9 +77,12 @@ class NetRevenue:
         nrm1 = self.net_revenue_daily
         nrm1['year'] = nrm1.index.year
         nrm1['month'] = nrm1.index.month
-        nrm1['days'] = nrm1.index.daysinmonth
+        # nrm1['days'] = nrm1.index.daysinmonth
         
-        self.net_revenue_monthly = nrm1.groupby(['year','month','days']).sum()
+        net_revenue_monthly1 = nrm1.groupby(['year','month']).sum()
+        net_revenue_monthly2 = pd.concat([net_revenue_monthly1, self.heifer_monthly_cost], axis=1)
+        net_revenue_monthly2['net revenue'] = net_revenue_monthly2['revenue'] - net_revenue_monthly2['heifer_cost']
+        self.net_revenue_monthly = net_revenue_monthly2
 
         return self.net_revenue_monthly
 

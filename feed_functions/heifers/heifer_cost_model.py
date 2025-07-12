@@ -42,12 +42,12 @@ class HeiferCostModel:
         bd1 = pd.read_csv('F:\\COWS\\data\\csv_files\\heifers_birth_death.csv', index_col=0)
         bd1['b_date'] = pd.to_datetime(bd1['b_date'], errors='coerce')
 
-        bd2 = bd1['b_date'].to_frame()        
+        bd2 = bd1['adj_bdate'].to_frame()        
         day_nums_df = pd.DataFrame(index=self.rng)
         
         for i in bd2.index:
             
-            date = bd2.loc[i,'b_date']
+            date = bd2.loc[i,'adj_bdate']
 
             days_range = pd.date_range(date, self.today)
             day_nums1 = pd.Series(range(1,len(days_range)+1), index=days_range, name=i)
@@ -177,6 +177,7 @@ class HeiferCostModel:
         tfc1['month'] = tfc1.index.month
         
         tfc2 = tfc1.groupby(['year', 'month']).sum()
+        tfc2['heifer_cost'] = tfc2.sum(axis=1)
         
         self.heifer_feedcost_monthly = tfc2
         

@@ -78,7 +78,7 @@ class MilkIncome:
         
         income_monthly1     = income_daily2.groupby(['year','month']).agg(
             {
-                'avg liters' : 'sum',
+                'avg liters' : 'mean',
                 'avg gross'  : 'sum',
                 'avg dtoc'    : 'sum'
             }
