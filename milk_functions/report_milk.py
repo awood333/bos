@@ -41,9 +41,9 @@ class ReportMilk:
             # Insert blank column between each
             row = []
             row.extend(r1)
-            # row.append("")
+            row.append("")
             row.extend(r2)
-            # row.append("")
+            row.append("")
             row.extend(r3)
             output_rows.append(row)
 
