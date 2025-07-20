@@ -8,8 +8,8 @@ class TaxDocs_NonCapex:
         bkk1a['datex'] = pd.to_datetime(bkk1a['datex'], errors='coerce')
         bkk1a.set_index(['datex', 'year', 'month'], inplace=True)
 
-        bkk1b= bkk1a.loc[bkk1a.index.get_level_values('year') >= 2024 ]
-        bkk1c= bkk1b.iloc[:,:9].copy()
+        bkk1b= bkk1a.loc[bkk1a.index.get_level_values('year') >= 2025 ]
+        bkk1c= bkk1b.iloc[:,:12].copy()
         bkk1c['debit'] = bkk1c['debit'].fillna(0)
         bkk1c['debit'] = bkk1c['debit'].astype(float)
         self.bkk = bkk1c
@@ -30,9 +30,9 @@ class TaxDocs_NonCapex:
         tapioca = feed.loc[(feed['descr 2'] == 'tapioca')]
         yellow_beans = feed.loc[(feed['descr 2'] == 'yellow beans')]
         
-        corn.to_csv('F:\\COWS\\data\\finance\\tax_docs\\corn_2024_H2.csv')
-        tapioca.to_csv('F:\\COWS\\data\\finance\\tax_docs\\tapioca_2024_H2.csv')
-        yellow_beans.to_csv('F:\\COWS\\data\\finance\\tax_docs\\yellow_beans_2024_H2.csv')
+        corn.to_csv('F:\\COWS\\data\\finance\\tax_docs\\corn.csv')
+        tapioca.to_csv('F:\\COWS\\data\\finance\\tax_docs\\tapioca.csv')
+        yellow_beans.to_csv('F:\\COWS\\data\\finance\\tax_docs\\yellow_beans.csv')
 
         return
     

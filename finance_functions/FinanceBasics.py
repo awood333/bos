@@ -29,18 +29,25 @@ class FinanceBasics:
         
         bkk2 = self.bkk1[   
             (
-                (self.bkk1['year'] >= 2024 )
-                & (self.bkk1['month'] >= 1)
+                (self.bkk1['year'] >= 2025 )
+                & (self.bkk1['month'] <7)
+                & (self.bkk1['capex'].isnull() )
             )  ].copy()
         
         bkk2  = bkk2.set_index(['year', 'month'])
         bkk2  = bkk2.reset_index()
         
         
-        bkk3 = bkk2.drop(columns=['day','transaction',
+        bkk3 = bkk2.drop(columns=['day','transaction', 'index',
             'credit','descr 3','capex'])
         
-        bkk3  = bkk3[bkk3['descr 1'].notna()].copy()
+        bkk3  = bkk3[(bkk3['descr 1'].notna()
+                     & (bkk3['descr 1'] != 'nonfarm')
+                     & (bkk3['descr 1'] != '?')
+                     )
+                     ].copy()
+        
+        
         bkk3['debit']  = pd.to_numeric(bkk3['debit'], errors='coerce')
         self.cost_df = bkk3
         
@@ -60,10 +67,21 @@ class FinanceBasics:
         bkk4 = bkk4.reset_index()
         self.bkk3 = bkk4
         
-        bkk5 = bkk4.drop(columns=['sale',  'feed']) 
-        bkk5.loc     [:,'total cost']    = bkk5.sum(axis = 1)    # last col
+        bkk5 = bkk4.drop(columns=[ 'feed']) 
+        total_row = bkk5.sum(axis=0, numeric_only=True).to_dict() 
+        #dict avoids dtype probs in concat with numeric and text in same row
+        
+        total_row['year'] = 'Total'
+        total_row['month'] = ''
+       
 
-        self.cost_xfeed_pivot = bkk5
+        bkk5a = pd.concat([bkk5, pd.DataFrame([total_row])], ignore_index=True)
+        bkk5a["sum"] = bkk5a.sum(axis=1, numeric_only=True)
+
+        
+          
+
+        self.cost_xfeed_pivot = bkk5a
         
         return self.cost_xfeed_pivot
 
@@ -82,11 +100,23 @@ class FinanceBasics:
             columns= 'descr 2',
             aggfunc= 'sum'
             )
-        self.feedcost_pivot = bkk9
-        
+        bkk9 = bkk9.reset_index()  # Make 'year' and 'month' columns
+        # Sum only numeric columns
+        numeric_cols = bkk9.select_dtypes(include='number').columns
+        total_row = bkk9[numeric_cols].sum(axis=0)
+        # Create a dict for the total row with all columns
+        total_dict = {col: '' for col in bkk9.columns}
+        total_dict.update(total_row)
+        total_dict['year'] = 'Total'
+        total_dict['month'] = ''
+        total_row_df = pd.DataFrame([total_dict], columns=bkk9.columns)
+
+        bkk10 = pd.concat([bkk9, total_row_df], ignore_index=True)
+        numeric_cols = bkk10.columns.drop(['year', 'month'])
+        bkk10["sum"] = bkk10[numeric_cols].apply(pd.to_numeric, errors='coerce').sum(axis=1)
+
+        self.feedcost_pivot = bkk10
         return self.feedcost_pivot
-
-
     
     def create_write_to_csv(self):
         

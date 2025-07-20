@@ -9,11 +9,11 @@ class TaxDocs_Depreciation:
         bkk1a.set_index(['datex', 'year', 'month'], inplace=True)
 
         bkk1b= bkk1a.loc[(
-            (bkk1a.index.get_level_values('year') >= 2023) 
+            (bkk1a.index.get_level_values('year') >= 2024) 
             & bkk1a['credit'].isnull()
-             )]
+             )].copy()
         
-        bkk1c= bkk1b.iloc[:,:9].copy()
+        bkk1c= bkk1b.iloc[:,:12].copy()
         bkk1c['debit'] = bkk1c['debit'].fillna(0)
         bkk1c['debit'] = bkk1c['debit'].astype(float)
         self.bkk = bkk1c

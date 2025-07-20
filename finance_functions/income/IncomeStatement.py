@@ -27,7 +27,6 @@ class IncomeStatement:
         start_date = (2025, 1)
    
         ni = self.net_income
-        ni.index =  ni.index.droplevel('days')
         
         inc1 = pd.concat(
             [ni, self.Capex.non_capex_pivot, self.dtoc],
