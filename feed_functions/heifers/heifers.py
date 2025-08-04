@@ -1,25 +1,25 @@
 '''heifers.py'''
 
-from datetime import datetime
+from datetime import datetime, timedelta
 import pandas as pd
 import numpy as np
 
-from feed_functions.feedcost_basics import FeedCostBasics
+from feed_functions.feedcost_basics import Feedcost_basics
 from insem_functions.Insem_ultra_data import InsemUltraData
 
 class Heifers:
     def __init__(self):
 
-        self.FCB = FeedCostBasics()
+        self.FCB = Feedcost_basics()
         self.IUD = InsemUltraData()
         
         
         #feed costs
-        self.dry_feed_cost  = self.FCB.current_feed_cost['dry_cost'].loc['sum']
-        self.dry_feed_kg    = self.FCB.current_feed_cost['dry_kg'].loc['sum']
+        self.dry_feed_cost  = self.FCB.current_feedcost['dry_cost'].loc['sum']
+        self.dry_feed_kg    = self.FCB.current_feedcost['dry_kg'].loc['sum']
         self.dry_feed_cost_kg = self.dry_feed_cost / self.dry_feed_kg
         self.TMR_costper_kg = self.dry_feed_cost / self.dry_feed_kg
-        self.bean_cost  =  self.FCB.current_feed_cost['unit_price'].loc['beans']
+        self.bean_cost  =  self.FCB.current_feedcost['unit_price'].loc['beans']
 
         now = datetime.now()
         self.today = pd.to_datetime(now)
@@ -28,8 +28,8 @@ class Heifers:
         self.days_to_calf = 365+365+90 #820 this is cut-off for feed calc
         
 
-        self.heifers, self.heifer_ids       = self.create_heifer_df()
-        self.days3, self.date_col       = self.create_heifer_days()
+        self.heifers, self.heifer_ids_list       = self.create_heifer_df()
+        self.days3, self.date_index_col       = self.create_heifer_days()
         
         [self.milk_drinking_days, 
         self.cost_milk ]                = self.calc_milkdrinking_days()
@@ -55,51 +55,37 @@ class Heifers:
         heifers1['age_days'] = (self.today - heifers1['b_date']).dt.days
 
         heifers1.reset_index()
-        self.heifer_ids = heifers1['heifer_ids'].to_list()
+        self.heifer_ids_list = heifers1['heifer_ids'].to_list()
         
         self.heifers = heifers1
                  
-        return self.heifers, self.heifer_ids
+        return self.heifers, self.heifer_ids_list
     
     def create_heifer_days(self):
-        heifers = pd.DataFrame(
-            columns = self.heifers['heifer_ids'],
-            index=  self.rng                    #creates an array with heifer_ids cols and datex index
-            )
-        
-        self.date_col = heifers.index.to_list()      
-        days2 = days3 = pd.DataFrame()
-        
-        
-        
+    
+        #   initialize dfs
+        days2 = pd.DataFrame(index=self.rng)
         for i in self.heifers.index: #integer index from 0
             
-            birth_date = pd.to_datetime(self.heifers.loc[i,'birth_date'])
-            calving_date = birth_date + timedelta(days=self.days_to_calf)
+            namex = self.heifer_ids_list[i]  # name will be the header of the days series
+            birth_date = self.heifers.loc[i,'b_date'].date()
+            calving_date = birth_date + timedelta(days=self.days_to_calf) #defined in constructor  integer 820 (days)
+
+            start = birth_date
+            stop = calving_date
             
-            if not pd.isna(birth_date):  
-                end_date1   = birth_date
-                end_date   = pd.to_datetime(end_date1)
-            
-            elif pd.isna(birth_date):
-                end_date = self.days_to_calf
-            
-            for j in self.date_col:  #defined in constructor
-                start = self.heifers.loc[i,'b_date']
-                stop = end_date
-                
-                days_range = pd.date_range(start, stop)
-                day_nums = pd.Series(range(1,len(days_range)+1), index=days_range)
-                days1a = pd.DataFrame(day_nums, days_range)
-                days1  = days1a.reindex(self.rng)
+            days_range = pd.date_range(start, stop)
+            day_nums_series = pd.Series(range(0,len(days_range)), index=days_range, name=namex)
+            days_nums_df = pd.DataFrame(day_nums_series, days_range)
+            days1  = days_nums_df.reindex(self.rng)
                 
             days2 = pd.concat([days2, days1], axis=1)
-        days3 = pd.concat([days3, days2], axis=0)
-        days3.columns = self.heifer_ids
+        # days3 = pd.concat([days3, days2], axis=0)
+        # days3.columns = self.heifer_ids_list
             
-        self.days = days3
+        self.days = days2
         
-        return self.days,  self.date_col
+        return self.days,  self.date_index_col
     
     
     def calc_milkdrinking_days(self):
@@ -107,7 +93,7 @@ class Heifers:
         cost_milk2 = []
         str_cols = [str(x) for x in self.days.columns]
         
-        for i in self.heifer_ids:
+        for i in self.heifer_ids_list:
             
             days = self.days.loc[:,i]
                 
@@ -122,8 +108,8 @@ class Heifers:
             cost_milk2.append(cost_milk1)
 
         
-        self.milk_drinking_days = pd.DataFrame([milk_drinking2], columns=self.heifer_ids)
-        self.cost_milk = pd.DataFrame([cost_milk2], columns=self.heifer_ids)    
+        self.milk_drinking_days = pd.DataFrame([milk_drinking2], columns=self.heifer_ids_list)
+        self.cost_milk = pd.DataFrame([cost_milk2], columns=self.heifer_ids_list)    
         return self.milk_drinking_days, self.cost_milk
     
     def calc_TMR_days(self):
@@ -131,9 +117,9 @@ class Heifers:
         TMR_cost2 = TMR_cost3 = pd.DataFrame()
 
         
-        for i in self.heifer_ids:
+        for i in self.heifer_ids_list:
             heif = self.heifers
-            heif = heif.set_index('heifer_ids', drop=True)
+            heif = heif.set_index('heifer_ids_list', drop=True)
             days = self.days.loc[:,i]     
             max_days = days.max()
             days_left = max_days - 90  # = days after 90 day milkdrinking 
@@ -218,10 +204,10 @@ class Heifers:
         yellow_beans_amt_days2 = pd.DataFrame()
         yellow_beans_cost2 = pd.DataFrame()
         
-        for i in self.heifer_ids:
+        for i in self.heifer_ids_list:
             
             heif = self.heifers
-            heif = heif.set_index('heifer_ids', drop=True)
+            heif = heif.set_index('heifer_ids_list', drop=True)
             days = self.days.loc[:,i]     
             max_days = days.max()
             amt_beans = 1   #manually enter current amount (kgs)
@@ -274,9 +260,9 @@ class Heifers:
         
         new_index = pd.DataFrame()
         
-        wy = self.heifer_ids
+        wy = self.heifer_ids_list
         heif1 = self.heifers
-        heif1 = heif1.set_index('heifer_ids', drop=True)
+        heif1 = heif1.set_index('heifer_ids_list', drop=True)
         age = heif1['age_days']
         
         for i in wy:
