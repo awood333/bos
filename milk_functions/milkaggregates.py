@@ -196,8 +196,8 @@ class MilkAggregates:
         
         self.halfday = self.halfday_AM.merge(self.halfday_PM, how='left', left_index=True, right_index=True)
         self.halfday.columns = ['AM', 'PM']
-        self.halfday.index.name = str(pd.to_datetime(self.datex[-1]).strftime('%Y-%m-%d'))
-        
+        self.halfday.index.name = 'WY_id'
+        self.halfday = self.halfday.reset_index()
             
         return self.halfday_AM, self.halfday_PM, self.halfday
 
@@ -235,11 +235,14 @@ class MilkAggregates:
         days.index = days.index.astype('int').astype('str')
         tendayT.index = tendayT.index.astype('str')
  
-        self.tenday = tendayT.merge(days, 
+        tenday2 = tendayT.merge(days, 
                     how='left', 
                     left_index=True, 
                     right_index=True
                                     )
+        # tenday2.index.name = 'WY_id_1'
+        tenday3 = tenday2.reset_index()
+        self.tenday = tenday3
         
 
         
