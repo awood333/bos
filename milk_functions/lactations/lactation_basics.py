@@ -3,17 +3,13 @@
 import pandas as pd
 import numpy as np
 from MilkBasics    import MilkBasics
-from status_functions.WetDry          import WetDry
-from utilities.override_print_limit import override_print_limits
 
 class Lactation_basics:
 
-    def __init__(self):
+    def __init__(self, milk_basics=None):
         
-        self.MB     = MilkBasics()
-        self.WD     = WetDry()
+        self.MB = milk_basics or MilkBasics()
         
-      
         self.lactations_array, self.headers = self.create_lactation_basics()
         
 

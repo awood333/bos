@@ -1,3 +1,4 @@
+import inspect
 import pandas as pd 
 
 from insem_functions.insem_ultra_basics import InsemUltraBasics
@@ -6,13 +7,14 @@ from MilkBasics import MilkBasics
 from status_functions.statusData2 import StatusData2
 
 class Ipiv:
-    def __init__ (self):
+    def __init__ (self, insem_ultra_basics=None, insem_ultra_data=None, milk_basics=None, status_data2=None):
         
-        self.IUB = InsemUltraBasics()
-        self.IUD = InsemUltraData()
+        print(f"Ipiv instantiated by: {inspect.stack()[1].filename}")
+        self.IUB = insem_ultra_basics or InsemUltraBasics()
+        self.IUD = insem_ultra_data or InsemUltraData()
         
-        self.MB  = MilkBasics()
-        self.SD2  = StatusData2()
+        self.MB  = milk_basics or MilkBasics()
+        self.SD2 = status_data2 or StatusData2()
         
         self.insem      = self.MB.data['i']
         alive_ids1      = self.MB.data['bd'][self.MB.data['bd']['death_date'].isnull()]

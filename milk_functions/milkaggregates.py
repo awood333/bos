@@ -1,28 +1,28 @@
-
-'''milk_related\\milk_aggregates.py'''
+'''milk_functions\\milk_aggregates.py'''
 
 from datetime import datetime
 import sys
 import os
+import inspect
 import pandas as pd
 import numpy as np
-
-from MilkBasics import MilkBasics
 from insem_functions.Insem_ultra_data import InsemUltraData
-# from milk_functions.sahagon import sahagon
+from MilkBasics import MilkBasics
 
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-IUD = InsemUltraData()
-
 class MilkAggregates:
-    def __init__(self):
+    def __init__(self,  insem_ultra_data=None, milk_basics=None):
         
-        self.data = MilkBasics().data
+        print(f"MilkAggregates instantiated by: {inspect.stack()[1].filename}")
+        
+        IUD = insem_ultra_data or InsemUltraData()
         self.allx = IUD.allx
-        # self.sahagon = sahagon()
-
+        
+        MB = milk_basics or MilkBasics()
+        self.data = MB.data
+        
         self.lag     = -10
         print('lag = ', self.lag)
         
@@ -308,5 +308,5 @@ class MilkAggregates:
         # with pd.ExcelWriter('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\halfday.xlsx', engine='openpyxl') as writer:
         #     self.halfday.to_excel(writer, sheet_name='halfday')
 if __name__ == '__main__':
-    milk_aggregates = MilkAggregates()
+    MilkAggregates()
     

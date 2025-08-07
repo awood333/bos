@@ -24,12 +24,12 @@ class DataLoader:
         return data
         
 class Feedcost_basics:
-    def __init__(self):
+    def __init__(self, milk_basics=None, date_range=None, status_data=None):
         self.data_loader = DataLoader('F:/COWS/data/feed_data/feed_csv')
        
-        self.data = MilkBasics().data
-        self.DR = DateRange()
-        self.SD = StatusData()
+        self.data = milk_basics or MilkBasics().data
+        self.DR = date_range or DateRange()
+        self.SD = status_data or StatusData()
         self.feed_type =  ['corn','cassava','beans','straw', 'bypass_fat']
 
         self.rng_monthly    = self.DR.date_range_monthly

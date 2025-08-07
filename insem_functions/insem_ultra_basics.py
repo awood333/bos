@@ -1,17 +1,16 @@
 '''InsemUltraBasics.py'''
-
+import inspect
 import pandas as pd
 import numpy as np
-# from datetime import date, timedelta, datetime
-
 from MilkBasics import MilkBasics
 
 tdy = pd.Timestamp.today()
 
 class InsemUltraBasics:
-    def __init__(self):
+    def __init__(self, milk_basics=None):
         
-        self.MB = MilkBasics()
+        print(f"InsemUltraBasics instantiated by: {inspect.stack()[1].filename}")
+        self.MB = milk_basics or MilkBasics()
         self.df      = pd.DataFrame()
         
         self.data = self.MB.dataLoader()

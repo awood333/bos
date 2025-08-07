@@ -23,13 +23,13 @@ class Heifers:
 
         now = datetime.now()
         self.today = pd.to_datetime(now)
-        self.rng = pd.date_range('2022-01-01', self.today)
+        self.rng = pd.date_range('2024-07-12', self.today)  #bdate of oldest heifer
         self.days_to_sale = 365+365+60  #days to 2months before calving...based on insem at 18m
         self.days_to_calf = 365+365+90 #820 this is cut-off for feed calc
         
 
         self.heifers, self.heifer_ids_list       = self.create_heifer_df()
-        self.days3, self.date_index_col       = self.create_heifer_days()
+        self.heifer_days                     = self.create_heifer_days()
         
         [self.milk_drinking_days, 
         self.cost_milk ]                = self.calc_milkdrinking_days()
@@ -45,7 +45,7 @@ class Heifers:
     
     def create_heifer_df(self):
         
-        heifers1 = pd.read_csv("F:\\COWS\\data\\csv_files\\heifers_birth_death.csv", 
+        heifers1 = pd.read_csv("F:\\COWS\\data\\csv_files\\heifers.csv", 
             header=0, index_col=None)
         heifers1['b_date'] = pd.to_datetime(heifers1['b_date'])
         heifers1['first_calf_bdate'] = pd.to_datetime(heifers1['first_calf_bdate'])
@@ -80,36 +80,31 @@ class Heifers:
             days1  = days_nums_df.reindex(self.rng)
                 
             days2 = pd.concat([days2, days1], axis=1)
-        # days3 = pd.concat([days3, days2], axis=0)
-        # days3.columns = self.heifer_ids_list
             
-        self.days = days2
+        self.heifer_days = days2
         
-        return self.days,  self.date_index_col
+        return self.heifer_days
     
     
     def calc_milkdrinking_days(self):
-        milk_drinking2=[]
-        cost_milk2 = []
-        str_cols = [str(x) for x in self.days.columns]
+        milk_drinking_days1, milk_drinking_days =[],[]
+       
+        # heifer_ids_str = [str(x) for x in self.heifer_days.columns]  #heifer id nums -- in days. they are integer
         
-        for i in self.heifer_ids_list:
+        for i in self.heifer_days.columns:  #strings now
             
-            days = self.days.loc[:,i]
-                
-            milk_drinking1a = days[ 
-                (days > 0) & (days <= 90)
-                ].dropna()
+            days3 = self.heifer_days[i]
+            milk_drinking_days1 = len(days3.loc
+            [( ~pd.isna(days3))
+                & (days3 < 90) 
+                & (days3 >=0)
+            ])
             
-            milk_drinking1b = len(milk_drinking1a)
-            cost_milk1       = milk_drinking1b * 22
-            
-            milk_drinking2.append(milk_drinking1b)
-            cost_milk2.append(cost_milk1)
-
+            milk_drinking_days.append(milk_drinking_days1)
+            milk_drinking_days1=[]
         
-        self.milk_drinking_days = pd.DataFrame([milk_drinking2], columns=self.heifer_ids_list)
-        self.cost_milk = pd.DataFrame([cost_milk2], columns=self.heifer_ids_list)    
+        self.milk_drinking_days = pd.DataFrame(milk_drinking_days, columns=self.heifer_ids.columns)
+  
         return self.milk_drinking_days, self.cost_milk
     
     def calc_TMR_days(self):

@@ -24,7 +24,11 @@ class HeiferCostModel:
         self.kg_progression = pd.DataFrame(np.linspace(6.0, 22.0, 300), columns=['kg'])
         
         # functions
-        self.day_nums_df            = self.create_heifer_days()
+        [self.day_nums_df,
+        self.mask_born_here,
+        self.mask_born_elsewhere,
+        self.heifer_ids]   = self.create_heifer_days()
+        
         self.feed_price_df          = self.create_daily_feedprice()
         
         self.diet, self.TMR_cost_kg = self.create_daily_feedcost()
@@ -39,15 +43,21 @@ class HeiferCostModel:
         
     def create_heifer_days(self):
         
-        bd1 = pd.read_csv('F:\\COWS\\data\\csv_files\\heifers_birth_death.csv', index_col=0)
-        bd1['b_date'] = pd.to_datetime(bd1['b_date'], errors='coerce')
-
-        bd2 = bd1['adj_bdate'].to_frame()        
+        bd1 = pd.read_csv('F:\\COWS\\data\\csv_files\\heifers.csv')
+        bd1['b_date']    = pd.to_datetime(bd1['b_date'], errors='coerce')
+        bd1['adj_bdate'] = pd.to_datetime(bd1['adj_bdate'], errors='coerce')
+        # = bd1['adj_bdate'].to_frame()   
+        
+        self.mask_born_here      = bd1.loc[(bd1['arrived'].isnull(), 'heifer_ids')].reset_index(drop=True) 
+        self.mask_born_elsewhere = bd1.loc[(bd1['arrived'].notnull(), ['heifer_ids', 'arrived'])].reset_index(drop=True) 
+        self.mask_born_elsewhere['arrived'] = pd.to_datetime(self.mask_born_elsewhere['arrived'], errors='coerce')
+        
+        self.heifer_ids = pd.Series(bd1['heifer_ids'])
         day_nums_df = pd.DataFrame(index=self.rng)
         
-        for i in bd2.index:
+        for i in bd1.index:
             
-            date = bd2.loc[i,'adj_bdate']
+            date = bd1.loc[i,'b_date']
 
             days_range = pd.date_range(date, self.today)
             day_nums1 = pd.Series(range(1,len(days_range)+1), index=days_range, name=i)
@@ -57,7 +67,7 @@ class HeiferCostModel:
 
         self.day_nums_df = day_nums_df
         
-        return self.day_nums_df
+        return self.day_nums_df, self.mask_born_here, self.mask_born_elsewhere, self.heifer_ids
     
     def create_daily_feedprice(self):
         
@@ -165,9 +175,26 @@ class HeiferCostModel:
         
         dtc = self.daily_TMR_cost
         mdc = self.milk_drinking_cost
-        total_cost  = dtc.add(mdc)
+        total_cost1  = dtc.add(mdc)
+        total_cost1.columns = self.heifer_ids
         
-        self.heifer_feedcost_daily = total_cost
+        
+        total_cost_born_here        = total_cost1.loc[:,self.mask_born_here]
+       
+        
+        valid_cost2=pd.DataFrame()
+        for _, row in self.mask_born_elsewhere.iterrows():
+            heifer_id = row['heifer_ids']
+            arrived_date = row['arrived']
+            # Select only rows after arrived_date for this heifer
+            valid_cost1 = total_cost1.loc[total_cost1.index >= arrived_date, heifer_id]
+            valid_cost2[heifer_id] = valid_cost1
+
+        
+        total_cost_born_elsewhere = valid_cost2
+        
+        self.heifer_feedcost_daily = pd.concat([total_cost_born_here, total_cost_born_elsewhere], axis=1)
+        
         return self.heifer_feedcost_daily
         
         

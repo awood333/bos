@@ -1,19 +1,19 @@
 '''milk_functions\\statusData.py'''
-
+import inspect
 import pandas as pd
 
 from CreateStartDate import DateRange
-# from insem_functions.insem_ultra_basics import InsemUltraBasics
 from MilkBasics import MilkBasics
 
 
 class StatusData:
     
-    def __init__(self):
+    def __init__(self, date_range=None, milk_basics=None):
 
-        self.MB = MilkBasics()                
-
-        self.CSD =  DateRange()
+        print(f"StatusData instantiated by: {inspect.stack()[1].filename}")
+        
+        self.MB = milk_basics or MilkBasics()                
+        self.CSD = date_range or DateRange()
              
         # self.lb = self.insem_ultra_basics.create_last_calf()
         self.startdate = self.CSD.startdate
