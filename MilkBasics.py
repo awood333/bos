@@ -1,6 +1,6 @@
 '''MilkBasics.py'''
-import pandas as pd
 from typing import Dict, Any
+import pandas as pd
 
 
 class MilkBasics:

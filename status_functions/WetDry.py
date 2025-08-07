@@ -1,5 +1,5 @@
-'''wet_dry.py'''
-
+'''Wet_Dry.py'''
+import inspect
 import pandas as pd
 import numpy as np
 
@@ -9,10 +9,11 @@ from CreateStartDate import DateRange
 today = pd.Timestamp.today()
 
 class WetDry:
-    def __init__(self):
+    def __init__(self, milk_basics=None, date_range=None):
         
-        self.MB         = MilkBasics()
-        self.DR         = DateRange()
+        print(f"WetDry instantiated by: {inspect.stack()[1].filename}")
+        self.MB         = milk_basics or MilkBasics()
+        self.DR         = date_range  or DateRange()
         
         self.ext_rng    = self.MB.data['ext_rng'] # start is 9-1/2016, end is last milking day
         self.milk1      = self.MB.data['milk'] # this is 'milk' betw the cutoff dates/WY's

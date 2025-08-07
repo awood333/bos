@@ -1,5 +1,5 @@
 '''milk_functions\\status_groups.py'''
-
+import inspect
 import pandas as pd
 
 from CreateStartDate import DateRange
@@ -11,13 +11,14 @@ from insem_functions.insem_ultra_basics import InsemUltraBasics
 
 
 class statusGroups:
-    def __init__ (self):
+    def __init__ (self, date_range=None, status_data=None, wet_dry=None, milk_basics=None, insem_ultra_basics=None):
         
-        SD     = StatusData()
-        self.CSD    = DateRange()
-        self.MB     = MilkBasics()
-        self.IUB    = InsemUltraBasics()
-        self.WD     = WetDry()
+        print(f"statusGroups instantiated by: {inspect.stack()[1].filename}")
+        SD          = status_data or StatusData()
+        self.CSD    = date_range or DateRange()
+        self.MB     = milk_basics or MilkBasics()
+        self.IUB    = insem_ultra_basics or InsemUltraBasics()
+        self.WD     = wet_dry or WetDry()
         
         self.DRM    = self.CSD.date_range_monthly_data
         self.startdate = self.CSD.startdate

@@ -1,25 +1,25 @@
-'''insem_ultra.py'''
+'''insem_ultra_data.py'''
 
-import pandas as pd
-import numpy as np
-from datetime import datetime
+from    datetime import datetime
+import  inspect
+import  pandas  as pd
 
-from status_functions.statusData2    import StatusData2
-from MilkBasics                     import MilkBasics
+from status_functions.statusData2       import StatusData2
+from MilkBasics                         import MilkBasics
 from insem_functions.insem_ultra_basics import InsemUltraBasics
 
 
-
 class InsemUltraData:
-    def __init__(self):
-        self.IUB = InsemUltraBasics()
-        self.SD = StatusData2()
+    def __init__(self, insem_ultra_basics=None, status_data2=None, milk_basics=None):
+        
+        print(f"InsemUltraData instantiated by: {inspect.stack()[1].filename}")
+        self.IUB = insem_ultra_basics or InsemUltraBasics()
+        self.SD  = status_data2 or StatusData2()
         self.status_col = self.SD.status_col
         
-        self.mb = MilkBasics()
+        self.mb = milk_basics or MilkBasics()
         
         self.data = self.mb.dataLoader()
-
         self.alive_mask = self.data['bd']['death_date'].isnull()     
 
         self.date_format = '%m/%d/%Y'

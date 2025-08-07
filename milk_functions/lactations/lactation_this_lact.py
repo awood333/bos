@@ -1,13 +1,13 @@
 '''milk_functions.lactations.lactation_this.py'''
 
-from MilkBasics import MilkBasics
+import inspect
 from status_functions.WetDry import WetDry
 
 class ThisLactation():
-    def __init__(self):
+    def __init__(self, wet_dry=None):
         
-        self.data = MilkBasics().data
-        self.WD  = WetDry()
+        print(f"ThisLactation instantiated by: {inspect.stack()[1].filename}")
+        self.WD = wet_dry or WetDry()
         self.milking = self.create_weekly()
         self.create_write_to_csv()
         

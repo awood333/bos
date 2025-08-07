@@ -1,12 +1,13 @@
+
+import inspect
 import pandas as pd
-import numpy as np
-from datetime import datetime, date
 from MilkBasics import MilkBasics
 
 class I_U_merge:
-    def __init__(self):
+    def __init__(self, milk_basics=None):
         
-        MB = MilkBasics()
+        print(f"I_U_merge instantiated by: {inspect.stack()[1].filename}")
+        MB = milk_basics or MilkBasics()
         self.data = MB.data
         self.iu = self.create_basics()
         self.create_write_to_csv() 

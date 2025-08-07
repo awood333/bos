@@ -1,12 +1,14 @@
+import inspect
 import pandas as pd 
 from insem_functions.Insem_ultra_data import InsemUltraData
 from milk_functions.milkaggregates  import MilkAggregates
 
 class TendayMilkingDays:
-    def __init__ (self):
+    def __init__ (self, insem_ultra_data=None, milk_aggregates=None):
         
-        IUD = InsemUltraData()
-        self.MA  = MilkAggregates()
+        print(f"TendayMilkingDays instantiated by: {inspect.stack()[1].filename}")
+        IUD      = insem_ultra_data or InsemUltraData()
+        self.MA  = milk_aggregates or MilkAggregates()
         
         self.days = IUD.allx.loc[:,['WY_id','days milking']]
         self.preg = IUD.allx.loc[:,['WY_id','u_read', 'expected bdate']]
