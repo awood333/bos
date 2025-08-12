@@ -35,7 +35,7 @@ class Ipiv:
         this_calf = lc[lc['WY_id'].isin(self.alive_ids)]
         
         insem1 = self.insem.copy()
-        insem1['calf_num'] = insem1['calf_num'].fillna('0').astype(float)
+        insem1['calf_num'] = insem1['calf_num'].fillna('0').astype(int)
         
         this_calf1 = this_calf.merge(insem1,
                                       left_on=['WY_id', 'lact#'],
@@ -44,12 +44,20 @@ class Ipiv:
 
         this_calf2 = this_calf1.drop(columns=['calf_num','typex', 'readex'])
         
-        self.ipiv_all_basic = pd.pivot_table(this_calf2,
+        ipiv_all_basic = pd.pivot_table(this_calf2,
             values='insem_date',
             index=['WY_id', 'lact#'],
             columns='try_num'
         )
-                                   
+        ipiv_all_basic.columns = [
+            str(int(col)) if isinstance(col, float) and col.is_integer() else str(col)
+            for col in ipiv_all_basic.columns
+        ]
+        
+        for col in ipiv_all_basic.columns:
+            ipiv_all_basic[col] = pd.to_datetime(ipiv_all_basic[col], errors='coerce').dt.strftime('%Y-%m-%d')
+        
+        self.ipiv_all_basic = ipiv_all_basic                                   
              
         return self.ipiv_all_basic
     
