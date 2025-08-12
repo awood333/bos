@@ -30,7 +30,7 @@ class Feedcost_basics:
         self.data = milk_basics or MilkBasics().data
         self.DR = date_range or DateRange()
         self.SD = status_data or StatusData()
-        self.feed_type =  ['corn','cassava','beans','straw', 'bypass_fat']
+        self.feed_type =  ['corn','cassava','beans','straw', 'bypass_fat', 'premix', 'NaHCO3']
 
         self.rng_monthly    = self.DR.date_range_monthly
         self.rng_monthly2   = self.DR.date_range_monthly2
@@ -280,7 +280,11 @@ class Feedcost_basics:
     
     def write_to_csv(self):
         
-        self.current_feedcost   .to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\current_feedcost_per_cow.csv')        
+        self.current_feedcost       .to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\current_feedcost_per_cow.csv')
+        self.unit_prices_daily      .to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\unit_prices_daily.csv')
+        self.totalcost_D_df         .to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\totalcost_D_df.csv')
+        # self.last_values_all_df     .to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\last_values_all_df.csv')
+                
         self.feedcost_daily     .to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\feedcostByGroup__per_cow_daily.csv')
         self.feedcost_monthly   .to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\feedcostByGroup__per_cow_monthly.csv')
         

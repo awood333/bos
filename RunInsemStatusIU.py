@@ -17,6 +17,7 @@ from insem_functions.Ipiv                   import Ipiv
 from insem_functions.I_U_merge              import I_U_merge
 
 from feed_functions.feedcost_basics         import Feedcost_basics
+# from insem_functions.Ipiv_dash_app          import run_ipiv_dash_app_with_ipiv
 
 
 
@@ -39,4 +40,4 @@ class Main():
         
         
 if __name__ == "__main__":
-    Main()
+    main = Main()
