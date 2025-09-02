@@ -1,19 +1,18 @@
 '''run_milk_functs.py'''
 
-from milk_functions.lactations.lactation_this_lact  import ThisLactation
-from milk_functions.lactations.lactations_weekly import WeeklyLactations
-from milk_functions.lactations.lactation_basics import Lactation_basics
+from milk_functions.lactation.this_lactation  import ThisLactation
+from milk_functions.lactation.weekly_lactations import WeeklyLactations
+from milk_functions.lactation.lactation_basics import LactationBasics
 
-from milk_functions.milkaggregates import MilkAggregates
-from status_functions.WetDry      import WetDry
+from milk_functions.milk_aggregates import MilkAggregates
+from status_functions.wet_dry      import WetDry
 
 
 def Main():
     
     ThisLactation()
     WeeklyLactations()
-    Lactation_basics()
-    
+    LactationBasics()
     MilkAggregates()  
     WetDry()
 

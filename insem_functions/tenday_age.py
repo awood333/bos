@@ -1,7 +1,7 @@
 import inspect
 import pandas as pd 
 from insem_functions.Insem_ultra_data import InsemUltraData
-from milk_functions.milkaggregates  import MilkAggregates
+from milk_functions.milk_aggregates   import MilkAggregates
 
 class TendayMilkingDays:
     def __init__ (self, insem_ultra_data=None, milk_aggregates=None):

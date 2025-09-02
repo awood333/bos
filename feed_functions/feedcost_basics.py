@@ -1,14 +1,12 @@
 '''feed_functions\\feedcost_basics.py'''
-
+import inspect
 import os       #don't erase
-# from datetime import datetime
 import pandas as pd
 
 from CreateStartDate import DateRange
 from status_functions.statusData import StatusData
 from MilkBasics import MilkBasics 
 
-# from utilities.logging_setup import LoggingSetup
 
 class DataLoader:
     def __init__(self,base_path):
@@ -25,6 +23,8 @@ class DataLoader:
         
 class Feedcost_basics:
     def __init__(self, milk_basics=None, date_range=None, status_data=None):
+        
+        print(f"Feedcost_basics instantiated by: {inspect.stack()[1].filename}")        
         self.data_loader = DataLoader('F:/COWS/data/feed_data/feed_csv')
        
         self.data = milk_basics or MilkBasics().data

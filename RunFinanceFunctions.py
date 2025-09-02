@@ -1,5 +1,5 @@
 ''''''
-from finance_functions.FinanceBasics import FinanceBasics
+from finance_functions.finance_basics import FinanceBasics
 from finance_functions.income.IncomeStatement import IncomeStatement
 from finance_functions.income.MilkIncome import MilkIncome
 from finance_functions.PL.NetRevenue import NetRevenue

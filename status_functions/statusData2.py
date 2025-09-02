@@ -3,7 +3,7 @@ import inspect
 import pandas as pd
 # import numpy as np
 from CreateStartDate import DateRange
-from insem_functions.insem_ultra_basics import InsemUltraBasics
+# from insem_functions.insem_ultra_basics import InsemUltraBasics
 from MilkBasics import MilkBasics
 
 class StatusData2:
@@ -11,10 +11,10 @@ class StatusData2:
     def __init__(self, date_range=None, insem_ultra_basics=None, milk_basics=None):
         
         print(f"StatusData2 instantiated by: {inspect.stack()[1].filename}")
-        IUB = insem_ultra_basics or InsemUltraBasics()
+        # IUB = insem_ultra_basics or InsemUltraBasics()
         self.MB = milk_basics or MilkBasics() 
 
-        self.days_milking1 = IUB.last_calf.loc[:,'last calf age']
+        # self.days_milking1 = IUB.last_calf.loc[:,'last calf age']
         DR = date_range or DateRange()
         self.startdate  = DR.startdate
         self.rng        = DR.date_range_daily

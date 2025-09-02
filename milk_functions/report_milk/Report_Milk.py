@@ -1,7 +1,7 @@
 import inspect
 import pandas as pd
-from milk_functions.milkaggregates import MilkAggregates
-from milk_functions.milking_groups import MilkingGroups
+from milk_functions.milk_aggregates import MilkAggregates
+from milk_functions.milking_groups  import MilkingGroups
 
 
 class ReportMilk:
@@ -57,6 +57,7 @@ class ReportMilk:
                     df_formatted[col] = df_formatted[col].astype(str)
                     if col in ['ultra', 'u_read']:
                         df_formatted[col] = df_formatted[col].replace(['nan', 'NaN', 'None'], '')
+                        
             return df_formatted
 
         tenday_formatted = format_dataframe(tenday, column_formats)
@@ -68,3 +69,6 @@ class ReportMilk:
         groups_formatted = format_dataframe(groups, column_formats)
 
         return tenday_formatted, halfday_formatted, groups_formatted
+    
+if __name__ == "__main__":
+    ReportMilk()
