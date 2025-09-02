@@ -1,10 +1,10 @@
 '''check_laststop.py'''
 
-import pandas as pd
+# import pandas as pd
 from MilkBasics                             import MilkBasics
 from status_functions.statusData2           import StatusData2
 from insem_functions.insem_ultra_basics       import InsemUltraBasics
-from insem_functions.Insem_ultra_data         import InsemUltraData
+from insem_functions.insem_ultra_data         import InsemUltraData
 
 
 

@@ -1,7 +1,7 @@
 from dash import Dash, html, dash_table
 import webbrowser
 import pandas as pd
-from milk_functions.report_milk.Report_Milk import ReportMilk
+from milk_functions.report_milk.report_milk import ReportMilk
 
 
 

@@ -4,7 +4,7 @@ import pandas as pd
 
 from CreateStartDate import DateRange
 from status_functions.statusData import StatusData
-from status_functions.WetDry import WetDry
+from status_functions.wet_dry import WetDry
 
 from MilkBasics import MilkBasics
 from insem_functions.insem_ultra_basics import InsemUltraBasics

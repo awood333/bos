@@ -1,26 +1,29 @@
-from dash import Dash, html, dash_table
+
 import webbrowser
+from dash import Dash, html, dash_table
 import pandas as pd
-from insem_functions.Ipiv import Ipiv
+from insem_functions.ipiv import Ipiv
 from insem_functions.insem_ultra_basics import InsemUltraBasics
-from insem_functions.Insem_ultra_data import InsemUltraData
+from insem_functions.insem_ultra_data import InsemUltraData
 from MilkBasics import MilkBasics
 from status_functions.statusData2 import StatusData2
 
 
 class IpivDashApp:
-    def __init__(self, insem_ultra_basics=None, insem_ultra_data=None, milk_basics=None, status_data2=None):
+    def __init__(self, insem_ultra_basics=None, insem_ultra_data=None, 
+                 milk_basics=None, status_data2=None):
         self.ipiv = Ipiv(
             insem_ultra_basics=insem_ultra_basics or InsemUltraBasics(),
             insem_ultra_data=insem_ultra_data or InsemUltraData(),
             milk_basics=milk_basics or MilkBasics(),
             status_data2=status_data2 or StatusData2()
         )
-        self.ipiv_all_basic_df = self.ipiv.ipiv_all_basic.reset_index()
+        
         self.ipiv_milkers_df = self.ipiv.ipiv_milkers.reset_index(drop=True)
         
+        
         # Dynamically set column widths
-        cols = list(self.ipiv_all_basic_df.columns)
+        cols = list(self.ipiv_milkers_df.columns)
         self.COLUMN_WIDTHS = {
             cols[0]: '70px',    # WY_id
             cols[1]: '70px',    # lact#

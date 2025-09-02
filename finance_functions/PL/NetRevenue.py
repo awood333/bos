@@ -1,5 +1,5 @@
 '''finance_functions\\PL\\net_revenue_daily.py'''
-
+import inspect
 import pandas as pd
 
 from CreateStartDate import DateRange
@@ -10,15 +10,17 @@ from feed_functions.heifers.heifer_cost_model import HeiferCostModel
 
 
 class NetRevenue:
-    def __init__ (self):
+    def __init__ (self, data_range=None, milk_income=None, feedcost_total=None, heifer_cost_model=None):
         
-        DR = DateRange()
-        self.startdate = DR.start_date()
+        print(f"MilkAggregates instantiated by: {inspect.stack()[1].filename}")        
         
-        self.MI = MilkIncome()
+        DR              = data_range or DateRange()
+        self.startdate  = DR.start_date()
+        
+        self.MI = milk_income or MilkIncome()
         self.SG = sahagon()
-        TF = Feedcost_total()
-        HFC = HeiferCostModel()
+        TF      = feedcost_total or Feedcost_total()
+        HFC     = heifer_cost_model or HeiferCostModel()
         
         
         self.feedcost1 = TF.feedcost

@@ -4,25 +4,35 @@ from datetime import datetime
 import pandas as pd
 # import numpy as np
 
-from status_functions.WetDry            import WetDry
+from status_functions.wet_dry            import WetDry
 from status_functions.statusData        import StatusData
 from MilkBasics                         import MilkBasics
-from feed_functions.feedcost_basics     import FeedCostBasics
-from insem_functions.Insem_ultra_data   import InsemUltraData
+from feed_functions.feedcost_basics     import Feedcost_basics
+from insem_functions.insem_ultra_data   import InsemUltraData
+from insem_functions.insem_ultra_basics import InsemUltraBasics
 
 class CowPL:
-    def __init__(self):
+    def __init__(self, wet_dry=None, status_data=None,
+                 milk_basics=None, feedcost_basics=None,
+                 insem_ultra_data=None, insem_ultra_basics=None):
     
-        self.WD = WetDry()
-        self.SD = StatusData()
-        self.MB = MilkBasics()
-        self.FCB = FeedCostBasics()
-        self.IUD = InsemUltraData()
+        self.WD = wet_dry or WetDry()
+        self.SD = status_data or StatusData()
+        self.MB = milk_basics or MilkBasics()
+        self.FCB = feedcost_basics or Feedcost_basics()
+        self.IUD = insem_ultra_data or InsemUltraData()
+        self.IUB = insem_ultra_basics or InsemUltraBasics()
+        
+        self.last_calf = self.IUB.last_calf.loc[:,['WY_id','last calf#']].copy()
+        
+        alive_ids1      = self.MB.data['bd'][self.MB.data['bd']['death_date'].isnull()]
+        alive_ids2      = alive_ids1.reset_index()
+        self.alive_ids  = alive_ids2['WY_id']
         
         #feed costs
-        self.feed_cost_A    =  self.FCB.current_feed_cost['group_a_cost'].loc['sum']
-        self.feed_cost_B    =  self.FCB.current_feed_cost['group_b_cost'].loc['sum']        
-        self.feed_cost_dry  =  self.FCB.current_feed_cost['dry_cost'].loc['sum']  
+        self.feed_cost_A    =  self.FCB.current_feedcost['group_a_cost'].loc['sum']
+        self.feed_cost_B    =  self.FCB.current_feedcost['group_b_cost'].loc['sum']        
+        self.feed_cost_dry  =  self.FCB.current_feedcost['dry_cost'].loc['sum']  
         
         self.mask_str = self.SD.alive_ids.to_list()
         self.mask_int = self.SD.alive_ids.astype(int).to_list()
@@ -114,7 +124,7 @@ class CowPL:
         
         rev.name = 'revenue'
         self.revenue = pd.DataFrame(rev, columns=['revenue'])
-        # self.revenue.index = self.revenue.index.astype(str)
+        self.revenue.index = self.revenue.index.astype(int)
         
         return self.revenue
     
@@ -123,16 +133,30 @@ class CowPL:
         self.group_table = self.group_table .reset_index().rename(columns={'index': 'WY_id'})
         self.revenue = self.revenue          .reset_index().rename(columns={'index': 'WY_id'})
         
-        nr1 = pd.concat([self.revenue, self.group_table ], axis=1)
+        nr1 = pd.merge(self.revenue, self.group_table, on='WY_id', how='outer' )
         
         nr1['net revenue'] = nr1['revenue'] - nr1['total feedcost']
+        nr1['net P/L now'] = nr1['net revenue'] - 60000
+        nr1['dry/possible%'] = nr1['dry_days'] / nr1['possible_days']
+        nr1 = nr1.set_index('WY_id', drop=True)
+        
+        # Filter with alive_ids
+        lc= self.last_calf
+        
+        this_calf = lc[lc['WY_id'].isin(self.alive_ids)].reset_index(drop=True)
+        this_calf['WY_id'] = pd.to_numeric(this_calf['WY_id'], errors='coerce').dropna().astype(int)
+        this_calf['last calf#'] = pd.to_numeric(this_calf['last calf#'], errors='coerce').dropna().astype(int)
+
+   
+        
+        
         self.net_revenue = nr1
         
         return self.net_revenue
         
     
     def write_to_csv(self):
-        self.net_revenue.to_csv('F:\\COWS\\data\\PL_data\\net_revenue\\net_revenue_from_cowPL.csv')   
+        self.net_revenue.to_csv('F:\\COWS\\data\\PL_data\\net_revenue_each_cow.csv')   
         
         
         

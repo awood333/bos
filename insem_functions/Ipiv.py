@@ -1,28 +1,39 @@
 import inspect
-import pandas as pd 
+import pandas as pd
+# import numpy as np 
 
 from insem_functions.insem_ultra_basics import InsemUltraBasics
-from insem_functions.Insem_ultra_data   import InsemUltraData
-from MilkBasics import MilkBasics
-from status_functions.statusData2 import StatusData2
+from insem_functions.insem_ultra_data   import InsemUltraData
+
+from MilkBasics                         import MilkBasics
+from milk_functions.milking_groups      import MilkingGroups
+from status_functions.statusData2       import StatusData2
+
+from finance_functions.PL.cow_PL        import CowPL
+
 
 class Ipiv:
-    def __init__ (self, insem_ultra_basics=None, insem_ultra_data=None, milk_basics=None, status_data2=None):
+    def __init__ (self, insem_ultra_basics=None, insem_ultra_data=None, 
+                milk_basics=None, milking_groups=None, cow_pl=None,
+                status_data2=None
+                ):
         
         print(f"Ipiv instantiated by: {inspect.stack()[1].filename}")
+        
         self.IUB = insem_ultra_basics or InsemUltraBasics()
         self.IUD = insem_ultra_data or InsemUltraData()
-        
-        self.MB  = milk_basics or MilkBasics()
-        self.SD2 = status_data2 or StatusData2()
+        self.MB  = milk_basics      or MilkBasics()
+        self.MG  = milking_groups   or MilkingGroups()
+        self.CPL = cow_pl           or CowPL()
+        self.SD2 = status_data2     or StatusData2()
         
         self.insem      = self.MB.data['i']
         alive_ids1      = self.MB.data['bd'][self.MB.data['bd']['death_date'].isnull()]
         alive_ids2      = alive_ids1.reset_index()
         self.alive_ids  = alive_ids2['WY_id']
         
-        self.ipiv_all_basic   = self.create_ipiv()  
-        self.ipiv_milkers       = self.limit_ipiv_to_milkers()  
+        self.ipiv_milking   = self.create_ipiv()  
+        self.ipiv_milkers       = self.add_cols_from_allx()  
         self.write_to_csv()
 
   
@@ -31,12 +42,21 @@ class Ipiv:
         lc['last calf#'] += 1
         lc = lc.rename(columns={'last calf#' : 'lact#'})
         
-        # Filter with alive_ids
-        this_calf = lc[lc['WY_id'].isin(self.alive_ids)]
+        group = self.MG.milking_groups.loc[:,['WY_id', 'group']].copy()
+        group['WY_id'] = pd.to_numeric(group['WY_id'], errors='coerce').dropna().astype(int)
+        group = group.sort_values('WY_id').reset_index(drop=True)
         
+        net_rev = self.CPL.net_revenue['net revenue']      
+       
+        # Filter with alive_ids
+        this_calf = lc[lc['WY_id'].isin(self.alive_ids)].reset_index(drop=True)
+        this_calf['WY_id'] = pd.to_numeric(this_calf['WY_id'], errors='coerce').dropna().astype(int)
+        this_calf['lact#'] = pd.to_numeric(this_calf['lact#'], errors='coerce').dropna().astype(int)
+
         insem1 = self.insem.copy()
         insem1['calf_num'] = insem1['calf_num'].fillna('0').astype(int)
         
+        #this_calf1 adds the try_nums to the 'last_calf' (now called 'lact#)
         this_calf1 = this_calf.merge(insem1,
                                       left_on=['WY_id', 'lact#'],
                                       right_on=['WY_id', 'calf_num'],
@@ -44,32 +64,59 @@ class Ipiv:
 
         this_calf2 = this_calf1.drop(columns=['calf_num','typex', 'readex'])
         
-        ipiv_all_basic = pd.pivot_table(this_calf2,
+        this_calf2['try_num'] = this_calf2['try_num'].fillna(1).astype(int)
+        this_calf2['insem_date'] = pd.to_datetime(this_calf2['insem_date'], errors='coerce') #
+        
+        ipiv_milking1 = pd.pivot_table(this_calf2,
             values='insem_date',
-            index=['WY_id', 'lact#'],
-            columns='try_num'
+            index=['WY_id'],
+            columns='try_num',
+            aggfunc='first',
+            dropna=False
+         
         )
-        ipiv_all_basic.columns = [
-            str(int(col)) if isinstance(col, float) and col.is_integer() else str(col)
-            for col in ipiv_all_basic.columns
-        ]
         
-        for col in ipiv_all_basic.columns:
-            ipiv_all_basic[col] = pd.to_datetime(ipiv_all_basic[col], errors='coerce').dt.strftime('%Y-%m-%d')
+        ipiv_milking2 = pd.merge(group,ipiv_milking1, on='WY_id', how='right')
+        ipiv_milking3 = pd.merge(lc, ipiv_milking2, on='WY_id', how='right')
         
-        self.ipiv_all_basic = ipiv_all_basic                                   
+        # ipiv_milking.columns = [
+        #     str(int(col)) if isinstance(col, float) and col.is_integer() else str(col)
+        #     for col in ipiv_milking.columns
+        # ]
+        
+        # for col in ipiv_milking.columns:
+        #     ipiv_milking[col] = pd.to_datetime(ipiv_milking[col], errors='coerce').dt.strftime('%Y-%m-%d')
+
+        # ipiv_milking4 = ipiv_milking3.reset_index(drop=True)  
+        ipiv_milking = ipiv_milking3.sort_values('WY_id').reset_index(drop=True)
+        ipiv_milking['WY_id'] = pd.to_numeric(ipiv_milking['WY_id'], errors='coerce').astype(int)
+        ipiv_milking['lact#'] = pd.to_numeric(ipiv_milking['lact#'], errors='coerce').astype(int)        
+        
+        
+        self.ipiv_milking = ipiv_milking                                
+
              
-        return self.ipiv_all_basic
+        return self.ipiv_milking
     
-    def limit_ipiv_to_milkers(self):
+    def add_cols_from_allx(self):
         
         xxx = self.IUD.allx[['WY_id', 'u_read', 'days milking']]
         
-        self.ipiv_milkers = xxx.merge(self.ipiv_all_basic, how='left', right_on='WY_id', left_on='WY_id')
+        ipiv_milkers1 = pd.merge(self.ipiv_milking, xxx, how='outer', on='WY_id')
+        
+        ipiv_milkers1 = ipiv_milkers1.sort_values('WY_id').reset_index(drop=True)
+
+        # Move 'u_read' and 'days milking' after 'WY_id'
+        cols = ipiv_milkers1.columns.tolist()
+        for col in ['u_read', 'days milking']:
+            cols.remove(col)
+        cols = cols[:1] + ['u_read', 'days milking'] + cols[1:]
+        ipiv_milkers1 = ipiv_milkers1[cols]
+                
+        self.ipiv_milkers = ipiv_milkers1 
         return self.ipiv_milkers
     
     def write_to_csv(self):
-        self.ipiv_all_basic.to_csv('F:\\COWS\\data\\insem_data\\ipiv_all_basic.csv')
         self.ipiv_milkers.to_csv('F:\\COWS\\data\\insem_data\\ipiv_milkers.csv')   
     
     
