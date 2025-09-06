@@ -2,7 +2,7 @@
 import inspect
 import pandas as pd
 import numpy as np
-from MilkBasics import MilkBasics
+from milk_basics import MilkBasics
 
 tdy = pd.Timestamp.today()
 

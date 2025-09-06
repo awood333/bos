@@ -6,7 +6,7 @@ import pandas as pd
 
 from status_functions.wet_dry            import WetDry
 from status_functions.statusData        import StatusData
-from MilkBasics                         import MilkBasics
+from milk_basics                         import MilkBasics
 from feed_functions.feedcost_basics     import Feedcost_basics
 from insem_functions.insem_ultra_data   import InsemUltraData
 from insem_functions.insem_ultra_basics import InsemUltraBasics

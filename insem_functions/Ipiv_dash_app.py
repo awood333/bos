@@ -5,7 +5,7 @@ import pandas as pd
 from insem_functions.ipiv import Ipiv
 from insem_functions.insem_ultra_basics import InsemUltraBasics
 from insem_functions.insem_ultra_data import InsemUltraData
-from MilkBasics import MilkBasics
+from milk_basics import MilkBasics
 from status_functions.statusData2 import StatusData2
 
 
@@ -73,13 +73,13 @@ class IpivDashApp:
                     html.H2("Ipiv All Basic", style={'textAlign': 'center', 'color': '#00bcd4'}),
                     dash_table.DataTable(
                         id='ipiv-all-basic-table',
-                        data=self.ipiv_all_basic_df.to_dict('records'),
-                        columns=[{"name": i, "id": i} for i in self.ipiv_all_basic_df.columns],
+                        data=self.ipiv_milkers_df.to_dict('records'),
+                        columns=[{"name": i, "id": i} for i in self.ipiv_milkers_df.columns],
                         style_table={'overflowX': 'auto', 'maxWidth': '100%'},
                         style_header={'backgroundColor': "#1D2121", 'color': "#a9d0ce", 'fontWeight': 'bold', 'textAlign': 'center', 'fontSize': '22px', 'height': '60px', 'verticalAlign': 'middle'},
                         style_cell={'fontFamily': 'Courier New, monospace', 'fontSize': '18px', 'backgroundColor': "#1D2121", 'color': "#cdfffd", 'padding': '2px 4px', 'whiteSpace': 'normal', 'minHeight': '30px', 'border': '1px solid #777878'},
                         cell_selectable=True,
-                        style_cell_conditional=self.get_style_cell_conditional(self.ipiv_all_basic_df.columns),
+                        style_cell_conditional=self.get_style_cell_conditional(self.ipiv_milkers_df.columns),
                     ),
                 ], style={'border': '3px solid #00bcd4', 
                           'borderRadius': '15px', 
@@ -93,21 +93,6 @@ class IpivDashApp:
                           'overflowX': 'auto'}),
             ])
         ])
-        #         html.Div([
-        #             html.H2("Ipiv Milkers", style={'textAlign': 'center', 'color': '#00bcd4'}),
-        #             dash_table.DataTable(
-        #                 id='ipiv-milkers-table',
-        #                 data=self.ipiv_milkers_df.to_dict('records'),
-        #                 columns=[{"name": i, "id": i} for i in self.ipiv_milkers_df.columns],
-        #                 style_table={'overflowX': 'auto', 'maxWidth': '100%'},
-        #                 style_header={'backgroundColor': "#1D2121", 'color': "#a9d0ce", 'fontWeight': 'bold', 'textAlign': 'center', 'fontSize': '22px', 'height': '60px', 'verticalAlign': 'middle'},
-        #                 style_cell={'fontFamily': 'Courier New, monospace', 'fontSize': '18px', 'backgroundColor': "#1D2121", 'color': "#cdfffd", 'padding': '2px 4px', 'whiteSpace': 'normal', 'minHeight': '30px', 'border': '1px solid #777878'},
-        #                 cell_selectable=True,
-        #                 style_cell_conditional=self.get_style_cell_conditional(self.ipiv_milkers_df.columns),
-        #             ),
-        #         ], style={'border': '3px solid #00bcd4', 'borderRadius': '15px', 'padding': '18px', 'margin': '10px', 'backgroundColor': '#1D2121', 'boxShadow': '2px 2px 12px #222', 'flex': '1 1 0', 'minWidth': '350px', 'maxWidth': '100%', 'overflowX': 'auto'}),
-        #     ], style={'display': 'flex', 'flexDirection': 'row', 'justifyContent': 'space-between', 'alignItems': 'flex-start', 'gap': '10px', 'width': '100%'}),
-        # ], style={'backgroundColor': "#181616", 'padding': '20px'})
 
         webbrowser.open("http://127.0.0.1:8050/")
         app.run_server(debug=True, port=8050)

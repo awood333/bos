@@ -5,7 +5,7 @@ import pandas as pd
 from insem_functions.insem_ultra_basics import InsemUltraBasics
 from insem_functions.insem_ultra_data   import InsemUltraData
 
-from MilkBasics                         import MilkBasics
+from milk_basics                         import MilkBasics
 from milk_functions.milking_groups      import MilkingGroups
 from status_functions.statusData2       import StatusData2
 

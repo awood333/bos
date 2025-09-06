@@ -6,7 +6,7 @@ from milk_functions.report_milk.report_milk import ReportMilk
 
 
 COLUMN_WIDTHS = {
-    'WY_id': '70px',
+    'WY_id': '90px',
     'avg': "100px",
     'AM': '50px',
     'PM': '50px',
@@ -53,7 +53,7 @@ def get_table_header_style():
 def get_table_cell_style():
     return {
         'fontFamily': 'Courier New, monospace',
-        'fontSize': '18px',
+        'fontSize': '22px',
         'backgroundColor': "#1D2121",
         'color': "#cdfffd",
         'padding': '2px 4px',
@@ -68,6 +68,25 @@ def get_style_cell_conditional(table_columns):
         {'if': {'column_id': col}, 'width': COLUMN_WIDTHS[col]}
         for col in table_columns if col in COLUMN_WIDTHS
     ]
+
+
+def get_style_cell_conditional_fortenday(table_columns):
+    """Set width for first column as in COLUMN_WIDTHS, next 9 dynamic cols to 120px, rest use COLUMN_WIDTHS if defined."""
+    style = []
+    # First column (usually WY_id)
+    first_col = table_columns[0]
+    if first_col in COLUMN_WIDTHS:
+        style.append({'if': {'column_id': first_col}, 'width': COLUMN_WIDTHS[first_col]})
+    else:
+        style.append({'if': {'column_id': first_col}, 'width': '120px'})
+    # Next 9 columns (dynamic)
+    for col in table_columns[1:11]:
+        style.append({'if': {'column_id': col}, 'width': '90px'})
+    # Remaining columns, use COLUMN_WIDTHS if available
+    for col in table_columns[11:]:
+        if col in COLUMN_WIDTHS:
+            style.append({'if': {'column_id': col}, 'width': COLUMN_WIDTHS[col]})
+    return style
       
 def run_dash_app(milk_aggregates=None, milking_groups=None):
         
@@ -99,7 +118,7 @@ def run_dash_app(milk_aggregates=None, milking_groups=None):
                             style_cell=get_table_cell_style(),
                             # page_size=30,    #this sets max rows
                             cell_selectable=True,
-                            style_cell_conditional=get_style_cell_conditional(tenday_df.columns),
+                            style_cell_conditional=get_style_cell_conditional_fortenday(tenday_df.columns),
                             style_data_conditional=[
                                 {
                                     'if': {
@@ -126,12 +145,7 @@ def run_dash_app(milk_aggregates=None, milking_groups=None):
                                     'backgroundColor': "#353B3B", 
                                     'color': '#cdfffd',
                                     'fontWeight': 'bold'
-                                },
-                                
-                                
-                                
-                                
-                                
+                                },                               
                             ],
                         ),
                     ], style=get_panel_style()),
@@ -201,6 +215,8 @@ def run_dash_app(milk_aggregates=None, milking_groups=None):
         style={'backgroundColor': "#181616", 'padding': '20px'}
     )
 
-    webbrowser.open("http://127.0.0.1:8050/")
-    # if __name__ == "__main__":
-    app.run_server(debug=False, port=8050)
+    # webbrowser.open("http://127.0.0.1:8051/") --##commenting out avoids opening new tab each time
+    app.run_server(debug=True, port=8051)
+
+if __name__ == "__main__":
+    run_dash_app()    

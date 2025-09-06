@@ -2,13 +2,12 @@
 import inspect
 import pandas as pd
 # import numpy as np
-from CreateStartDate import DateRange
-# from insem_functions.insem_ultra_basics import InsemUltraBasics
-from MilkBasics import MilkBasics
+from date_range import DateRange
+from milk_basics import MilkBasics
 
 class StatusData2:
     
-    def __init__(self, date_range=None, insem_ultra_basics=None, milk_basics=None):
+    def __init__(self, date_range=None,  milk_basics=None):
         
         print(f"StatusData2 instantiated by: {inspect.stack()[1].filename}")
         # IUB = insem_ultra_basics or InsemUltraBasics()

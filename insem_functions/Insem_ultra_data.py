@@ -5,7 +5,7 @@ import  inspect
 import  pandas  as pd
 
 from status_functions.statusData2       import StatusData2
-from MilkBasics                         import MilkBasics
+from milk_basics                         import MilkBasics
 from insem_functions.insem_ultra_basics import InsemUltraBasics
 
 
@@ -243,6 +243,7 @@ class InsemUltraData:
         self.all_dry     .to_csv('F:\\COWS\\data\\insem_data\\all_dry.csv')
         self.last_valid_ultra  .to_csv('F:\\COWS\\data\\insem_data\\last_valid_ultra.csv') 
     
+        self.allx.to_excel('F:\\COWS\\data\\insem_data\\allx.xlsx', index=False)
     
     def get_dash_vars(self):
         self.IUD_dash_vars = {name: value for name, value in vars(self).items()

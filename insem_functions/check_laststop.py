@@ -1,7 +1,7 @@
 '''check_laststop.py'''
 
 # import pandas as pd
-from MilkBasics                             import MilkBasics
+from milk_basics                             import MilkBasics
 from status_functions.statusData2           import StatusData2
 from insem_functions.insem_ultra_basics       import InsemUltraBasics
 from insem_functions.insem_ultra_data         import InsemUltraData

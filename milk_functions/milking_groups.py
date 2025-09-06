@@ -55,7 +55,7 @@ class MilkingGroups:
         
         # filters out the bottom 2 rows (avg and total) and gets the slice starting with col[9] 
         # (the 10th col and the last milking record before 'avg') thru 'expected bdate'
-        td2 = td1.iloc[:-2,[0,11,12,13,14,15]].copy()
+        td2 = td1.iloc[:-1,[0,11,12,13,14,15]].copy()
         td2.columns.values[0] = 'WY_id'
         
         # a1 filters for the most recent col of group_a
