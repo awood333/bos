@@ -2,8 +2,8 @@
 import inspect
 import pandas as pd
 
-from CreateStartDate import DateRange
-from MilkBasics import MilkBasics
+from date_range import DateRange
+from milk_basics import MilkBasics
 
 
 class StatusData:

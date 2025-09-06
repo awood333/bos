@@ -3,9 +3,9 @@ import inspect
 import os       #don't erase
 import pandas as pd
 
-from CreateStartDate import DateRange
+from date_range import DateRange
 from status_functions.statusData import StatusData
-from MilkBasics import MilkBasics 
+from milk_basics import MilkBasics 
 
 
 class DataLoader:

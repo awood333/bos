@@ -1,7 +1,7 @@
 
 import inspect
 import pandas as pd
-from MilkBasics import MilkBasics
+from milk_basics import MilkBasics
 
 class I_U_merge:
     def __init__(self, milk_basics=None):
