@@ -1,5 +1,5 @@
 from dash import Dash, html, dash_table
-import webbrowser
+# import webbrowser
 import pandas as pd
 from milk_functions.report_milk.report_milk import ReportMilk
 
@@ -187,13 +187,23 @@ def run_dash_app(milk_aggregates=None, milking_groups=None):
                                     'textAlign': 'center',
                                     'verticalAlign': 'middle',
                                 },
-                                # Make font color red if value is 'B' in 'group' column
+                                # Make font color blue if value is 'B' in 'group' column
                                 {
                                     'if': {
                                         'filter_query': '{group} = "B"',
                                         'column_id': 'group'
                                     },
                                     'backgroundColor': "#052F49", 
+                                    'color': "#CEE9F9",
+                                    'fontWeight': 'bold',
+                                },
+                                # Make font color brown if value is 'B' in 'group' column
+                                {
+                                    'if': {
+                                        'filter_query': '{group} = "C"',
+                                        'column_id': 'group'
+                                    },
+                                    'backgroundColor': "#39301E", 
                                     'color': "#CEE9F9",
                                     'fontWeight': 'bold',
                                 },
@@ -216,7 +226,7 @@ def run_dash_app(milk_aggregates=None, milking_groups=None):
     )
 
     # webbrowser.open("http://127.0.0.1:8051/") --##commenting out avoids opening new tab each time
-    app.run_server(debug=True, port=8051)
+    app.run_server(debug=False, port=8051)
 
 if __name__ == "__main__":
     run_dash_app()    
