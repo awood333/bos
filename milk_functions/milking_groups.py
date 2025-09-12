@@ -48,8 +48,10 @@ class MilkingGroups:
         
         group_a_data = self.data.get('group A', [])
         group_b_data = self.data.get('group B', [])
+        group_c_data = self.data.get('group C', [])        
         self.group_a_df = pd.DataFrame(group_a_data[1:]  , columns=group_a_data[0]).set_index('index')
         self.group_b_df = pd.DataFrame(group_b_data[1:]  , columns=group_b_data[0]).set_index('index')
+        self.group_c_df = pd.DataFrame(group_c_data[1:]  , columns=group_c_data[0]).set_index('index')        
 
         td1 = self.tenday.copy()
         
@@ -75,16 +77,22 @@ class MilkingGroups:
         b3 = td2[td2['WY_id'].astype(str).isin(b2)].copy()
         b3.loc[:, 'group'] = 'B'
         
-        c1 = self.sick_df.iloc[:60,-1].copy()
-        c2 = [str(int(float(x))) for x in pd.to_numeric(c1, 
-                errors='coerce') if pd.notna(x)]
+        c1 = self.group_c_df.iloc[:60,-1].copy()
+        c2 = [str(int(float(x))) for x in c1 if pd.notna(x)]
         c3 = td2[td2['WY_id'].astype(str).isin(c2)].copy()
-        if not c3.empty:        
-            c3.loc[:,'group'] = 'ฉีดยา'
+        c3.loc[:, 'group'] = 'C'        
         
-        frames = [a3, b3]
-        if not c3.empty:
-            frames.append(c3)
+        s1 = self.sick_df.iloc[:60,-1].copy()
+        s2 = [str(int(float(x))) for x in pd.to_numeric(s1, 
+                errors='coerce') if pd.notna(x)]
+        s3 = td2[td2['WY_id'].astype(str).isin(s2)].copy()
+        if not s3.empty:        
+            s3.loc[:,'group'] = 'ฉีดยา'
+        
+        frames = [a3, b3, c3]
+        if not s3.empty:
+            frames.append(s3)
+
         d1 = pd.concat(frames, axis=0)
         d1['avg'] = d1['avg'].astype(float)
         d2 = d1.sort_values('avg', ascending=False )
