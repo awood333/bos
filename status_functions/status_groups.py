@@ -9,36 +9,49 @@ from status_functions.statusData import StatusData
 from status_functions.wet_dry import WetDry
 
 from milk_basics import MilkBasics
+from milk_functions.milking_groups  import MilkingGroups
 from insem_functions.insem_ultra_basics import InsemUltraBasics
 
 
 
 class statusGroups:
     def __init__ (self, date_range=None, status_data=None, wet_dry=None, 
-                  milk_basics=None, insem_ultra_basics=None):
+                  milk_basics=None, milking_groups=None, insem_ultra_basics=None):
         
         print(f"statusGroups instantiated by: {inspect.stack()[1].filename}")
         self.SD     = status_data or StatusData()
+        self.WD     = wet_dry or WetDry()
+
         self.CSD    = date_range or DateRange()
         self.MB     = milk_basics or MilkBasics()
+        self.MG     = milking_groups or MilkingGroups()
         self.IUB    = insem_ultra_basics or InsemUltraBasics()
-        self.WD     = wet_dry or WetDry()
         
         self.DRM    = self.CSD.date_range_monthly_data
         self.startdate = self.CSD.startdate
-        
         self.herd_daily = self.SD.herd_daily
         
-        [self.fresh_ids, self.group_A_ids, self.group_B_ids,
-        self.group_C_ids, self.all_groups_count]   = self.create_groups()
-        
-        self.all_groups_count_monthly = self.create_monthly()
+
+        # methods
+        self.whiteboard_groups = self.get_whiteboard_groups()
+
+        [self.fresh_ids, self.group_A_ids, 
+         self.group_B_ids,self.group_C_ids,
+         self.all_groups_count]             = self.create_model_groups()
+
+        self.model_groups_lastrow           = self.get_model_groups_lastrow()
+        self.whiteboard_groups              = self.get_whiteboard_groups()
+        self.whiteboard_model_groups        = self.merge_whiteboard_model_groups()
+        self.all_groups_count_monthly       = self.create_monthly()
         
         self.write_to_csv()
         
+    def get_whiteboard_groups(self):
+        wbmg = self.MG.milking_groups
+        self.whiteboard_groups = wbmg
+        return self.whiteboard_groups
         
-        
-    def create_groups (self):
+    def create_model_groups (self):
 
         wet1a = self.WD.wdd.loc[self.startdate:, :]
         wetT = wet1a.T
@@ -60,9 +73,7 @@ class statusGroups:
                 
         for date in wet.index:
             date1   = pd.Timestamp(date)
-            date1x = date1 + timedelta(days=10)
             j1 = 0
-
             
             for i in wet.columns:
                 j1 = wet.loc[date1, i]
@@ -145,9 +156,66 @@ class statusGroups:
                 self.group_C_ids, self.all_groups_count]
         
         
+    def get_model_groups_lastrow(self):
+        f1=self.fresh_ids.iloc[-1:,:].copy()
+        a1=self.group_A_ids.iloc[-1:,:].copy()
+        b1=self.group_B_ids.iloc[-1:,:].copy()
+        c1=self.group_C_ids.iloc[-1:,:].copy()
+
+        f=f1.T
+        f.columns = ["WY_id"]
+        f['group'] = "F"
+
         
+        a=a1.T
+        a.columns = ["WY_id"]
+        a['group'] = "A"
+
         
-    
+        b=b1.T
+        b.columns = ["WY_id"]
+        b['group'] = "B"
+
+        
+        c=c1.T
+        c.columns = ["WY_id"]
+        c['group'] = "C"
+
+        lds1 = pd.concat([f,a,b,c], axis=0)
+        lds2 = lds1.sort_values(by="WY_id")
+        lds = lds2.dropna(subset=['WY_id']).reset_index(drop=True)
+
+        self.model_groups_lastrow =lds
+
+        return     self.model_groups_lastrow   
+        
+
+
+
+    def merge_whiteboard_model_groups(self):
+        wb = self.whiteboard_groups
+        model  = self.model_groups_lastrow
+
+        wb['WY_id'] = wb['WY_id'].astype(int)
+        model['WY_id'] = model['WY_id'].astype(int)
+
+        model = model.rename(columns={'group' : 'model group'})
+        wb = wb.rename(columns={'group' : 'whiteboard group'})
+
+
+        wmg1 = pd.merge(model, wb, on="WY_id")
+        cols = wmg1.columns.tolist()
+        cols.remove('model group')
+        cols.append('model group')  # Insert at index 2 (3rd position)
+        wmg2 = wmg1[cols]
+        wmg2['comp'] = wmg2['whiteboard group'] == wmg2['model group']
+        wmg2['comp'] = wmg2['comp'].map({True: '', False : 'X'})
+
+        self.whiteboard_model_groups = wmg2
+
+        return self.whiteboard_model_groups
+
+
     def create_monthly (self):
         
         self.all_groups_count_monthly1 = self.all_groups_count.copy() 
@@ -178,8 +246,9 @@ class statusGroups:
         self.fresh_ids  .to_csv('F:\\COWS\\data\\status\\fresh_ids.csv')
         self.group_A_ids.to_csv('F:\\COWS\\data\\status\\group_A_ids.csv')
         self.group_B_ids.to_csv('F:\\COWS\\data\\status\\group_B_ids.csv')
-        self.group_C_ids.to_csv('F:\\COWS\\data\\status\\group_C_ids.csv', na_rep='')
+        self.group_C_ids.to_csv('F:\\COWS\\data\\status\\group_C_ids.csv')
 
+        self.whiteboard_model_groups.to_csv('F:\\COWS\\data\\status\\whiteboard_model_groups.csv')
         self.all_groups_count_monthly  .to_csv('F:\\COWS\\data\\status\\all_groups_count_monthly.csv')        
     
 if __name__ == "__main__":
