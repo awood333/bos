@@ -20,6 +20,7 @@ class MilkingGroups:
         self.sick_df    = self.parse_sick_data()
         
         self.milking_groups = self.create_milking_groups()
+        self.write_to_csv()
         
         
         
@@ -46,9 +47,11 @@ class MilkingGroups:
         
     def create_milking_groups(self):
         
+        fresh_data   = self.data.get('fresh', [])
         group_a_data = self.data.get('group A', [])
         group_b_data = self.data.get('group B', [])
-        group_c_data = self.data.get('group C', [])        
+        group_c_data = self.data.get('group C', [])  
+        self.fresh_df   = pd.DataFrame(fresh_data[1:]    , columns=fresh_data[0])  .set_index('index')
         self.group_a_df = pd.DataFrame(group_a_data[1:]  , columns=group_a_data[0]).set_index('index')
         self.group_b_df = pd.DataFrame(group_b_data[1:]  , columns=group_b_data[0]).set_index('index')
         self.group_c_df = pd.DataFrame(group_c_data[1:]  , columns=group_c_data[0]).set_index('index')        
@@ -60,16 +63,21 @@ class MilkingGroups:
         td2 = td1.iloc[:-1,[0,11,12,13,14,15]].copy()
         td2.columns.values[0] = 'WY_id'
         
-        # a1 filters for the most recent col of group_a
-        a1 = self.group_a_df.iloc[:60,-1].copy()
-        
-        # str(int(float)) ensures that the dtype of a1 is string
-        a2 = [str(int(float(x))) for x in a1 if pd.notna(x)]
-        
-        # a3 ensures that the index of td2 is string and masks to get only the group_a WY_ids
-        a3 = td2 [td2['WY_id'].astype(str).isin(a2)].copy()
-        
+        # fresh1 filters for the most recent col of group_fresh
+        f1 = self.fresh_df.iloc[:60,-1].copy()
+
+        # str(int(float)) ensures that the dtype of fresh1 is string
+        f2 = [str(int(float(x))) for x in f1 if pd.notna(x)]
+
+        # f3 ensures that the index of td2 is string and masks to get only the group_f WY_ids
+        f3 = td2 [td2['WY_id'].astype(str).isin(f2)].copy()
+
         # creates a new col 'group' and assigns 'A' to each row
+        f3.loc[:, 'group'] = 'F'
+
+        a1 = self.group_a_df.iloc[:60,-1].copy()
+        a2 = [str(int(float(x))) for x in a1 if pd.notna(x)]
+        a3 = td2 [td2['WY_id'].astype(str).isin(a2)].copy()        
         a3.loc[:, 'group'] = 'A'
         
         b1 = self.group_b_df.iloc[:60,-1].copy()
@@ -89,7 +97,7 @@ class MilkingGroups:
         if not s3.empty:        
             s3.loc[:,'group'] = 'ฉีดยา'
         
-        frames = [a3, b3, c3]
+        frames = [f3, a3, b3, c3]
         if not s3.empty:
             frames.append(s3)
 

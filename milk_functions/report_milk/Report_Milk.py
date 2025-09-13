@@ -2,15 +2,15 @@ import inspect
 import pandas as pd
 from milk_functions.milk_aggregates import MilkAggregates
 from milk_functions.milking_groups  import MilkingGroups
-
+from status_functions.status_groups import statusGroups
 
 class ReportMilk:
-    def __init__(self, milk_aggregates=None, milking_groups=None):
+    def __init__(self, milk_aggregates=None, milking_groups=None, status_groups=None):
         
         print(f"ReportMilk instantiated by: {inspect.stack()[1].filename}")
         self.MA = milk_aggregates or MilkAggregates()
         self.MG = milking_groups  or MilkingGroups(milk_aggregates=self.MA)
-        
+        self.SG = status_groups or statusGroups()
         self.tenday, self.halfday, self.groups = self.createReportMilk()
 
     def createReportMilk(self):
@@ -18,7 +18,7 @@ class ReportMilk:
 
         tenday  = self.MA.tenday.copy()
         halfday = self.MA.halfday.copy()
-        groups  = self.MG.milking_groups.copy()
+        groups  = self.SG.whiteboard_model_groups.copy()
 
         column_formats = {
             'ultra': 'text',

@@ -7,14 +7,16 @@ from milk_functions.report_milk.report_milk import ReportMilk
 
 COLUMN_WIDTHS = {
     'WY_id': '90px',
-    'avg': "100px",
+    'avg': "80px",
     'AM': '50px',
     'PM': '50px',
-    'pct chg from avg': '100px',
-    'days milking' : '100px',
+    'pct chg from avg': '80px',
+    'days milking' : '90px',
     'u_read' : "70px",
-    'expected bdate' : "150px",
-    'group' : "70px",
+    'expected bdate' : "130px",
+    'model group' : "60px",
+    'whiteboard group' : "60px",
+    'comp':"40px",
     # Add more as needed
 }
   
@@ -27,9 +29,9 @@ def get_panel_style():
         'margin': '10px',
         'backgroundColor': '#1D2121',
         'boxShadow': '2px 2px 12px #222',
-        'flex': '1 1 0',
-        'minWidth': '350px',
-        'maxWidth': '100%',
+        'flex': '0 0 auto',
+        'minWidth': 'fit-content',
+        'maxWidth': 'none',
         'overflowX': 'auto'
     }
 
@@ -78,10 +80,10 @@ def get_style_cell_conditional_fortenday(table_columns):
     if first_col in COLUMN_WIDTHS:
         style.append({'if': {'column_id': first_col}, 'width': COLUMN_WIDTHS[first_col]})
     else:
-        style.append({'if': {'column_id': first_col}, 'width': '120px'})
+        style.append({'if': {'column_id': first_col}, 'width': '90px'})
     # Next 9 columns (dynamic)
     for col in table_columns[1:11]:
-        style.append({'if': {'column_id': col}, 'width': '90px'})
+        style.append({'if': {'column_id': col}, 'width': '40px'})
     # Remaining columns, use COLUMN_WIDTHS if available
     for col in table_columns[11:]:
         if col in COLUMN_WIDTHS:
@@ -165,7 +167,7 @@ def run_dash_app(milk_aggregates=None, milking_groups=None):
                             cell_selectable=True,
                             style_cell_conditional=get_style_cell_conditional(halfday_df.columns),
                         ),
-                    ], style={**get_panel_style(), 'maxWidth': '350px', 'minWidth': '350px', 'flex': '0 0 350px'}),
+                    ], style=get_panel_style()),
 
                     html.Div([
                         html.H2("Groups", 
@@ -210,12 +212,12 @@ def run_dash_app(milk_aggregates=None, milking_groups=None):
         ],
                         ),
                         
-                    ], style={**get_panel_style(), 'maxWidth': '800px', 'minWidth': '800px', 'flex': '0 0 800px'}),
+                    ], style=get_panel_style()),
                 ],
                 style={
                     'display': 'flex',
                     'flexDirection': 'row',
-                    'justifyContent': 'space-between',
+                    'justifyContent': 'flex-start', #controls space betw panels
                     'alignItems': 'flex-start',
                     'gap': '10px',
                     'width': '100%',
