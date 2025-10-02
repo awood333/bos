@@ -31,12 +31,13 @@ class StatusData2:
         self.count_lists    = self.create_count_lists()
         self.status_col                         = self.create_status_col()
         self.create_write_to_csv()
-# 
-    def create_masks(self):   
-        self.alive_mask      = self.MB.data['bd'][self.MB.data['bd']['death_date'].isnull()]
-        self.gone_mask       = self.MB.data['bd'][self.MB.data['bd']['death_date'].notnull()]
-        self.milkers_mask    = self.MB.data['milk'].iloc[-1,:] > 0
-
+    # 
+    def create_masks(self):
+        bd = self.MB.data['bd'].reset_index(drop=True)  # Ensure integer index
+        mask = bd['death_date'].isnull()
+        self.alive_mask = bd[mask]
+        self.gone_mask = bd[~mask]
+        self.milkers_mask = self.MB.data['milk'].iloc[-1, :] > 0
         self.masks = [self.alive_mask, self.gone_mask, self.milkers_mask]
         return self.masks
 
@@ -97,5 +98,5 @@ class StatusData2:
         dry_ids_df     .to_csv('F:\\COWS\\data\\status\\dry_ids.csv')
         self.status_col  .to_csv('F:\\COWS\\data\\status\\status_col.csv')
     
-if __name__ == "__main__":
-    SD = StatusData2()
+# if __name__ == "__main__":
+#     SD = StatusData2()

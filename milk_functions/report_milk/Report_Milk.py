@@ -3,18 +3,24 @@ import pandas as pd
 from milk_functions.milk_aggregates import MilkAggregates
 from milk_functions.milking_groups  import MilkingGroups
 from status_functions.status_groups import statusGroups
+from status_functions.wet_dry       import WetDry
+from insem_functions.insem_ultra_basics import InsemUltraBasics
 
 class ReportMilk:
-    def __init__(self, milk_aggregates=None, milking_groups=None, status_groups=None):
-        
+    def __init__(self, milk_aggregates=None, milking_groups=None, status_groups=None, 
+                 wet_dry=None, milk_basics=None, insem_ultra_basics=None):
         print(f"ReportMilk instantiated by: {inspect.stack()[1].filename}")
         self.MA = milk_aggregates or MilkAggregates()
         self.MG = milking_groups  or MilkingGroups(milk_aggregates=self.MA)
-        self.SG = status_groups or statusGroups()
+        self.SG = status_groups or statusGroups(
+            wet_dry=wet_dry or WetDry(milk_basics=milk_basics or self.MA.data.get('milk_basics')),
+            milk_basics=milk_basics or self.MA.data.get('milk_basics'),
+            milking_groups=self.MG,
+            insem_ultra_basics=insem_ultra_basics 
+        )
         self.tenday, self.halfday, self.groups = self.createReportMilk()
 
-    def createReportMilk(self):
-        
+    def createReportMilk(self): 
 
         tenday  = self.MA.tenday.copy()
         halfday = self.MA.halfday.copy()
@@ -70,5 +76,5 @@ class ReportMilk:
 
         return tenday_formatted, halfday_formatted, groups_formatted
     
-if __name__ == "__main__":
-    ReportMilk()
+# if __name__ == "__main__":
+#     ReportMilk()

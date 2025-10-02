@@ -90,9 +90,14 @@ def get_style_cell_conditional_fortenday(table_columns):
             style.append({'if': {'column_id': col}, 'width': COLUMN_WIDTHS[col]})
     return style
       
-def run_dash_app(milk_aggregates=None, milking_groups=None):
+def run_dash_app(milk_aggregates=None, milking_groups=None, wet_dry=None, insem_ultra_basics=None):
         
-    report = ReportMilk(milk_aggregates=milk_aggregates, milking_groups=milking_groups)
+    report = ReportMilk(
+        milk_aggregates=milk_aggregates, 
+        milking_groups=milking_groups,
+        insem_ultra_basics=insem_ultra_basics,
+        wet_dry=wet_dry)
+    
     tenday_df, halfday_df, groups_df = report.tenday, report.halfday, report.groups
 
     
@@ -230,5 +235,5 @@ def run_dash_app(milk_aggregates=None, milking_groups=None):
     # webbrowser.open("http://127.0.0.1:8051/") --##commenting out avoids opening new tab each time
     app.run_server(debug=False, port=8051)
 
-if __name__ == "__main__":
-    run_dash_app()    
+# if __name__ == "__main__":
+#     run_dash_app()    
