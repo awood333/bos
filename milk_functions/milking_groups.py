@@ -64,7 +64,7 @@ class MilkingGroups:
         td2.columns.values[0] = 'WY_id'
         
         # fresh1 filters for the most recent col of group_fresh
-        f1 = self.fresh_df.iloc[:60,-1].copy()
+        f1 = self.fresh_df.iloc[:70,-1].copy()
 
         # str(int(float)) ensures that the dtype of fresh1 is string
         f2 = [str(int(float(x))) for x in f1 if pd.notna(x)]
@@ -72,25 +72,25 @@ class MilkingGroups:
         # f3 ensures that the index of td2 is string and masks to get only the group_f WY_ids
         f3 = td2 [td2['WY_id'].astype(str).isin(f2)].copy()
 
-        # creates a new col 'group' and assigns 'A' to each row
+        # creates a new col 'group' and assigns 'F' to each row
         f3.loc[:, 'group'] = 'F'
 
-        a1 = self.group_a_df.iloc[:60,-1].copy()
+        a1 = self.group_a_df.iloc[:70,-1].copy()
         a2 = [str(int(float(x))) for x in a1 if pd.notna(x)]
         a3 = td2 [td2['WY_id'].astype(str).isin(a2)].copy()        
         a3.loc[:, 'group'] = 'A'
         
-        b1 = self.group_b_df.iloc[:60,-1].copy()
+        b1 = self.group_b_df.iloc[:70,-1].copy()
         b2 = [str(int(float(x))) for x in b1 if pd.notna(x)]
         b3 = td2[td2['WY_id'].astype(str).isin(b2)].copy()
         b3.loc[:, 'group'] = 'B'
         
-        c1 = self.group_c_df.iloc[:60,-1].copy()
+        c1 = self.group_c_df.iloc[:70,-1].copy()
         c2 = [str(int(float(x))) for x in c1 if pd.notna(x)]
         c3 = td2[td2['WY_id'].astype(str).isin(c2)].copy()
         c3.loc[:, 'group'] = 'C'        
         
-        s1 = self.sick_df.iloc[:60,-1].copy()
+        s1 = self.sick_df.iloc[:70,-1].copy()
         s2 = [str(int(float(x))) for x in pd.to_numeric(s1, 
                 errors='coerce') if pd.notna(x)]
         s3 = td2[td2['WY_id'].astype(str).isin(s2)].copy()
@@ -115,5 +115,5 @@ class MilkingGroups:
         self.milking_groups.to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\milking_groups.csv')
     
     
-if __name__ == "__main__":
-    MilkingGroups()
+# if __name__ == "__main__":
+#     MilkingGroups()

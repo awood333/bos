@@ -92,11 +92,11 @@ class statusGroups:
                         groupAx += 1
                         A_ids = i
 
-                    elif days1 >= 50 and (m1 < 16 and m1 >=11):
+                    elif days1 >= 14 and (m1 < 16 and m1 >=11):
                         groupBx += 1
                         B_ids = i
 
-                    elif days1 >= 50 and m1 < 11:
+                    elif days1 >= 14 and m1 < 11:
                         groupCx += 1
                         C_ids = i
                     
@@ -207,9 +207,11 @@ class statusGroups:
         cols = wmg1.columns.tolist()
         cols.remove('model group')
         cols.append('model group')  # Insert at index 2 (3rd position)
-        wmg2 = wmg1[cols]
+        wmg2 = wmg1[cols].copy()
         wmg2['comp'] = wmg2['whiteboard group'] == wmg2['model group']
         wmg2['comp'] = wmg2['comp'].map({True: '', False : 'X'})
+
+        wmg2 = wmg2.sort_values(by='avg', ascending=False)
 
         self.whiteboard_model_groups = wmg2
 
@@ -251,5 +253,5 @@ class statusGroups:
         self.whiteboard_model_groups.to_csv('F:\\COWS\\data\\status\\whiteboard_model_groups.csv')
         self.all_groups_count_monthly  .to_csv('F:\\COWS\\data\\status\\all_groups_count_monthly.csv')        
     
-if __name__ == "__main__":
-    sg = statusGroups()
+# if __name__ == "__main__":
+#     sg = statusGroups()
