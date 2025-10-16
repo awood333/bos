@@ -1,32 +1,26 @@
 '''finance_functions\\PL\\net_revenue_daily.py'''
 import inspect
 import pandas as pd
-
-from date_range import DateRange
-from finance_functions.income.MilkIncome import MilkIncome
-from milk_functions.sahagon import sahagon
-from feed_functions.feedcost_total import Feedcost_total
-from feed_functions.heifers.heifer_cost_model import HeiferCostModel
-
+from container import get_dependency, container
 
 class NetRevenue:
-    def __init__ (self, data_range=None, milk_income=None, feedcost_total=None, heifer_cost_model=None):
+    def __init__ (self, date_range=None, milk_income=None, feedcost_total=None):
         
         print(f"MilkAggregates instantiated by: {inspect.stack()[1].filename}")        
         
-        DR              = data_range or DateRange()
-        self.startdate  = DR.start_date()
+        self.DR = date_range or get_dependency('date_range')
+        self.startdate = self.DR.start_date()
         
-        self.MI = milk_income or MilkIncome()
-        self.SG = sahagon()
-        TF      = feedcost_total or Feedcost_total()
-        HFC     = heifer_cost_model or HeiferCostModel()
+        self.MI = milk_income or get_dependency('milk_income')
+        self.SG = get_dependency('sahagon')
+        TF = feedcost_total or get_dependency('feedcost_total')
+        # HFC     = heifer_cost_model or HeiferCostModel()
         
         
         self.feedcost1 = TF.feedcost
         self.feedcost1.index = pd.to_datetime(self.feedcost1.index, errors='coerce')
         
-        self.heifer_monthly_cost = HFC.heifer_feedcost_monthly.loc[:,'heifer_cost'].copy()
+        # self.heifer_monthly_cost = HFC.heifer_feedcost_monthly.loc[:,'heifer_cost'].copy()
 
         [self.net_revenue_daily,
          self.net_revenue_daily_last,
@@ -81,10 +75,10 @@ class NetRevenue:
         nrm1['month'] = nrm1.index.month
         # nrm1['days'] = nrm1.index.daysinmonth
         
-        net_revenue_monthly1 = nrm1.groupby(['year','month']).sum()
-        net_revenue_monthly2 = pd.concat([net_revenue_monthly1, self.heifer_monthly_cost], axis=1)
-        net_revenue_monthly2['net revenue'] = net_revenue_monthly2['revenue'] - net_revenue_monthly2['heifer_cost']
-        self.net_revenue_monthly = net_revenue_monthly2
+        self.net_revenue_monthly = nrm1.groupby(['year','month']).sum()
+        # net_revenue_monthly2 = pd.concat([net_revenue_monthly1, self.heifer_monthly_cost], axis=1)
+        # net_revenue_monthly2['net revenue'] = net_revenue_monthly2['revenue'] - net_revenue_monthly2['heifer_cost']
+
 
         return self.net_revenue_monthly
 

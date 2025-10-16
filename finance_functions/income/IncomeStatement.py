@@ -1,5 +1,6 @@
 '''finance_functions.income.IncomeStatement'''
 
+import inspect
 import pandas as pd
 from date_range import DateRange
 from finance_functions.PL.NetRevenue import NetRevenue
@@ -8,16 +9,17 @@ from finance_functions.capex.CapexBasics import CapexBasics
 
 
 class IncomeStatement:
-    def __init__(self):
+    def __init__(self, date_range=None, net_revenue=None, milk_income=None, capex_basics=None):
         
+        print(f"IncomeStatement instantiated by: {inspect.stack()[1].filename}")
+        self.DR = date_range or DateRange()
+        self.NR = net_revenue or NetRevenue()
+        self.net_income = self.NR.net_revenue_monthly
         
-        self.DR = DateRange()
-        NR = NetRevenue()
-        self.net_income = NR.net_revenue_monthly
-        
-        MI = MilkIncome()
-        self.Capex = CapexBasics()
+        MI = milk_income or MilkIncome()
         self.dtoc = MI.income_monthly['dtoc']
+        
+        self.Capex = capex_basics or CapexBasics()
         
         self.net_income = self.createNetIncome()
         self.write_to_csv()

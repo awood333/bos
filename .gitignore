@@ -1,5 +1,6 @@
 *.ipynb
 *.pyc
+.vs/
 **/__init__.py
 Pipfile
 Pipfile.lock

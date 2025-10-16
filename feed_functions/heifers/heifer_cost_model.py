@@ -16,11 +16,12 @@ class HeiferCostModel:
         now = datetime.now()
         self.today = pd.to_datetime(now)      
           
-        start_date1 = pd.to_datetime('2022-10-20').date().isoformat()
+        start_date1 = pd.to_datetime('2024-10-20').date().isoformat()
         start_date2 = pd.to_datetime('2025-01-01').date().isoformat()
 
         # rng1 is for creating heifer 'days' 
         # rng2 is for the current accounting period
+
         self.rng1 = pd.date_range(start_date1, self.today, freq='D')    
         self.rng2 = pd.date_range(start_date2, self.today, freq='D')    
 
@@ -31,7 +32,7 @@ class HeiferCostModel:
         
         # functions
         self.feed_price_df          = self.create_daily_feedprice()    
-        self.heifer_feedcost     = self.create_heifer_feedcost()
+        self.heifer_feedcost_daily     = self.create_heifer_feedcost()
         
         [self.bd,
         self.heifer_days_range_dict, 
@@ -39,15 +40,15 @@ class HeiferCostModel:
         self.eatingHeiferfood_range_dict, 
         self.eatingTMR_range_dict
         ]                           = self.create_feeding_ranges()
-        self.feed_amount            = self.create_feed_amount()
-        # self.heifer_feedcost_monthly = self.create_feedcost_monthly()
+        self.feed_amount_kg            = self.create_feed_amount()
+        self.heifer_feedcost_monthly = self.create_feedcost_monthly()
         
         self.write_to_csv()
         
         
         
         
-    #uses the feed_series_dict from foodcostbasics to create a df - note: start date is set in FCB
+    #uses the feed_series_dict - fsd -  from foodcostbasics to create a df 
     def create_daily_feedprice(self):
         
         fsd1 = self.FCB.feed_series_dict
@@ -85,10 +86,10 @@ class HeiferCostModel:
         diet3['total daily feedcost']= diet3.iloc[:,-7:].sum(axis=1)        
         
         # create diet/kg - here it is the same as diet3 - which is total 1kg in the csv
-        self.heifer_feedcost = (diet3['total daily feedcost']) /  diet3['total kg']
+        heifer_feedcost = (diet3['total daily feedcost']) /  diet3['total kg']
+        self.heifer_feedcost_daily = pd.DataFrame(heifer_feedcost, columns=['baht/day'])
 
-
-        return self.heifer_feedcost
+        return self.heifer_feedcost_daily
        
         
     def create_feeding_ranges(self):
@@ -97,15 +98,16 @@ class HeiferCostModel:
         bd1['b_date']           = pd.to_datetime(bd1['b_date'], errors='coerce')
         bd1['adj_bdate']        = pd.to_datetime(bd1['adj_bdate'], errors='coerce')
         bd1['ultra_conf_date']  = pd.to_datetime(bd1['ultra_conf_date'], errors='coerce')        
-        bd1['first_calf_bdate']  = pd.to_datetime(bd1['calf_bdate'], errors='coerce')
+        bd1['first_calf_bdate'] = pd.to_datetime(bd1['calf_bdate'], errors='coerce')
 
+
+        # separate the heifers that are born here from the pregnant heifers brought in
         self.born_here_ids      = bd1.loc[(bd1['arrived'].isnull(), 'heifer_ids')].reset_index(drop=True) 
         self.born_elsewhere_ids = bd1.loc[(bd1['arrived'].notnull(), 'heifer_ids')].reset_index(drop=True) 
-        # self.mask_born_elsewhere['arrived'] = pd.to_datetime(self.mask_born_elsewhere['arrived'], errors='coerce')
 
         self.bd = bd1.set_index( 'heifer_ids', drop=True)
 
-                    # Initialize all dicts before the loop
+        # Initialize all dicts before the loop
         self.heifer_days_range_dict = {}
         self.milkdrinking_range_dict = {}
         self.eatingHeiferfood_range_dict = {}
@@ -116,7 +118,7 @@ class HeiferCostModel:
             
             date_born               = self.bd.loc[i,'b_date']
             date_preg               = self.bd.loc[i, 'ultra_conf_date']
-            date_calf_bdate         = self.bd.loc[i, 'calf_bdate']  # the actual bdate, not the estimate
+            date_calf_bdate         = self.bd.loc[i, 'calf_bdate']  # the actual bdate, not the estimate. Set this after the birth just as a record
             date_stopMilkDrinking   = date_born + pd.Timedelta(days=75)
             date_startEatingHeiferFood = date_stopMilkDrinking + pd.Timedelta(days=1)
         
@@ -142,13 +144,14 @@ class HeiferCostModel:
 
 
 
-# eating heifer food range
-                # if not yet pregnant            
+            # eating heifer food range
+            # if not yet pregnant            
             if pd.notna(date_startEatingHeiferFood) and pd.isna(date_preg):
                 
                 #do NOT use eatingHeiferfood_range = pd.date_range(date_startEatingHeiferFood, self.today)
                 #that creates a separate date_range, this way adds the two params to the eatingHeiferfood_range tuple
                 eatingHeiferfood_range = (date_startEatingHeiferFood, self.today)
+
                 #if pregnant
             elif pd.notna(date_startEatingHeiferFood) and pd.notna(date_preg):
                 eatingHeiferfood_range = (date_startEatingHeiferFood, date_preg - pd.Timedelta(days=1))
@@ -158,7 +161,7 @@ class HeiferCostModel:
             self.eatingHeiferfood_range_dict[i] = eatingHeiferfood_range
 
 
-# eating TMR range
+            # eating TMR range
                 # if pregnant (but calf is not born yet - meaning the eating is'ongoing')
             if pd.notna(date_preg) and pd.isna(date_calf_bdate):
                 eatingTMR_range = (date_preg, self.today)
@@ -186,6 +189,7 @@ class HeiferCostModel:
             
 #milk drinking            
             #The get() method (for dict) returns  1)the specified key 2)the value of the item
+
             #initiation
             milk_dates = self.milkdrinking_range_dict.get(heifer_id, pd.DatetimeIndex([]))
             # assign 6 for all the dates in the milk drinking range
@@ -207,7 +211,7 @@ class HeiferCostModel:
                     index=heiferfood_dates,
                     name='kg'
                 )
-                feed_amount_df.loc[heiferfood_dates, heifer_id] = heiferfood_series * self.heifer_feedcost
+                feed_amount_df.loc[heiferfood_dates, heifer_id] = heiferfood_series * self.heifer_feedcost_daily
                 
                 
                 # heifer is past the milkdrinking 75 days, but is not preg, so heiferfood_range[1] = None (use today)
@@ -224,7 +228,7 @@ class HeiferCostModel:
                 )
                 
                 
-                feed_amount_df.loc[heiferfood_dates, heifer_id] = heiferfood_series * self.heifer_feedcost
+                feed_amount_df.loc[heiferfood_dates, heifer_id] = heiferfood_series * self.heifer_feedcost_daily
                 
                                 
             elif heiferfood_range[0] is  None and heiferfood_range[1] is  None:
@@ -256,26 +260,26 @@ class HeiferCostModel:
 
 
         feed_amount_df = feed_amount_df.fillna(np.nan)  # ensure NaN elsewhere
-        self.feed_amount = feed_amount_df
+        self.feed_amount_kg = feed_amount_df
         
-        return self.feed_amount
+        return self.feed_amount_kg
     
     
 
 
         
         
-    # def create_feedcost_monthly(self):
-        # tfc1 = self.heifer_feedcost_daily
-        # tfc1['year']  = tfc1.index.year
-        # tfc1['month'] = tfc1.index.month
+    def create_feedcost_monthly(self):
+        tfc1 = self.heifer_feedcost_daily
+        tfc1['year']  = tfc1.index.year
+        tfc1['month'] = tfc1.index.month
         
-        # tfc2 = tfc1.groupby(['year', 'month']).sum()
-        # tfc2['heifer_cost'] = tfc2.sum(axis=1)
+        tfc2 = tfc1.groupby(['year', 'month']).sum()
+        tfc2 = tfc2.rename(columns={'baht/day': 'baht/month'})
         
-        # self.heifer_feedcost_monthly = tfc2
+        self.heifer_feedcost_monthly = tfc2
         
-        # return self.heifer_feedcost_monthly
+        return self.heifer_feedcost_monthly
     
 
         
@@ -290,5 +294,4 @@ class HeiferCostModel:
             
 if __name__ == "__main__":
     HeiferCostModel()            
-        
-                
+           

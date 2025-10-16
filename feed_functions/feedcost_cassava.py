@@ -1,25 +1,24 @@
 '''feedcost_cassava.py'''
 
+import inspect
 import pandas as pd
 from datetime import datetime
-
+from container import get_dependency
+from milk_basics import MilkBasics
 from date_range import DateRange
-from feed_functions.feedcost_basics import Feedcost_basics
-from status_functions.status_groups import statusGroups
-from status_functions.statusData    import StatusData
 
 class Feedcost_cassava:
-    def __init__ (self):
+    def __init__(self, date_range=None, status_data=None, feedcost_basics=None, status_groups=None):
         
-
-        DR = DateRange()
-        SD = StatusData()
-        self.FCB = Feedcost_basics()
-        self.SG  = statusGroups()
-        # self.bid1  =  pd.read_csv("F:\\COWS\\data\\feed_data\\feed_invoice_data\\cassava_invoice_detail.csv")
+        print(f"Feedcost_cassava instantiated by: {inspect.stack()[1].filename}")
+        self.MB = MilkBasics()
+        self.DR = DateRange()
+        SD = status_data or get_dependency('status_data')
+        self.FCB = feedcost_basics or get_dependency('feedcost_basics')
+        self.SG = status_groups or get_dependency('status_groups')
         price_seq1 =  pd.read_csv("F:\\COWS\\data\\feed_data\\feed_csv\\cassava_price_seq.csv")
 
-        start_date =  DR.start_date()
+        start_date =  self.DR.start_date()
         today = datetime.today().date()
         self.dateRange= pd.date_range(start_date,today)
         

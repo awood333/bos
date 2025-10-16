@@ -1,5 +1,5 @@
 '''finance\\milk_income.py'''
-
+import inspect
 import pandas as pd
 
 from date_range import DateRange
@@ -12,11 +12,14 @@ DR = DateRange()
 tdy = pd.Timestamp('now').strftime('%Y-%m-%d %H_%M_%S')
 
 class MilkIncome:
-    def __init__(self):
-        
-        self.FCB = Feedcost_basics()
-        self.SD =  StatusData()
-        self.DR = DateRange()
+    def __init__(self, feedcost_basics=None, status_data=None, date_range=None):
+
+        print(f"MilkIncome instantiated by: {inspect.stack()[1].filename}")
+
+        self.FCB = feedcost_basics or Feedcost_basics()
+        self.SD = status_data or StatusData()
+        self.DR = date_range or DateRange()
+
         self.sahagon = sahagon()
         self.sahagon_liters = self.sahagon.dm_daily
 

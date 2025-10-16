@@ -2,8 +2,7 @@
 
 from datetime import datetime
 import pandas as pd
-
-from date_range import DateRange 
+from container import get_dependency, container
 
 tdy = datetime.now()
 timestamp = tdy.strftime('%Y-%m-%d_%H-%M-%S')
@@ -11,8 +10,8 @@ timestamp = tdy.strftime('%Y-%m-%d_%H-%M-%S')
 class CapexBasics:
     def __init__(self):
         
-        DR = DateRange()
-        self.startdate = DR.startdate
+        DR = get_dependency('date_range')
+        self.start_date = DR.startdate
         
         self.bkk    = self.load_partition_data()
         self.capex_details, self.non_capex_details  = self.create_capex()
@@ -85,7 +84,7 @@ class CapexBasics:
     def group_non_capex_data(self):
         
         non_capex1 = self.non_capex_details
-        non_capex2 = non_capex1.loc[self.startdate:,:]
+        non_capex2 = non_capex1.loc[self.start_date:,:]
         
         non_capex_by_month = non_capex2.groupby(['year','month','descr 1']).agg(
             {'debit'    : 'sum'}
