@@ -1,23 +1,28 @@
 '''status_2.py'''
 import inspect
 import pandas as pd
-# import numpy as np
-from date_range import DateRange
+from container import get_dependency
+import logging
+from utilities.logging_setup import  setup_debug_logging, debug_method
 from milk_basics import MilkBasics
+from date_range import DateRange
+
 
 class StatusData2:
-    
-    def __init__(self, date_range=None,  milk_basics=None):
-        
+    def __init__(self):
         print(f"StatusData2 instantiated by: {inspect.stack()[1].filename}")
-        # IUB = insem_ultra_basics or InsemUltraBasics()
-        self.MB = milk_basics or MilkBasics() 
+        logger = setup_debug_logging(logging.WARNING)        
+        logger.info("🚀 statusData2 starting...")
+        print(f"🔍 {self.__class__.__module__}: Current stack:")
+        for i, frame in enumerate(inspect.stack()[:5]):
+            print(f"   {i}: {frame.filename}:{frame.lineno} in {frame.function}")
 
-        # self.days_milking1 = IUB.last_calf.loc[:,'last calf age']
-        DR = date_range or DateRange()
-        self.startdate  = DR.startdate
-        self.rng        = DR.date_range_daily
+        self.MB = MilkBasics()
+        self.DR = DateRange()
+        self.startdate = self.DR.startdate
+        self.rng = self.DR.date_range_daily
         self.milk = self.MB.data['milk']
+        print("✅ StatusData2: Got MB.data['milk']")
         
 
         self.last_milking   = self.MB.data['milk'].iloc[-1:,:]
@@ -29,7 +34,7 @@ class StatusData2:
         self.id_lists       = self.create_id_lists()
         self.list_of_dfs    = self.create_df()
         self.count_lists    = self.create_count_lists()
-        self.status_col                         = self.create_status_col()
+        self.status_col     = self.create_status_col()
         self.create_write_to_csv()
     # 
     def create_masks(self):
@@ -98,5 +103,5 @@ class StatusData2:
         dry_ids_df     .to_csv('F:\\COWS\\data\\status\\dry_ids.csv')
         self.status_col  .to_csv('F:\\COWS\\data\\status\\status_col.csv')
     
-# if __name__ == "__main__":
-#     SD = StatusData2()
+if __name__ == "__main__":
+    SD = StatusData2()

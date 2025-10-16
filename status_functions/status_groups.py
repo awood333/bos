@@ -1,36 +1,37 @@
 '''milk_functions\\status_groups.py'''
 import inspect
-from datetime import timedelta
 import pandas as pd
-
-
-from date_range import DateRange
-from status_functions.statusData import StatusData
-from status_functions.wet_dry import WetDry
-
+import logging
+from container import get_dependency
 from milk_basics import MilkBasics
-from milk_functions.milking_groups  import MilkingGroups
-from insem_functions.insem_ultra_basics import InsemUltraBasics
+from date_range import DateRange
+from utilities.logging_setup import  setup_debug_logging
 
 
 
 class statusGroups:
-    def __init__ (self, date_range=None, status_data=None, wet_dry=None, 
-                  milk_basics=None, milking_groups=None, insem_ultra_basics=None):
-        
-        print(f"statusGroups instantiated by: {inspect.stack()[1].filename}")
-        self.SD     = status_data or StatusData()
-        self.WD     = wet_dry or WetDry()
+    def __init__ (self):
 
-        self.CSD    = date_range or DateRange()
-        self.MB     = milk_basics or MilkBasics()
-        self.MG     = milking_groups or MilkingGroups()
-        self.IUB    = insem_ultra_basics or InsemUltraBasics()
+        print(f"statusGroups instantiated by: {inspect.stack()[1].filename}")
+
+        logger = setup_debug_logging(logging.WARNING)        
+        logger.info("🚀 status_groups starting...")
+        print(f"🔍 {self.__class__.__module__}: Current stack:")
+        for i, frame in enumerate(inspect.stack()[:5]):
+            print(f"   {i}: {frame.filename}:{frame.lineno} in {frame.function}")
+
         
-        self.DRM    = self.CSD.date_range_monthly_data
-        self.startdate = self.CSD.startdate
+        self.SD     = get_dependency('status_data')
+        self.WD     = get_dependency('wet_dry')
+        self.MG     = get_dependency('milking_groups_tenday')
+        self.IUB    = get_dependency('insem_ultra_basics')        
+        self.MB     = MilkBasics()
+        self.DR     = DateRange()
+        
+        self.DRM        = self.DR.date_range_monthly_data
+        self.startdate  = self.DR.startdate
         self.herd_daily = self.SD.herd_daily
-        
+       
 
         # methods
         self.whiteboard_groups = self.get_whiteboard_groups()
@@ -47,7 +48,7 @@ class statusGroups:
         self.write_to_csv()
         
     def get_whiteboard_groups(self):
-        wbmg = self.MG.milking_groups
+        wbmg = self.MG.milking_groups_tenday
         self.whiteboard_groups = wbmg
         return self.whiteboard_groups
         

@@ -1,20 +1,23 @@
 '''feedcost_byoass_fat.py'''
 
+import inspect
 from datetime import datetime
 import pandas as pd
-
+from container import get_dependency, container
+from milk_basics import MilkBasics
 from date_range import DateRange
-from feed_functions.feedcost_basics import Feedcost_basics
-from status_functions.status_groups import statusGroups
-from status_functions.statusData import StatusData
+
 
 class Feedcost_bypass_fat:
-    def __init__ (self):
+    def __init__(self, date_range=None, status_data=None, feedcost_basics=None, status_groups=None):
         
-        DR = DateRange()
-        SD          = StatusData()
-        self.FCB    = Feedcost_basics()
-        self.SG     = statusGroups()
+        print(f"Feedcost_bypass_fat instantiated by: {inspect.stack()[1].filename}")
+        
+        self.MB = MilkBasics()
+        DR = date_range or get_dependency('date_range')
+        SD = status_data or get_dependency('status_data')
+        self.FCB = feedcost_basics or get_dependency('feedcost_basics')
+        self.SG = status_groups or get_dependency('status_groups')
         price_seq1  = pd.read_csv("F:\\COWS\\data\\feed_data\\feed_csv\\bypass_fat_price_seq.csv")
 
         start_date      = DR.start_date()

@@ -1,34 +1,38 @@
 '''milk_functions\\statusData.py'''
 import inspect
 import pandas as pd
-
-from date_range import DateRange
+from container import get_dependency
 from milk_basics import MilkBasics
+from date_range import DateRange
+import logging
+from utilities.logging_setup import  setup_debug_logging, debug_method
 
 
 class StatusData:
-    
-    def __init__(self, date_range=None, milk_basics=None):
+    def __init__(self):
 
         print(f"StatusData instantiated by: {inspect.stack()[1].filename}")
-        
-        self.MB = milk_basics or MilkBasics()                
-        self.CSD = date_range or DateRange()
-             
-        # self.lb = self.insem_ultra_basics.create_last_calf()
-        self.startdate = self.CSD.startdate
-        self.enddate = self.CSD.enddate_monthly
-        
-        f1          = self.MB.data['milk']
-        self.f         = f1.loc[self.startdate:,:].copy()
+        logger = setup_debug_logging(logging.WARNING)        
+        logger.info("🚀 statusData starting...")
+        print(f"🔍 {self.__class__.__module__}: Current stack:")
+        for i, frame in enumerate(inspect.stack()[:5]):
+            print(f"   {i}: {frame.filename}:{frame.lineno} in {frame.function}")
 
-        self.maxdate        = self.f.index.max() 
-        self.stopdate       = self.maxdate 
-
-        self.bd1             = self.MB.data['bd']
-        self.bdmax          = len(self.bd1)
+        self.MB         = MilkBasics()
+        self.CSD        = DateRange()
+        self.startdate  = self.CSD.startdate
+        self.enddate_daily    = self.CSD.enddate_daily
         
-        self.wy_series      = pd.Series(list(range(1, self.bdmax + 1)), name='WY_id', index=range(1, self.bdmax + 1))
+        f1              = self.MB.data['milk']
+        self.f          = f1.loc[self.startdate:,:].copy()
+
+        self.maxdate    = self.f.index.max() 
+        self.stopdate   = self.maxdate 
+
+        self.bd1        = self.MB.data['bd']
+        self.bdmax      = len(self.bd1)
+        
+        self.wy_series  = pd.Series(list(range(1, self.bdmax + 1)), name='WY_id', index=range(1, self.bdmax + 1))
         
         # functions        
        

@@ -1,39 +1,33 @@
 import inspect
 import pandas as pd
-# import numpy as np 
+from container import get_dependency
+from milk_basics import MilkBasics
+from date_range import DateRange
 
-from insem_functions.insem_ultra_basics import InsemUltraBasics
-from insem_functions.insem_ultra_data   import InsemUltraData
-
-from milk_basics                         import MilkBasics
-from milk_functions.milking_groups      import MilkingGroups
-from status_functions.statusData2       import StatusData2
-
-from finance_functions.PL.cow_PL        import CowPL
 
 
 class Ipiv:
-    def __init__ (self, insem_ultra_basics=None, insem_ultra_data=None, 
-                milk_basics=None, milking_groups=None, cow_pl=None,
-                status_data2=None
-                ):
-        
+    def __init__(self):
         print(f"Ipiv instantiated by: {inspect.stack()[1].filename}")
+        print(f"🔍 {self.__class__.__module__}: Current stack:")
+        for i, frame in enumerate(inspect.stack()[:5]):
+            print(f"   {i}: {frame.filename}:{frame.lineno} in {frame.function}")        
         
-        self.IUB = insem_ultra_basics or InsemUltraBasics()
-        self.IUD = insem_ultra_data or InsemUltraData()
-        self.MB  = milk_basics      or MilkBasics()
-        self.MG  = milking_groups   or MilkingGroups()
-        self.CPL = cow_pl           or CowPL()
-        self.SD2 = status_data2     or StatusData2()
-        
-        self.insem      = self.MB.data['i']
-        alive_ids1      = self.MB.data['bd'][self.MB.data['bd']['death_date'].isnull()]
-        alive_ids2      = alive_ids1.reset_index()
-        self.alive_ids  = alive_ids2['WY_id']
-        
+        self.MB   = MilkBasics()
+        self.DR   = DateRange()        
+        self.IUB  = get_dependency('insem_ultra_basics')
+        self.IUD  = get_dependency('insem_ultra_data')
+
+        self.MG  = get_dependency('milking_groups_tenday')
+
+
+        self.insem = self.IUB.data['i']
+        alive_ids1 = self.IUB.data['bd'].loc[self.IUB.data['bd']['death_date'].isnull()] #because IUB.data is a dict
+        alive_ids2 = alive_ids1.reset_index()
+
+        self.alive_ids      = alive_ids2['WY_id']
         self.ipiv_milking   = self.create_ipiv()  
-        self.ipiv_milkers       = self.add_cols_from_allx()  
+        self.ipiv_milkers   = self.add_cols_from_allx()  
         self.write_to_csv()
 
   
@@ -42,11 +36,11 @@ class Ipiv:
         lc['last calf#'] += 1
         lc = lc.rename(columns={'last calf#' : 'lact#'})
         
-        group = self.MG.milking_groups.loc[:,['WY_id', 'group']].copy()
+        group = self.MG.milking_groups_tenday.loc[:,['WY_id', 'group']].copy()
         group['WY_id'] = pd.to_numeric(group['WY_id'], errors='coerce').dropna().astype(int)
         group = group.sort_values('WY_id').reset_index(drop=True)
         
-        net_rev = self.CPL.net_revenue['net revenue']      
+        # net_rev = self.CPL.net_revenue['net revenue']      
        
         # Filter with alive_ids
         this_calf = lc[lc['WY_id'].isin(self.alive_ids)].reset_index(drop=True)
@@ -78,16 +72,6 @@ class Ipiv:
         
         ipiv_milking2 = pd.merge(group,ipiv_milking1, on='WY_id', how='right')
         ipiv_milking3 = pd.merge(lc, ipiv_milking2, on='WY_id', how='right')
-        
-        # ipiv_milking.columns = [
-        #     str(int(col)) if isinstance(col, float) and col.is_integer() else str(col)
-        #     for col in ipiv_milking.columns
-        # ]
-        
-        # for col in ipiv_milking.columns:
-        #     ipiv_milking[col] = pd.to_datetime(ipiv_milking[col], errors='coerce').dt.strftime('%Y-%m-%d')
-
-        # ipiv_milking4 = ipiv_milking3.reset_index(drop=True)  
         ipiv_milking = ipiv_milking3.sort_values('WY_id').reset_index(drop=True)
         ipiv_milking['WY_id'] = pd.to_numeric(ipiv_milking['WY_id'], errors='coerce').astype(int)
         ipiv_milking['lact#'] = pd.to_numeric(ipiv_milking['lact#'], errors='coerce').astype(int)        

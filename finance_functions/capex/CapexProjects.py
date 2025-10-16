@@ -1,11 +1,13 @@
 '''finance_functions.CapexProjects.py'''
-from datetime import datetime as dt
+import inspect
 import pandas as pd
 from finance_functions.capex.CapexBasics import CapexBasics
 
 class CapexProjects:
-    def __init__(self):
-        CB = CapexBasics()
+    def __init__(self, capex_basics=None):
+
+        print(f"InsemUltraBasics instantiated by: {inspect.stack()[1].filename}")
+        CB = capex_basics or CapexBasics()
         self.capex = CB.capex_details
         self.old_capex                  = pd.read_csv("F:\\COWS\\data\\finance\\capex\\old capex\\old_capex_list.csv", index_col='datex')
         self.old_capex.index = pd.to_datetime(self.old_capex.index).date

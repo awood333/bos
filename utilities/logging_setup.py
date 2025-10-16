@@ -1,17 +1,36 @@
 # utilities/logging_setup.py
 
 import logging
+import functools
 
-class LoggingSetup:
-    def __init__(self, name=__name__):
-        self.logger = self.setup_logging(name)
-        
-    def setup_logging(self, name):
-        logger = logging.getLogger(name)
-        logger.setLevel(logging.DEBUG)
-        handler = logging.StreamHandler()
-        handler.setLevel(logging.DEBUG)
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        handler.setFormatter(formatter)
-        logger.addHandler(handler)
-        return logger
+def setup_debug_logging(level=logging.WARNING):
+    """Set up logging with configurable level"""
+    logging.basicConfig(level=level, format='%(levelname)s: %(message)s')
+    return logging.getLogger(__name__)
+
+def debug_method(func):
+    """Decorator to add debug logging to methods"""
+    @functools.wraps(func)
+    def wrapper(self, *args, **kwargs):
+        logger = logging.getLogger(self.__class__.__name__)
+        logger.debug(f"Starting {func.__name__}")
+        try:
+            result = func(self, *args, **kwargs)
+            logger.debug(f"Completed {func.__name__}")
+            return result
+        except Exception as e:
+            logger.error(f"Error in {func.__name__}: {e}")
+            raise
+    return wrapper
+
+def safe_dependency(dep_name, fallback=None):
+    """Safely get dependency with fallback"""
+    from container import get_dependency
+    try:
+        return get_dependency(dep_name)
+    except Exception as e:
+        logger = logging.getLogger("safe_dependency")
+        logger.warning(f"Failed to get {dep_name}: {e}")
+        if fallback:
+            return fallback()
+        raise

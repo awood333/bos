@@ -14,10 +14,10 @@
 				"database": "${workspaceFolder:bos}/cows.db"
 			}
 		],
-		"explorerExclude.backup": {},
 		"terminal.integrated.env.windows": {
 			"PYTHONPATH": "D:/Git_repos/bos"
 		},
-		"dotnetAcquisitionExtension.sharedExistingDotnetPath": "{     \"dotnetAcquisitionExtension.existingDotnetPath\": \"C:\\\\Program Files\\\\dotnet\\\\dotnet.exe\" }"
+		"dotnetAcquisitionExtension.sharedExistingDotnetPath": "{ \"dotnetAcquisitionExtension.existingDotnetPath\": \"C:\\\\Program Files\\\\dotnet\\\\dotnet.exe\" }",
+		"dataWrangler.debug": true
 	}
 }

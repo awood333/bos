@@ -5,12 +5,12 @@ from feed_functions.feedcost_corn import Feedcost_corn
 from feed_functions.feedcost_bypass_fat import Feedcost_bypass_fat
 
 class Feedcost_total:
-    def __init__(self):
+    def __init__(self, feedcost_beans=None, feedcost_cassava=None, feedcost_corn=None, feedcost_bypass_fat=None):
         
-        self.bean_cost = Feedcost_beans()
-        self.cassava_cost = Feedcost_cassava()
-        self.corn_cost = Feedcost_corn()
-        self.bypassfat_cost = Feedcost_bypass_fat()
+        self.bean_cost      = feedcost_beans or Feedcost_beans()
+        self.cassava_cost   = feedcost_cassava or Feedcost_cassava()
+        self.corn_cost      = feedcost_corn or Feedcost_corn()
+        self.bypassfat_cost = feedcost_bypass_fat or Feedcost_bypass_fat()
         
         self.feedcost, self.total_feedcost_details_last =  self.create_feedcost_total()
         self.total_feedcost_monthly                     = self.create_monthly()

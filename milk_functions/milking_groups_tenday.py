@@ -1,17 +1,16 @@
-'''milk_functions.milking_groups.py'''
+'''milk_functions.milking_groups_tenday.py'''
 import inspect
 import pandas as pd
 from pyexcel_ods import get_data
+from container import get_dependency
 
-from milk_functions.milk_aggregates import MilkAggregates
 
-class MilkingGroups:
-    def __init__(self, milk_aggregates=None):
+class MilkingGroups_tenday:
+    def __init__(self):
         
-        print(f"MilkingGroups instantiated by: {inspect.stack()[1].filename}")
+        print(f"MilkingGroups_tenday instantiated by: {inspect.stack()[1].filename}")
         
-        
-        MA = milk_aggregates or MilkAggregates()
+        MA = get_dependency('milk_aggregates')
         
         self.fullday    = MA.fullday.iloc[-1:,:].copy()
         self.tenday     = MA.tenday
@@ -19,7 +18,7 @@ class MilkingGroups:
         self.data       = get_data('F:\\COWS\\data\\daily_milk.ods')
         self.sick_df    = self.parse_sick_data()
         
-        self.milking_groups = self.create_milking_groups()
+        self.milking_groups_tenday = self.create_milking_groups_tenday()
         self.write_to_csv()
         
         
@@ -45,7 +44,7 @@ class MilkingGroups:
         return self.sick_df
         
         
-    def create_milking_groups(self):
+    def create_milking_groups_tenday(self):
         
         fresh_data   = self.data.get('fresh', [])
         group_a_data = self.data.get('group A', [])
@@ -107,13 +106,13 @@ class MilkingGroups:
         d3=d2.reset_index(drop=True)
 
         
-        self.milking_groups = d3
+        self.milking_groups_tenday = d3
             
-        return self.milking_groups
+        return self.milking_groups_tenday
     
     def write_to_csv(self):
-        self.milking_groups.to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\milking_groups.csv')
+        self.milking_groups_tenday.to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\milking_groups_tenday.csv')
     
     
-# if __name__ == "__main__":
-#     MilkingGroups()
+if __name__ == "__main__":
+    MilkingGroups_tenday()

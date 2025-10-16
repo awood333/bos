@@ -1,8 +1,12 @@
 '''finance_functions/tax_docs/tax_docs_depreciation.py'''
+
+import inspect
 import pandas as pd 
 
 class TaxDocs_Depreciation:
     def __init__(self):
+        
+        print(f"TaxDocs_Depreciation instantiated by: {inspect.stack()[1].filename}")
         
         bkk1a = pd.read_csv("F:\\COWS\\data\\finance\\BKKbank\\BKKBankFarmAccount.csv")
         bkk1a['datex'] = pd.to_datetime(bkk1a['datex'], errors='coerce')
