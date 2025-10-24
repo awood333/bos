@@ -1,33 +1,39 @@
 import inspect
 import pandas as pd
 from container import get_dependency
+from persistent_container_service import ContainerClient
 from milk_basics import MilkBasics
 from date_range import DateRange
-
 
 
 class Ipiv:
     def __init__(self):
         print(f"Ipiv instantiated by: {inspect.stack()[1].filename}")
-        print(f"🔍 {self.__class__.__module__}: Current stack:")
-        for i, frame in enumerate(inspect.stack()[:5]):
-            print(f"   {i}: {frame.filename}:{frame.lineno} in {frame.function}")        
-        
-        self.MB   = MilkBasics()
-        self.DR   = DateRange()        
-        self.IUB  = get_dependency('insem_ultra_basics')
-        self.IUD  = get_dependency('insem_ultra_data')
+        self.MB = None
+        self.DR = None
+        self.IUB = None
+        self.IUD = None
+        self.MGW = None
+        self.insem = None
+        self.alive_ids = None
+        self.ipiv_milking = None
+        self.ipiv_milkers = None
 
-        self.MG  = get_dependency('milking_groups_tenday')
-
+    def load_and_process(self):
+        client = ContainerClient()
+        self.MB = MilkBasics()
+        self.DR = DateRange()
+        self.IUB = client.get_dependency('insem_ultra_basics')
+        self.IUD = client.get_dependency('insem_ultra_data')
+        self.MGW = client.get_dependency('milking_groups_whiteboard')
 
         self.insem = self.IUB.data['i']
-        alive_ids1 = self.IUB.data['bd'].loc[self.IUB.data['bd']['death_date'].isnull()] #because IUB.data is a dict
+        alive_ids1 = self.IUB.data['bd'].loc[self.IUB.data['bd']['death_date'].isnull()]
         alive_ids2 = alive_ids1.reset_index()
+        self.alive_ids = alive_ids2['WY_id']
 
-        self.alive_ids      = alive_ids2['WY_id']
-        self.ipiv_milking   = self.create_ipiv()  
-        self.ipiv_milkers   = self.add_cols_from_allx()  
+        self.ipiv_milking = self.create_ipiv()
+        self.ipiv_milkers = self.add_cols_from_allx()
         self.write_to_csv()
 
   
@@ -36,7 +42,7 @@ class Ipiv:
         lc['last calf#'] += 1
         lc = lc.rename(columns={'last calf#' : 'lact#'})
         
-        group = self.MG.milking_groups_tenday.loc[:,['WY_id', 'group']].copy()
+        group = self.MGW.milking_groups_whiteboard.loc[:,['WY_id', 'group']].copy()
         group['WY_id'] = pd.to_numeric(group['WY_id'], errors='coerce').dropna().astype(int)
         group = group.sort_values('WY_id').reset_index(drop=True)
         

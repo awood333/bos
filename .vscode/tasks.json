@@ -12,13 +12,46 @@
                 "kind": "build",
                 "isDefault": true
             },
+
             "presentation": {
                 "echo": true,
                 "reveal": "always",
                 "focus": false,
                 "panel": "shared"
             },
+            
             "problemMatcher": []
-        }
+        },
+
+        {
+            "label": "Start Persistent Container",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "${workspaceFolder}/persistent_container_service.py",
+                "start"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            },
+            "problemMatcher": []
+        },
+
+
+{
+    "label": "Open External PowerShell and Run Persistent Container",
+    "type": "shell",
+    "command": "start",
+    "args": [
+        "powershell",
+        "-NoExit",
+        "-Command",
+        "\"D:\\Git_repos\\bos\\utilities\\start_persistent_container.bat\""
+    ],
+    "presentation": {
+        "panel": "shared"
+    }
+}
     ]
 }

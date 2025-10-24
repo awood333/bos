@@ -1,19 +1,30 @@
+'''feed_functions.feedcost_total.py'''
+
+import inspect
 import pandas as pd
-from feed_functions.feedcost_beans import Feedcost_beans
-from feed_functions.feedcost_cassava import Feedcost_cassava
-from feed_functions.feedcost_corn import Feedcost_corn
-from feed_functions.feedcost_bypass_fat import Feedcost_bypass_fat
+from container import get_dependency
+from persistent_container_service import ContainerClient
 
 class Feedcost_total:
-    def __init__(self, feedcost_beans=None, feedcost_cassava=None, feedcost_corn=None, feedcost_bypass_fat=None):
-        
-        self.bean_cost      = feedcost_beans or Feedcost_beans()
-        self.cassava_cost   = feedcost_cassava or Feedcost_cassava()
-        self.corn_cost      = feedcost_corn or Feedcost_corn()
-        self.bypassfat_cost = feedcost_bypass_fat or Feedcost_bypass_fat()
-        
-        self.feedcost, self.total_feedcost_details_last =  self.create_feedcost_total()
-        self.total_feedcost_monthly                     = self.create_monthly()
+    def __init__(self):
+        print(f"Feedcost_total instantiated by: {inspect.stack()[1].filename}")
+        self.bean_cost = None
+        self.cassava_cost = None
+        self.corn_cost = None
+        self.bypassfat_cost = None
+        self.feedcost = None
+        self.total_feedcost_details_last = None
+        self.total_feedcost_monthly = None
+
+    def load_and_process(self):
+        client = ContainerClient()
+        self.bean_cost      = client.get_dependency('feedcost_beans')
+        self.cassava_cost   = client.get_dependency('feedcost_cassava')
+        self.corn_cost      = client.get_dependency('feedcost_corn')
+        self.bypassfat_cost = client.get_dependency('feedcost_bypass_fat')
+
+        self.feedcost, self.total_feedcost_details_last = self.create_feedcost_total()
+        self.total_feedcost_monthly = self.create_monthly()
         self.write_to_csv()
     
     def create_feedcost_total(self):

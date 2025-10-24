@@ -2,33 +2,39 @@
 import inspect
 import pandas as pd
 import numpy as np
-from container import get_dependency
+# from container import get_dependency
+# from persistent_container_service import ContainerClient
 from milk_basics import MilkBasics
 from date_range import DateRange
 
 tdy = pd.Timestamp.today()
 
+
 class InsemUltraBasics:
     def __init__(self):
-        print(f"InsemUltraBasics instantiated by: {inspect.stack()[1].filename}")
-        print(f"🔍 {self.__class__.__module__}: Current stack:")
-        for i, frame in enumerate(inspect.stack()[:5]):
-            print(f"   {i}: {frame.filename}:{frame.lineno} in {frame.function}")
 
-        print("[IUB] STEP 1: Creating DateRange and MilkBasics...")
+        print(f"InsemUltraBasics instantiated by: {inspect.stack()[1].filename}")
+
+        self.DR = None
+        self.MB = None
+        self.data = None
+        self.df = None
+        self.lbpiv = None
+        self.first_calf = None
+        self.last_calf = None
+        self.last_stop = None
+
+    def load_and_process(self):
         self.DR = DateRange()
         self.MB = MilkBasics()
+        self.MB.load_and_process()
         self.data = self.MB.data
 
-
-        print("[IUB] STEP 2: Creating livebirths_pivot, first_calf, last_calf, last_stop...")
         self.df = pd.DataFrame()
         self.lbpiv = self.create_livebirths_pivot()
-  
         self.first_calf = self.create_first_calf()
         self.last_calf  = self.create_last_calf()
         self.last_stop  = self.create_last_stop()
-
         self.write_to_csv()
         
         

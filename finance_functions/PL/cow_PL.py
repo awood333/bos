@@ -1,53 +1,67 @@
-'''cow_PL.py'''
-
+'''finance_functions.PL.cow_PL.py'''
+import inspect
 from datetime import datetime
 import pandas as pd
-# import numpy as np
-
-from status_functions.wet_dry            import WetDry
-from status_functions.statusData        import StatusData
-from milk_basics                         import MilkBasics
-from feed_functions.feedcost_basics     import Feedcost_basics
-from insem_functions.insem_ultra_data   import InsemUltraData
-from insem_functions.insem_ultra_basics import InsemUltraBasics
+from container import get_dependency
+from persistent_container_service import ContainerClient
+from milk_basics  import MilkBasics
 
 class CowPL:
-    def __init__(self, wet_dry=None, status_data=None,
-                 milk_basics=None, feedcost_basics=None,
-                 insem_ultra_data=None, insem_ultra_basics=None):
-    
-        self.WD = wet_dry or WetDry()
-        self.SD = status_data or StatusData()
-        self.MB = milk_basics or MilkBasics()
-        self.FCB = feedcost_basics or Feedcost_basics()
-        self.IUD = insem_ultra_data or InsemUltraData()
-        self.IUB = insem_ultra_basics or InsemUltraBasics()
-        
-        self.last_calf = self.IUB.last_calf.loc[:,['WY_id','last calf#']].copy()
-        
-        alive_ids1      = self.MB.data['bd'][self.MB.data['bd']['death_date'].isnull()]
-        alive_ids2      = alive_ids1.reset_index()
-        self.alive_ids  = alive_ids2['WY_id']
-        
-        #feed costs
-        self.feed_cost_A    =  self.FCB.current_feedcost['group_a_cost'].loc['sum']
-        self.feed_cost_B    =  self.FCB.current_feedcost['group_b_cost'].loc['sum']        
-        self.feed_cost_dry  =  self.FCB.current_feedcost['dry_cost'].loc['sum']  
-        
+    def __init__(self):
+        print(f"CowPL instantiated by: {inspect.stack()[1].filename}")
+        self.MB = None
+        self.WD = None
+        self.SD = None
+        self.FCB = None
+        self.IUD = None
+        self.IUB = None
+        self.last_calf = None
+        self.alive_ids = None
+        self.feed_cost_A = None
+        self.feed_cost_B = None
+        self.feed_cost_dry = None
+        self.mask_str = None
+        self.mask_int = None
+        self.today = None
+        self.group_days = None
+        self.bd2 = None
+        self.group_table = None
+        self.revenue = None
+        self.net_revenue = None
+
+    def load_and_process(self):
+        client = ContainerClient()
+        self.MB = MilkBasics()
+        self.WD = client.get_dependency('wet_dry')
+        self.SD = client.get_dependency('status_data')
+        self.MB = client.get_dependency('milk_basics')
+        self.FCB = client.get_dependency('feedcost_basics')
+        self.IUD = client.get_dependency('insem_ultra_data')
+        self.IUB = client.get_dependency('insem_ultra_basics')
+
+        self.last_calf = self.IUB.last_calf.loc[:, ['WY_id', 'last calf#']].copy()
+
+        alive_ids1 = self.MB.data['bd'][self.MB.data['bd']['death_date'].isnull()]
+        alive_ids2 = alive_ids1.reset_index()
+        self.alive_ids = alive_ids2['WY_id']
+
+        # feed costs
+        self.feed_cost_A = self.FCB.current_feedcost['group_a_cost'].loc['sum']
+        self.feed_cost_B = self.FCB.current_feedcost['group_b_cost'].loc['sum']
+        self.feed_cost_dry = self.FCB.current_feedcost['dry_cost'].loc['sum']
+
         self.mask_str = self.SD.alive_ids.to_list()
         self.mask_int = self.SD.alive_ids.astype(int).to_list()
 
         now = datetime.now()
         self.today = pd.to_datetime(now)
-        
-        self.group_days     = self.get_days_in_groups()
-        self.bd2            = self.create_possible_days()
-        self.group_table     = self.create_dry_days()
-        self.group_table    = self.create_cost()
-   
-        self.revenue        = self.create_revenue()
+
+        self.group_days = self.get_days_in_groups()
+        self.bd2 = self.create_possible_days()
+        self.group_table = self.create_dry_days()
+        self.group_table = self.create_cost()
+        self.revenue = self.create_revenue()
         self.net_revenue = self.create_net_revenue()
-     
         self.write_to_csv()
         
     def get_days_in_groups(self):
@@ -119,8 +133,8 @@ class CowPL:
     def create_revenue(self):        
         
         milk1 = self.MB.data['milk']
-        milk2 = milk1.loc[:,self.mask_str].copy()
-        rev = (milk2.sum(axis=0) ) * 22
+        CP_milk2 = milk1.loc[:,self.mask_str].copy()
+        rev = (CP_milk2.sum(axis=0) ) * 22
         
         rev.name = 'revenue'
         self.revenue = pd.DataFrame(rev, columns=['revenue'])

@@ -5,8 +5,23 @@ import pandas as pd
 
 class MilkBasics:
     def __init__(self):
-        
-        self.data: Dict[str, Any]      = self.dataLoader()
+        self.data = None
+        self.startx = None
+        self.stopx = None
+        self.lb = None
+        self.u = None
+        self.i = None
+        self.bd = None
+        self.milk = None
+        self.lastday = None
+        self.datex = None
+        self.extended_date_range_milk = None
+        self.WY_ids = None
+        self.start = None
+        self.stop = None
+
+    def load_and_process(self):
+        self.data = self.dataLoader()
         
         
     def dataLoader(self):

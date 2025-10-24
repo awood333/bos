@@ -54,8 +54,8 @@ class Container:
         self.register_singleton('status_data',          self._create_status_data)
         self.register_singleton('status_data2',         self._create_status_data2)
         self.register_singleton('wet_dry',              self._create_wet_dry)
-        self.register_singleton('status_groups',        self._create_status_groups)
-        self.register_singleton('status_groups_tenday', self._create_status_groups)        
+        self.register_singleton('model_groups',        self._create_model_groups)
+        self.register_singleton('model_groups_tenday', self._create_model_groups)        
         
         # Insem
         self.register_singleton('insem_ultra_basics',   self._create_insem_ultra_basics)
@@ -74,7 +74,7 @@ class Container:
         
         # Milk
         self.register_singleton('milk_aggregates',      self._create_milk_aggregates)
-        self.register_singleton('milking_groups_tenday',self._create_milking_groups_tenday)
+        self.register_singleton('milking_groups_whiteboard',self._create_milking_groups_tenday)
         self.register_singleton('sahagon',              self._create_sahagon)
         
         # Lactation
@@ -90,10 +90,15 @@ class Container:
 
 
         # Finance
+        self.register_singleton('finance_basics',       self._create_finance_basics)
+        self.register_singleton('capex_basics',         self._create_capex_basics)         
+        self.register_singleton('capex_projects',       self._create_capex_projects)
+        self.register_singleton('income_statement',     self._create_income_statement)        
         self.register_singleton('milk_income',          self._create_milk_income)
-        self.register_singleton('net_revenue',          self._create_net_revenue)
         self.register_singleton('cow_pl',               self._create_cow_pl)
-        
+        self.register_singleton('depreciation',         self._create_depreciation)        
+        self.register_singleton('net_revenue',          self._create_net_revenue)
+
         # Report/Dashboard dependencies
         self.register_singleton('report_milk',          self._create_report_milk)
         self.register_singleton('report_milk_xlsx',     self._create_report_milk_xlsx)
@@ -109,13 +114,13 @@ class Container:
     def get(self, name: str) -> Any:
         """Get a dependency by name"""
         with self._lock:
-            print(f"[CONTAINER] Lock acquired for: {name}")
-            print(f"[CONTAINER] Currently creating: {self._creating}")
-            print(f"[CONTAINER] Singletons: {list(self._singletons.keys())}")
+            # print(f"[CONTAINER] Lock acquired for: {name}")
+            # print(f"[CONTAINER] Currently creating: {self._creating}")
+            # print(f"[CONTAINER] Singletons: {list(self._singletons.keys())}")
 
             # Check if it's a singleton that's already created
             if name in self._singletons:
-                print(f"[CONTAINER] Returning existing singleton for: {name}")
+                # print(f"[CONTAINER] Returning existing singleton for: {name}")
                 return self._singletons[name]
             
             # Check if it's a registered singleton factory
@@ -125,10 +130,10 @@ class Container:
                 for i, frame in enumerate(inspect.stack()[1:8]):  # Get 7 levels deep
                     stack_info.append(f"   {i}: {frame.filename}:{frame.lineno} in {frame.function}")
                 
-                print(f"🔍 Creating singleton: {name}")
-                print("📍 Complete call stack:")
-                for line in stack_info:
-                    print(line)
+                # print(f"🔍 Creating singleton: {name}")
+                # print("📍 Complete call stack:")
+                # for line in stack_info:
+                #     print(line)
                 
                 # Initialize tracking attributes if they don't exist
                 if not hasattr(self, '_creating'):
@@ -139,9 +144,9 @@ class Container:
                 # Check for circular dependencies with detailed chain tracking
                 if name in self._creating:
                     print("🚨 CIRCULAR DEPENDENCY DETECTED!")
-                    print(f"   Trying to create: {name}")
-                    print(f"   Currently creating: {list(self._creating)}")
-                    print(f"   Creation order: {' → '.join(self._creation_order)}")
+                    # print(f"   Trying to create: {name}")
+                    # print(f"   Currently creating: {list(self._creating)}")
+                    # print(f"   Creation order: {' → '.join(self._creation_order)}")
                     raise RuntimeError(f"Circular dependency: {' → '.join(self._creation_order)} → {name}")
                 
                 self._creating.add(name)
@@ -153,10 +158,10 @@ class Container:
                     self._dependency_graph.add_edge(parent, name)                
                 
                 try:
-                    print(f"🏗️  Starting creation of: {name}")
+                    # print(f"🏗️  Starting creation of: {name}")
                     instance = self._factories[name]()
                     self._singletons[name] = instance
-                    print(f"✅ Successfully created: {name}")
+                    # print(f"✅ Successfully created: {name}")
                     return instance
                 finally:
                     self._creating.remove(name)
@@ -203,20 +208,20 @@ class Container:
     # Factory methods for creating dependencies - NO PARAMETERS!
     
     def _create_status_data(self):
-        from status_functions.statusData import StatusData
+        from status_functions.status_data import StatusData
         return StatusData()
     
     def _create_status_data2(self):
-        from status_functions.statusData2 import StatusData2
+        from status_functions.status_data2 import StatusData2
         return StatusData2()
     
     def _create_wet_dry(self):
         from status_functions.wet_dry import WetDry
         return WetDry()
     
-    def _create_status_groups(self):
-        from status_functions.status_groups import statusGroups
-        return statusGroups()
+    def _create_model_groups(self):
+        from status_functions.model_groups import ModelGroups
+        return ModelGroups()
     
     def _create_insem_ultra_basics(self):
         from insem_functions.insem_ultra_basics import InsemUltraBasics
@@ -269,8 +274,8 @@ class Container:
         return MilkAggregates()
     
     def _create_milking_groups_tenday(self):
-        from milk_functions.milking_groups_tenday import MilkingGroups_tenday
-        return MilkingGroups_tenday()
+        from milk_functions.milking_groups_whiteboard import MilkingGroups_whiteboard
+        return MilkingGroups_whiteboard()
     
     def _create_sahagon(self):
         from milk_functions.sahagon import sahagon
@@ -309,9 +314,29 @@ class Container:
             # lazy loading - the function will be called in the app module
 
     # Finance functions 
+    def _create_finance_basics(self):
+        from finance_functions.finance_basics import FinanceBasics
+        return FinanceBasics()
+    
+    def _create_capex_basics(self):
+        from finance_functions.capex.capex_basics import CapexBasics
+        return CapexBasics()  
+     
+    def _create_capex_projects(self):
+        from finance_functions.capex.capex_projects import CapexProjects
+        return CapexProjects()
+
+    def _create_income_statement(self):
+        from finance_functions.income.income_statement import IncomeStatement
+        return IncomeStatement()       
+
     def _create_milk_income(self):
-        from finance_functions.income.MilkIncome import MilkIncome
+        from finance_functions.income.milk_income import MilkIncome
         return MilkIncome()
+        
+    def _create_depreciation(self):
+        from finance_functions.PL.depreciation import DepreciationCalc
+        return DepreciationCalc()
     
     def _create_net_revenue(self):
         from finance_functions.PL.NetRevenue import NetRevenue
@@ -351,28 +376,28 @@ if __name__ == "__main__":
     container.get('status_data')
     container.get('status_data2')
     container.get('wet_dry')
-    container.get('status_groups')
+    container.get('model_groups')
     container.get('insem_ultra_basics')
     container.get('insem_ultra_data')
     container.get('check_last_stop')
     container.get('i_u_merge')
     container.get('ipiv')
     container.get('feedcost_basics')
-    # container.get('feedcost_beans')
-    # container.get('feedcost_cassava')
-    # container.get('feedcost_corn')
-    # container.get('feedcost_bypass_fat')
+    container.get('feedcost_beans')
+    container.get('feedcost_cassava')
+    container.get('feedcost_corn')
+    container.get('feedcost_bypass_fat')
     container.get('feedcost_total')
     container.get('this_lactation')
     container.get('milk_aggregates')
-    # container.get('milking_groups_tenday')
+    container.get('milking_groups_whiteboard')
 
     container.get('lactation_basics')
     container.get('milk_income')
     container.get('net_revenue')
-    # container.get('cow_pl')
+    container.get('cow_pl')
     container.get('report_milk')
-    # container.get('report_milk_xlsx')
+    container.get('report_milk_xlsx')
 
 
     # ref show_dependency_graph above.   after running your script, open dependency_graph.png to view the graph.

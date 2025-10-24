@@ -5,26 +5,26 @@ import pandas as pd
 from openpyxl.styles import Alignment
 from openpyxl import load_workbook
 from container import get_dependency
+from persistent_container_service import ContainerClient
 
-from milk_functions.milk_aggregates import MilkAggregates
-from milk_functions.milking_groups_tenday  import MilkingGroups_tenday
 
 class ReportMilkXlsx:
-    def __init__(self, milk_aggregates=None, milking_groups_tenday=None):
+    def __init__(self):
+        print(f"ReportMilkXlsx instantiated by: {inspect.stack()[1].filename}")
+        self.MA = None
+        self.MGW = None
+        self.report_milk = None
 
-
-        print(f"ReportMilkXlsx instantiated by: {inspect.stack()[1].filename}")        
-        self.MA = milk_aggregates or MilkAggregates()
-        self.MG = milking_groups_tenday   or MilkingGroups_tenday()
-        
-        
-        self.createReportMilk()
-        # self.write_to_xlsx()
+    def load_and_process(self):
+        client = ContainerClient()
+        self.MA = client.get_dependency('milk_aggregates')
+        self.MGW = client.get_dependency('milking_groups_whiteboard')
+        self.report_milk = self.createReportMilk()
 
     def createReportMilk(self):
         tenday1 = self.MA.tenday
         halfday1 = self.MA.halfday
-        groups1  = self.MG.milking_groups_tenday
+        groups1  = self.MGW.milking_groups_tenday
 
         # Drop the index
         tenday  = tenday1 .reset_index(drop=True)

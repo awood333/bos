@@ -5,14 +5,19 @@ import pandas as pd
 
 class DateRange:
     def __init__(self):
-        
         self.date_format = "ISO8601"
-        self.startdate  = self.start_date()
-        self.enddate_monthly    = self.end_date_monthly()
-        self.enddate_daily = self.end_date_daily()
+        self.startdate = None
+        self.enddate_monthly = None
+        self.enddate_daily = None
+        self.date_range_daily = None
+        self.date_range_monthly_data = None
 
-        self.date_range_daily      = self.create_date_range_daily()
-        self.date_range_monthly_data  = self.create_date_range_monthly()
+    def load_and_process(self):
+        self.startdate = self.start_date()
+        self.enddate_monthly = self.end_date_monthly()
+        self.enddate_daily = self.end_date_daily()
+        self.date_range_daily = self.create_date_range_daily()
+        self.date_range_monthly_data = self.create_date_range_monthly()
         
     def start_date(self):
         self.startdate = pd.to_datetime("2025-01-01")

@@ -2,6 +2,7 @@
 
 from dash import Dash, html, dash_table
 import pandas as pd
+import webbrowser
 from container import get_dependency
 
 
@@ -237,7 +238,10 @@ def run_milk_dash_app():
         style={'backgroundColor': "#181616", 'padding': '20px'}
     )
     print("🔍 run_dash_app: Starting server...")
-    # webbrowser.open("http://127.0.0.1:8051/") --##commenting out avoids opening new tab each time
+    try:
+        webbrowser.open("http://127.0.0.1:8051/")
+    except Exception as e:
+        print(f"Could not open browser: {e}")
     app.run_server(debug=False, port=8051)
 
 if __name__ == "__main__":

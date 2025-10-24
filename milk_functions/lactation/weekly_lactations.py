@@ -2,39 +2,40 @@
 import inspect
 import pandas as pd
 from container import get_dependency
+from persistent_container_service import ContainerClient
 from milk_basics import MilkBasics
 from date_range import DateRange
 
+
 class WeeklyLactations():
     def __init__(self):
-        
-        print(f"WeeklyLactations instantiated by: {inspect.stack()[1].filename}")        
-        self.MB     = MilkBasics()
-        self.DR     = DateRange()
-        self.L      = get_dependency('lactations')
-        self.SD     = get_dependency('statusdata')
-        
-        self.data   = self.MB.data
+        print(f"WeeklyLactations instantiated by: {inspect.stack()[1].filename}")
+        self.MB = None
+        self.DR = None
+        self.L = None
+        self.SD = None
+        self.data = None
+        self.alive_ids = None
+        self.lact1 = self.lact2 = self.lact3 = self.lact4 = self.lact5 = None
+        self.wk_lacts = None
+        self.lactation_wk_1 = self.lactation_wk_2 = self.lactation_wk_3 = self.lactation_wk_4 = self.lactation_wk_5 = None
+        self.max_liters_list2 = None
+        self.max_df = None
+
+    def load_and_process(self):
+        client = ContainerClient()
+        self.MB = MilkBasics()
+        self.DR = DateRange()
+        self.L = client.get_dependency('lactations')
+        self.SD = client.get_dependency('statusdata')
+        self.data = self.MB.data
         self.alive_ids = self.SD.alive_ids.astype(int).to_list()
-
-        (self.lact1, 
-         self.lact2, 
-         self.lact3, 
-         self.lact4, 
-         self.lact5    )         = self.create_308day()
-        
-        self.wk_lacts            = self.create_weekly()
-
-        (self.lactation_wk_1,
-         self.lactation_wk_2,
-         self.lactation_wk_3,
-         self.lactation_wk_4,
-         self.lactation_wk_5 )      = self.create_separate_lactations()
-        
-        self.max_liters_list2   = self.create_max_liters()
-        self.max_df            = self.unpack_max_liters()
+        (self.lact1, self.lact2, self.lact3, self.lact4, self.lact5) = self.create_308day()
+        self.wk_lacts = self.create_weekly()
+        (self.lactation_wk_1, self.lactation_wk_2, self.lactation_wk_3, self.lactation_wk_4, self.lactation_wk_5) = self.create_separate_lactations()
+        self.max_liters_list2 = self.create_max_liters()
+        self.max_df = self.unpack_max_liters()
         self.create_live_lactations()
-
         self.write_to_csv()
 
 

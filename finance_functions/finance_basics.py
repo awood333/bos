@@ -6,24 +6,29 @@ from feed_functions.feedcost_basics import Feedcost_basics
 
 class FinanceBasics:
     def __init__(self, feedcost_basics=None):
+        print(f"FinanceBasics instantiated by: {inspect.stack()[1].filename}")
+        self.fc = feedcost_basics or Feedcost_basics()
+        self.bkk1 = None
+        self.startdate = None
+        self.stopdate = None
+        self.idx = None
+        self.cost_df = None
+        self.cost_xfeed_pivot = None
+        self.feedcost_pivot = None
 
-        print(f"InsemUltraBasics instantiated by: {inspect.stack()[1].filename}")
-        self.fc  = feedcost_basics or Feedcost_basics()
+    def load_and_process(self):
         bkk = pd.read_csv('F:\\COWS\\data\\finance\\BKKbank\\BKKBankFarmAccount.csv', index_col='datex')
         bkk.index = pd.to_datetime(bkk.index, format="%Y-%m-%d")
-        self.bkk1 = bkk.iloc[:,:12]
-        
-        
-        self.startdate = pd.to_datetime("2024-07-01") 
-        self.stopdate  = pd.to_datetime("2024-12-31") 
-          
-        self.idx       = pd.date_range(self.startdate, self.stopdate, freq='D')
+        self.bkk1 = bkk.iloc[:, :12]
 
-        # functions
-        self.cost_df     = self.create_cost_df()
+        self.startdate = pd.to_datetime("2025-01-01")
+        self.stopdate = pd.to_datetime("2025-07-01")
+        self.idx = pd.date_range(self.startdate, self.stopdate, freq='D')
+
+        self.cost_df = self.create_cost_df()
         self.cost_xfeed_pivot = self.create_cost_xfeed_pivot()
-        self.feedcost_pivot   = self.create_feedcost_pivot()
-        self.create_write_to_csv() 
+        self.feedcost_pivot = self.create_feedcost_pivot()
+        self.create_write_to_csv()
         
         
     def create_cost_df(self):

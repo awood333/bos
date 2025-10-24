@@ -12,7 +12,7 @@ class RunInsemStatusIU:
         self.wet_dry = get_dependency('wet_dry')
         self.status_data = get_dependency('status_data')
         self.status_data2 = get_dependency('status_data2')
-        self.status_groups = get_dependency('status_groups')
+        self.model_groups = get_dependency('model_groups')
         
         self.feedcost_basics = get_dependency('feedcost_basics')
         
