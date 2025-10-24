@@ -1,15 +1,24 @@
 import inspect
 import pandas as pd
 from container import get_dependency
+from persistent_container_service import ContainerClient
 
 
 class ReportMilk:
     def __init__(self):
         print(f"ReportMilk instantiated by: {inspect.stack()[1].filename}")
+        self.MA = None
+        self.MGW = None
+        self.SG = None
+        self.tenday = None
+        self.halfday = None
+        self.groups = None
 
-        self.MA = get_dependency('milk_aggregates')
-        self.MG = get_dependency('milking_groups_tenday')
-        self.SG = get_dependency('status_groups')
+    def load_and_process(self):
+        client = ContainerClient()
+        self.MA = client.get_dependency('milk_aggregates')
+        self.MGW = client.get_dependency('milking_groups_whiteboard')
+        self.SG = client.get_dependency('model_groups')
         self.tenday, self.halfday, self.groups = self.createReportMilk()
 
 

@@ -1,17 +1,22 @@
 '''finance_functions.income.IncomeStatement'''
 
 import pandas as pd
-from finance_functions.PL.NetRevenue import NetRevenue
-from finance_functions.capex.CapexBasics import CapexBasics
-from finance_functions.income.MilkIncome import MilkIncome
+from container import get_dependency
+
 
 class IncomeStatement:
     def __init__(self):
-        
-        self.NR = NetRevenue()
-        self.Capex = CapexBasics()
-        milk_income = MilkIncome()
-        self.avg_liters = milk_income.income_monthly.loc[:,'liters']
+        self.NR = None
+        self.Capex = None
+        self.MI = None
+        self.avg_liters = None
+        self.net_income = None
+
+    def load_and_process(self):
+        self.NR = get_dependency('net_revenue')
+        self.Capex = get_dependency('capex_basics')
+        self.MI = get_dependency('milk_income')
+        self.avg_liters = self.MI.income_monthly.loc[:, 'liters']
         self.net_income = self.createNetIncome()
         self.write_to_csv()
         

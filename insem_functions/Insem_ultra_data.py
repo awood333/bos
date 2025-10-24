@@ -3,69 +3,63 @@
 from    datetime import datetime
 import  inspect
 import  pandas  as pd
-import time
-import threading
+# import time
+# import threading
 
 from container import get_dependency
+from persistent_container_service import ContainerClient
 from milk_basics import MilkBasics
 from date_range import DateRange
 
 class InsemUltraData:
     def __init__(self):
         print(f"InsemUltraData instantiated by: {inspect.stack()[1].filename}")
-
-        print(f"🔍 {self.__class__.__module__}: Current stack:")
-        for i, frame in enumerate(inspect.stack()[:5]):
-            print(f"   {i}: {frame.filename}:{frame.lineno} in {frame.function}")
-        
-        print("STEP 1: Creating DateRange, MilkBasics, and loading data...")
-        self.DR     = DateRange()
-        self.MB     = MilkBasics()
-        self.data   = self.MB.data
-
-        print("[IUD] DEBUG: About to call get_dependency('insem_ultra_basics') at", time.strftime("%H:%M:%S"))
-        print("[IUD] DEBUG: Container singletons before:", list(get_dependency.__globals__['container']._singletons.keys()))
-        print("[IUD] DEBUG: Container creating before:", list(get_dependency.__globals__['container']._creating))
-        # Example usage in insem_ultra_data.py
-        print(f"[THREAD DEBUG] Current thread: {threading.current_thread().name}")
-        self.IUB    = get_dependency('insem_ultra_basics')
-
-        # --- DEBUG: After get_dependency ---
-        print("[IUD] DEBUG: Finished get_dependency('insem_ultra_basics') at", time.strftime("%H:%M:%S"))
-        print("[IUD] DEBUG: Container singletons after:", list(get_dependency.__globals__['container']._singletons.keys()))
-        print("[IUD] DEBUG: Container creating after:", list(get_dependency.__globals__['container']._creating))
-
-        print("[IUD] Got insem_ultra_basics dependency.")
-
-
-
-        self.SD     = get_dependency('status_data')
-        self.SD2    = get_dependency('status_data2')
-
-
-        self.status_col = self.SD2.status_col
-        self.alive_mask = self.data['bd']['death_date'].isnull() 
-
-        print("STEP 3: Setting date_format and today...")
+        self.DR = None
+        self.MB = None
+        self.data = None
+        self.IUB = None
+        self.SD = None
+        self.SD2 = None
+        self.status_col = None
+        self.alive_mask = None
         self.date_format = '%m/%d/%Y'
-        self.today       = pd.Timestamp(datetime.today())
+        self.today = None
+        self.last_insem = None
+        self.last_valid_insem = None
+        self.last_invalid_insem = None
+        self.last_ultra = None
+        self.last_valid_ultra = None
+        self.last_invalid_ultra = None
+        self.df7 = None
+        self.allx = None
+        self.all_milking = None
+        self.all_dry = None
+        self.all_preg = None
+        self.all_not_preg = None
+        self.days_milking = None
 
-        self.last_insem         = self.create_last_insem()
-        self.last_valid_insem   = self.create_last_valid_insem()
+    def load_and_process(self):
+        client = ContainerClient()
+        self.DR = DateRange()
+        self.MB = MilkBasics()
+        self.data = self.MB.data
+        self.IUB = client.get_dependency('insem_ultra_basics')
+        self.SD = client.get_dependency('status_data')
+        self.SD2 = client.get_dependency('status_data2')
+        self.status_col = self.SD2.status_col
+        self.alive_mask = self.data['bd']['death_date'].isnull()
+        self.date_format = '%m/%d/%Y'
+        self.today = pd.Timestamp(datetime.today())
+
+        self.last_insem = self.create_last_insem()
+        self.last_valid_insem = self.create_last_valid_insem()
         self.last_invalid_insem = self.create_last_invalid_insem()
-        
-        self.last_ultra         = self.create_last_ultra()
-        self.last_valid_ultra   = self.create_last_valid_ultra()
+        self.last_ultra = self.create_last_ultra()
+        self.last_valid_ultra = self.create_last_valid_ultra()
         self.last_invalid_ultra = self.create_last_invalid_ultra()
-        
-        self.df7                = self.create_df()
-        
-        [self.allx, self.all_milking, 
-        self.all_dry, self.all_preg, 
-        self.all_not_preg, self.days_milking]     = self.create_allx()
-        
+        self.df7 = self.create_df()
+        [self.allx, self.all_milking, self.all_dry, self.all_preg, self.all_not_preg, self.days_milking] = self.create_allx()
         self.create_write_to_csv()
-        self.IUD_dash_vars = self.get_dash_vars()
         
         
     def create_last_insem(self):
@@ -269,13 +263,7 @@ class InsemUltraData:
         self.last_valid_ultra  .to_csv('F:\\COWS\\data\\insem_data\\last_valid_ultra.csv') 
     
         self.allx.to_excel('F:\\COWS\\data\\insem_data\\allx.xlsx', index=False)
-    
-    def get_dash_vars(self):
-        self.IUD_dash_vars = {name: value for name, value in vars(self).items()
-               if isinstance(value, (pd.DataFrame, pd.Series))}
-        return self.IUD_dash_vars  
         
         
-# if __name__ == "__main__":
-#     iud = InsemUltraData()
-#     IUD_dash_vars = iud.get_dash_vars()
+if __name__ == "__main__":
+    iud = InsemUltraData()

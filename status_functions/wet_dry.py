@@ -1,42 +1,42 @@
 '''Wet_Dry.py'''
 import inspect
 import pandas as pd
-from container import get_dependency
-import logging
+# from container import get_dependency
+# import logging
 from utilities.logging_setup import  setup_debug_logging, debug_method
 from milk_basics import MilkBasics
 from date_range import DateRange
 
 today = pd.Timestamp.today()
 
-
 class WetDry:
     def __init__(self):
-        print(f"WetDry instantiated by: {inspect.stack()[1].filename}")
+        self.MB = None
+        self.data = None
+        self.ext_rng = None
+        self.milk1 = None
+        self.datex = None
+        self.WY_ids = None
+        self.wet_days_df1 = None
+        self.wsd = None
+        self.wmd = None
+        self.milking_liters = None
+        self.wdd = None
+        self.wdd_monthly = None
 
-        logger = setup_debug_logging(logging.WARNING)        
-        logger.info("🚀 wet_dry starting...")
-        print(f"🔍 {self.__class__.__module__}: Current stack:")
-        for i, frame in enumerate(inspect.stack()[:5]):
-            print(f"   {i}: {frame.filename}:{frame.lineno} in {frame.function}")
-
-        self.MB     = MilkBasics()
-        self.data   = self.MB.data
-        self.DR     = DateRange()
-        
-        self.ext_rng= self.MB.data['ext_rng']
-        self.milk1  = self.MB.data['milk'] 
-        self.datex  = self.MB.data['datex']
+    def load_and_process(self):
+        self.MB = MilkBasics()
+        self.data = self.MB.data
+        self.ext_rng = self.MB.data['ext_rng']
+        self.milk1 = self.MB.data['milk']
+        self.datex = self.MB.data['datex']
         self.WY_ids = self.MB.data['start'].columns
-
 
         [self.wet_days_df1, self.wsd, 
          self.wmd, self.milking_liters] = self.create_wet_days()
 
         self.wdd = self.reindex_columns()
-
         self.wdd_monthly = self.create_monthly_wet_days_by_group()
-
         self.write_to_csv()
 
 

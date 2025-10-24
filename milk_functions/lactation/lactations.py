@@ -1,26 +1,30 @@
 '''Lactations.py'''
 import inspect
 import pandas as pd 
-from container import get_dependency, container
+from container import get_dependency
+from persistent_container_service import ContainerClient
+
 
 class Lactations:
     def __init__(self):
-        
         print(f"Lactations instantiated by: {inspect.stack()[1].filename}")
-        self.Lacts  = get_dependency('lactationbasics')
-        self.MB     = get_dependency('milkbasics')
-        self.SD     = get_dependency('status_data')
-        
+        self.Lacts = None
+        self.MB = None
+        self.SD = None
+        self.WY_ids = None
+        self.alive_ids = None
+        self.L1 = self.L2 = self.L3 = self.L4 = self.L5 = self.L6 = None
+        self.live_L1 = self.live_L2 = self.live_L3 = self.live_L4 = self.live_L5 = self.live_L6 = None
+
+    def load_and_process(self):
+        client = ContainerClient()
+        self.Lacts  = client.get_dependency('lactationbasics')
+        self.MB     = client.get_dependency('milkbasics')
+        self.SD     = client.get_dependency('status_data')
         self.WY_ids = self.MB.data['WY_ids']
         self.alive_ids = self.SD.alive_ids.astype(int).to_list()
-        
-        [self.L1,self.L2,self.L3,
-        self.L4,self.L5,self.L6]    = self.create_separate_lactations()
-
-        [self.live_L1, self.live_L2 , 
-        self.live_L3, self.live_L4, 
-        self.live_L5, self.live_L6]  = self.create_live_lactations()
-    
+        [self.L1, self.L2, self.L3, self.L4, self.L5, self.L6] = self.create_separate_lactations()
+        [self.live_L1, self.live_L2, self.live_L3, self.live_L4, self.live_L5, self.live_L6] = self.create_live_lactations()
         self.write_to_csv()
     
     def create_separate_lactations(self):

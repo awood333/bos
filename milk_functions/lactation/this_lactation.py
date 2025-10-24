@@ -3,14 +3,19 @@
 import inspect
 from milk_basics import MilkBasics
 from container import get_dependency
+from persistent_container_service import ContainerClient
 
 class ThisLactation():
     def __init__(self):
-        
         print(f"ThisLactation instantiated by: {inspect.stack()[1].filename}")
+        self.MB = None
+        self.WD = None
+        self.milking = None
 
+    def load_and_process(self):
+        client = ContainerClient()
         self.MB = MilkBasics()
-        self.WD = get_dependency('wet_dry')
+        self.WD = client.get_dependency('wet_dry')
         self.milking = self.create_weekly()
         self.create_write_to_csv()
         

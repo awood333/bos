@@ -8,58 +8,69 @@ import pandas as pd
 import numpy as np
 
 from container import get_dependency
+from persistent_container_service import ContainerClient
 from milk_basics import MilkBasics
 from date_range import DateRange
 
-from utilities.logging_setup import  setup_debug_logging, debug_method
-import logging
+# from utilities.logging_setup import  setup_debug_logging, debug_method
+
+# import logging
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-
-
-# Turn debug on/off here - change to logging.DEBUG to see everything
-logger = setup_debug_logging(logging.WARNING)
 
 class MilkAggregates:
     def __init__(self):
-        logger.info("🚀 MilkAggregates starting...")
-        print(f"MilkAggregates instantiated by: {inspect.stack()[1].filename}")
-        print(f"🔍 {self.__class__.__module__}: Current stack:")
-        for i, frame in enumerate(inspect.stack()[:5]):
-            print(f"   {i}: {frame.filename}:{frame.lineno} in {frame.function}")
+        self.MB = None
+        self.data = None
+        self.DR = None
+        self.IUB = None
+        self.IUD = None
+        self.allx = None
+        self.lag = -10
+        self.date_format = '%m/%d/%Y'
+        self.maxcols = None
+        self.idx_am = None
+        self.idx_pm = None
+        self.wy_am_np = None
+        self.wy_pm_np = None
+        self.liters_am_np = None
+        self.liters_pm_np = None
+        self.am = None
+        self.pm = None
+        self.fullday = None
+        self.fullday_xl = None
+        self.fullday_lastdate = None
+        self.halfday_AM = None
+        self.halfday_PM = None
+        self.halfday = None
+        self.tenday = None
+        self.tenday1 = None
+        self.monthly = None
+        self.weekly = None
+        self.start = None
+        self.stop = None
 
+    def load_and_process(self):
+        client = ContainerClient()
         self.MB = MilkBasics()
         self.data = self.MB.data
         self.DR = DateRange()
-
-        self.IUB = get_dependency('insem_ultra_basics')
-        self.IUD = get_dependency('insem_ultra_data')
+        self.IUB = client.get_dependency('insem_ultra_basics')
+        self.IUD = client.get_dependency('insem_ultra_data')
         self.allx = self.IUD.allx
-        
-        self.lag = -10
-        print('lag = ', self.lag)
-        
-        self.date_format='%m/%d/%Y'
-
-        # [self.LBP, self.RBP] = self.create_basepath()
 
         [self.maxcols, self.idx_am, self.idx_pm, 
-        self.wy_am_np, self.wy_pm_np,
-        self.liters_am_np, self.liters_pm_np] = self.basics()
-        
-        [ self.am,      self.pm,
-        self.fullday,   self.fullday_xl,
-        self.fullday_lastdate]                  = self.fullday_calc()
-        
-        self.halfday_AM, self.halfday_PM, self.halfday        = self.halfday_AM_PM()
-        
-        self.tenday, self.tenday1               = self.ten_day()
-        
-        [self.monthly, self.weekly,
-         self.start, self.stop]                 = self.create_monthly_weekly()
+         self.wy_am_np, self.wy_pm_np,
+         self.liters_am_np, self.liters_pm_np] = self.basics()
+
+        [self.am, self.pm, self.fullday, self.fullday_xl, self.fullday_lastdate] = self.fullday_calc()
+
+        self.halfday_AM, self.halfday_PM, self.halfday = self.halfday_AM_PM()
+
+        self.tenday, self.tenday1 = self.ten_day()
+
+        [self.monthly, self.weekly, self.start, self.stop] = self.create_monthly_weekly()
 
         self.write_to_csv()
- 
 
     # def create_basepath(self):
 

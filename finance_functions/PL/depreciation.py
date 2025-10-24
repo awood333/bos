@@ -1,15 +1,24 @@
-
-import pandas as pd
+'''finance_functions.PL.depreciation.py'''
+import inspect
 from datetime import datetime as dt
-from finance_functions.capex.CapexProjects import CapexProjects
+import pandas as pd
+from container import get_dependency
+from persistent_container_service import ContainerClient
 
 
 class DepreciationCalc:
     def __init__(self):
-        CP = CapexProjects()
-        self.ptoc = CP.ptoc.copy()
+        print(f"DepreciationCalc instantiated by: {inspect.stack()[1].filename}")
+        self.ptoc = None
         self.this_tax_year = 2025
-        
+        self.ptoc3 = None
+        self.available_depr_summary = None
+        self.available_depr_details = None
+
+    def load_and_process(self):
+        client = ContainerClient()
+        CP = client.get_dependency('capex_projects')
+        self.ptoc = CP.ptoc.copy()
         self.ptoc3 = self.create_depreciation()
         self.available_depr_summary = self.create_tax_period()
         self.write_to_csv()

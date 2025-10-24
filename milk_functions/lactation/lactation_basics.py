@@ -3,20 +3,21 @@ import inspect
 import pandas as pd
 import numpy as np
 from milk_basics import MilkBasics
-from container import get_dependency
+# from container import get_dependency
 
 class LactationBasics:
 
     def __init__(self):
-       
         print(f"LactationBasics instantiated by: {inspect.stack()[1].filename}") 
-        self.MB = MilkBasics() 
+        self.MB = None
+        self.lactations_array = None
+        self.headers = None
+
+    def load_and_process(self):
+        self.MB = MilkBasics()
         self.lactations_array, self.headers = self.create_lactation_basics()
-        
 
     def create_lactation_basics(self):
-
-
         
         milkx = self.MB.data['milk']
         ext_range = self.MB.data['ext_rng']
@@ -61,18 +62,18 @@ class LactationBasics:
                     milk1a = milk1.reset_index(drop=True)
                     milk1a.index += 1
                     # print('milk1a: ',milk1a[:5])
-                    milk2 = model.merge(
+                    CP_milk2 = model.merge(
                         milk1a, left_index=True, right_index=True, 
                         how='left')
-                    milk2 = milk2.fillna(0).infer_objects(copy=False) #temp var so no copy is more efficient
+                    CP_milk2 = CP_milk2.fillna(0).infer_objects(copy=False) #temp var so no copy is more efficient
                     
                 elif  milk1.empty:
-                    milk2 = model
+                    CP_milk2 = model
                     
-                milk2.name = j
+                CP_milk2.name = j
 
-                milk3a  = pd.concat([milk3a, milk2], axis=1)
-                milk2 = pd.Series()
+                milk3a  = pd.concat([milk3a, CP_milk2], axis=1)
+                CP_milk2 = pd.Series()
             
             
             milk3b = milk3a.T

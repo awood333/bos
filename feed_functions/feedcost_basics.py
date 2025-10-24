@@ -2,7 +2,6 @@
 import inspect
 import os       #don't erase
 import pandas as pd
-from container import get_dependency
 from milk_basics import MilkBasics
 from date_range import DateRange
 
@@ -21,45 +20,64 @@ class DataLoader:
         data = data.sort_index()
         return data
         
-       
+
 class Feedcost_basics:
     def __init__(self):
         print(f"Feedcost_basics instantiated by: {inspect.stack()[1].filename}")
-        print(f"🔍 {self.__class__.__module__}: Current stack:")
-        for i, frame in enumerate(inspect.stack()[:5]):
-            print(f"   {i}: {frame.filename}:{frame.lineno} in {frame.function}")        
+        self.MB = None
+        self.DR = None
+        self.data_loader = None
+        self.feed_type = ['corn','cassava','beans','straw', 'bypass_fat', 'CP_005_21P', 'NaHCO3', 'CP_milk2']
+        self.rng_monthly = None
+        self.rng_monthly2 = None
+        self.rng_daily = None
 
+        self.price_seq_dict = None
+        self.daily_amt_dict = None
+        self.feed_series_dict = None
+        self.last_values_all_df = None
+        self.current_feedcost = None
+        self.unit_prices_daily = None
+        self.cost_dict_A = None
+        self.last_cost_details_A_df = None
+        self.cost_dict_B = None
+        self.last_cost_details_B_df = None
+        self.cost_dict_C = None
+        self.last_cost_details_C_df = None
+        self.cost_dict_D = None
+        self.last_cost_details_D_df = None
+        self.totalcost_A_df = None
+        self.totalcost_B_df = None
+        self.totalcost_C_df = None
+        self.totalcost_D_df = None
+        self.feedcost_daily = None
+        self.feedcost_monthly = None
+
+    def load_and_process(self):
         self.MB = MilkBasics()
+        self.MB.load_and_process()
         self.DR = DateRange()
-        
+        self.DR.load_and_process()
         self.data_loader = DataLoader('F:/COWS/data/feed_data/feed_csv')
-        self.feed_type = ['corn','cassava','beans','straw', 'bypass_fat', 'premix', 'NaHCO3', 'milk2']
 
         self.rng_monthly  = self.DR.date_range_monthly
-        self.rng_monthly2 = self.DR.date_range_monthly2
+        self.rng_monthly2 = getattr(self.DR, 'date_range_monthly2', None)
         self.rng_daily    = self.DR.date_range_daily
- 
-        [self.last_values_all_df, 
-         self.current_feedcost]         = self.create_feed_cost_dict()
-        
-        self.feed_series_dict           = self.create_separate_feed_series()
-        
-        [self.last_values_all_df, 
-         self.current_feedcost, 
-         self.unit_prices_daily]        =  self.create_last_values()
-        
-        self.cost_dict_A, self.last_cost_details_A_df   = self.create_cost_A()
-        self.cost_dict_B, self.last_cost_details_B_df   = self.create_cost_B()
-        self.cost_dict_C, self.last_cost_details_C_df   = self.create_cost_C()
-        self.cost_dict_D, self.last_cost_details_D_df   = self.create_cost_D()
-        
-        self.totalcost_A_df    = self.create_total_cost_A()
-        self.totalcost_B_df    = self.create_total_cost_B()
-        self.totalcost_C_df    = self.create_total_cost_C()
-        self.totalcost_D_df    = self.create_total_cost_D()
-        
-        self.feedcost_daily, self.feedcost_monthly       = self.create_feedcostByGroup()
+
+        self.price_seq_dict, self.daily_amt_dict = self.create_feed_cost_dict()
+        self.feed_series_dict = self.create_separate_feed_series()
+        self.last_values_all_df, self.current_feedcost, self.unit_prices_daily = self.create_last_values()
+        self.cost_dict_A, self.last_cost_details_A_df = self.create_cost_A()
+        self.cost_dict_B, self.last_cost_details_B_df = self.create_cost_B()
+        self.cost_dict_C, self.last_cost_details_C_df = self.create_cost_C()
+        self.cost_dict_D, self.last_cost_details_D_df = self.create_cost_D()
+        self.totalcost_A_df = self.create_total_cost_A()
+        self.totalcost_B_df = self.create_total_cost_B()
+        self.totalcost_C_df = self.create_total_cost_C()
+        self.totalcost_D_df = self.create_total_cost_D()
+        self.feedcost_daily, self.feedcost_monthly = self.create_feedcostByGroup()
         self.write_to_csv()
+
 
 
     def create_feed_cost_dict(self):
@@ -101,7 +119,8 @@ class Feedcost_basics:
                 'dad': self.feed_series_dict[feed]['dad'].iloc[-1],
             } for feed in self.feed_type
             }
-        
+
+
         self.last_values_all_df = pd.DataFrame.from_dict(last_values_all, orient='index')
         
         unit_prices, group_a_kg, group_b_kg, group_c_kg, dry_kg  = {},{},{},{},{}
@@ -238,15 +257,15 @@ class Feedcost_basics:
         cassava_series  = pd.Series(self.cost_dict_A['cassava']).astype(float)
         beans_series    = pd.Series(self.cost_dict_A['beans']).astype(float)
         straw_series    = pd.Series(self.cost_dict_A['straw']).astype(float)
-        milk2_series    = pd.Series(self.cost_dict_A['milk2']).astype(float)
-        premix_series   = pd.Series(self.cost_dict_A['premix']).astype(float)
+        CP_milk2_series    = pd.Series(self.cost_dict_A['CP_milk2']).astype(float)
+        CP_005_21P_series   = pd.Series(self.cost_dict_A['CP_005_21P']).astype(float)
         NaHCO3_series   = pd.Series(self.cost_dict_A['NaHCO3']).astype(float)
         bypass_fat_series = pd.Series(self.cost_dict_A['bypass_fat']).astype(float)
 
         totalcostA = (corn_series   + cassava_series
                       + beans_series + straw_series 
-                      + bypass_fat_series + premix_series 
-                      + NaHCO3_series + milk2_series
+                      + bypass_fat_series + CP_005_21P_series 
+                      + NaHCO3_series + CP_milk2_series
                      ) 
             
 
@@ -256,9 +275,9 @@ class Feedcost_basics:
             'beans': beans_series,
             'straw': straw_series,
             'bypass_fat': bypass_fat_series,
-            'premix': premix_series,
+            'CP_005_21P': CP_005_21P_series,
             'NaHCO3': NaHCO3_series,
-            'milk2' : milk2_series,
+            'CP_milk2' : CP_milk2_series,
 
             'totalcostA': totalcostA
         })
@@ -275,15 +294,15 @@ class Feedcost_basics:
         cassava_series  = pd.Series(self.cost_dict_B['cassava']).astype(float)
         beans_series    = pd.Series(self.cost_dict_B['beans']).astype(float)
         straw_series    = pd.Series(self.cost_dict_B['straw']).astype(float)
-        premix_series   = pd.Series(self.cost_dict_B['premix']).astype(float)
-        milk2_series    = pd.Series(self.cost_dict_B['milk2']).astype(float)
+        CP_005_21P_series   = pd.Series(self.cost_dict_B['CP_005_21P']).astype(float)
+        CP_milk2_series    = pd.Series(self.cost_dict_B['CP_milk2']).astype(float)
         NaHCO3_series   = pd.Series(self.cost_dict_B['NaHCO3']).astype(float)
         bypass_fat_series    = pd.Series(self.cost_dict_B['bypass_fat']).astype(float)
 
         totalcostB = (corn_series + cassava_series 
                       + beans_series + straw_series 
-                      + bypass_fat_series + premix_series 
-                      + NaHCO3_series + milk2_series
+                      + bypass_fat_series + CP_005_21P_series 
+                      + NaHCO3_series + CP_milk2_series
                       )
         
         df = pd.DataFrame({
@@ -292,8 +311,8 @@ class Feedcost_basics:
             'beans': beans_series,
             'straw': straw_series,
             'bypass_fat': bypass_fat_series,
-            'premix': premix_series,
-            'milk2' : milk2_series,
+            'CP_005_21P': CP_005_21P_series,
+            'CP_milk2' : CP_milk2_series,
             'NaHCO3': NaHCO3_series,
             
             'totalcostB': totalcostB
@@ -311,15 +330,15 @@ class Feedcost_basics:
         cassava_series  = pd.Series(self.cost_dict_C['cassava']).astype(float)
         beans_series    = pd.Series(self.cost_dict_C['beans']).astype(float)
         straw_series    = pd.Series(self.cost_dict_C['straw']).astype(float)
-        premix_series   = pd.Series(self.cost_dict_C['premix']).astype(float)
-        milk2_series    = pd.Series(self.cost_dict_C['milk2']).astype(float)
+        CP_005_21P_series   = pd.Series(self.cost_dict_C['CP_005_21P']).astype(float)
+        CP_milk2_series    = pd.Series(self.cost_dict_C['CP_milk2']).astype(float)
         NaHCO3_series   = pd.Series(self.cost_dict_C['NaHCO3']).astype(float)
         bypass_fat_series = pd.Series(self.cost_dict_C['bypass_fat']).astype(float)
 
         totalcostC = (corn_series + cassava_series 
                       + beans_series + straw_series 
-                      + bypass_fat_series + premix_series 
-                      + NaHCO3_series + milk2_series
+                      + bypass_fat_series + CP_005_21P_series 
+                      + NaHCO3_series + CP_milk2_series
                      ) 
 
         df = pd.DataFrame({
@@ -328,8 +347,8 @@ class Feedcost_basics:
             'beans': beans_series,
             'straw': straw_series,
             'bypass_fat': bypass_fat_series,
-            'premix': premix_series,
-            'milk2' : milk2_series,
+            'CP_005_21P': CP_005_21P_series,
+            'CP_milk2' : CP_milk2_series,
             'NaHCO3': NaHCO3_series,
 
             'totalcostC': totalcostC
@@ -347,15 +366,15 @@ class Feedcost_basics:
         cassava_series = pd.Series(self.cost_dict_D['cassava']).astype(float)
         beans_series = pd.Series(self.cost_dict_D['beans']).astype(float)
         straw_series = pd.Series(self.cost_dict_D['straw']).astype(float)
-        premix_series    = pd.Series(self.cost_dict_D['premix']).astype(float)
-        milk2_series    = pd.Series(self.cost_dict_D['milk2']).astype(float)
+        CP_005_21P_series    = pd.Series(self.cost_dict_D['CP_005_21P']).astype(float)
+        CP_milk2_series    = pd.Series(self.cost_dict_D['CP_milk2']).astype(float)
         NaHCO3_series    = pd.Series(self.cost_dict_D['NaHCO3']).astype(float)
         bypass_fat_series    = pd.Series(self.cost_dict_D['bypass_fat']).astype(float)
 
         totalcostD = (corn_series + cassava_series 
                       + beans_series + straw_series 
-                      + bypass_fat_series + premix_series 
-                      + NaHCO3_series + milk2_series
+                      + bypass_fat_series + CP_005_21P_series 
+                      + NaHCO3_series + CP_milk2_series
                      )
 
         df = pd.DataFrame({
@@ -364,8 +383,8 @@ class Feedcost_basics:
             'beans': beans_series,
             'straw': straw_series,
             'bypass_fat': bypass_fat_series,
-            'premix': premix_series,
-            'milk2' : milk2_series,
+            'CP_005_21P': CP_005_21P_series,
+            'CP_milk2' : CP_milk2_series,
             'NaHCO3': NaHCO3_series,
 
             'totalcostD': totalcostD

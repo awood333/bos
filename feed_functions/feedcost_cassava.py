@@ -4,32 +4,46 @@ import inspect
 import pandas as pd
 from datetime import datetime
 from container import get_dependency
+from persistent_container_service import ContainerClient
 from milk_basics import MilkBasics
 from date_range import DateRange
 
-class Feedcost_cassava:
-    def __init__(self, date_range=None, status_data=None, feedcost_basics=None, status_groups=None):
-        
-        print(f"Feedcost_cassava instantiated by: {inspect.stack()[1].filename}")
+
+class Feedcost_bypass_fat:
+    def __init__(self):
+        print(f"Feedcost_bypass_fat instantiated by: {inspect.stack()[1].filename}")
+        self.MB = None
+        self.DR = None
+        self.SD = None
+        self.FCB = None
+        self.SG = None
+        self.price_seq = None
+        self.dateRange = None
+        self.herd_daily = None
+        self.all_groups_count = None
+        self.daily_amt_bypass_fat = None
+        self.daily_price_seq_bypass_fat = None
+        self.cost_sequence_bypass_fat = None
+
+    def load_and_process(self):
+        client = ContainerClient()
         self.MB = MilkBasics()
         self.DR = DateRange()
-        SD = status_data or get_dependency('status_data')
-        self.FCB = feedcost_basics or get_dependency('feedcost_basics')
-        self.SG = status_groups or get_dependency('status_groups')
-        price_seq1 =  pd.read_csv("F:\\COWS\\data\\feed_data\\feed_csv\\cassava_price_seq.csv")
+        self.SD = client.get_dependency('status_data')
+        self.FCB = client.get_dependency('feedcost_basics')
+        self.SG = client.get_dependency('model_groups')
+        price_seq1 = pd.read_csv("F:\\COWS\\data\\feed_data\\feed_csv\\bypass_fat_price_seq.csv")
 
-        start_date =  self.DR.start_date()
-        today = datetime.today().date()
-        self.dateRange= pd.date_range(start_date,today)
-        
+        self.dateRange = self.DR.date_range_daily
         self.price_seq = price_seq1.loc[:, ['datex', 'unit_price']].set_index('datex')
         self.price_seq.index = pd.to_datetime(self.price_seq.index)
-        
-        self.herd_daily         = SD.herd_daily
-        self.all_groups_count   = self.SG.all_groups_count
-        self.daily_amt_cassava          = self.create_daily_amt_cassava()
-        self.daily_price_seq_cassava    = self.create_daily_price_seq_cassava()        
-        self.cost_sequence_cassava      = self.create_cost_sequence_cassava()
+
+        self.herd_daily = self.SD.herd_daily
+        self.all_groups_count = self.SG.all_groups_count
+
+        self.daily_amt_bypass_fat = self.create_daily_amt_bypass_fat()
+        self.daily_price_seq_bypass_fat = self.create_daily_price_seq_bypass_fat()
+        self.cost_sequence_bypass_fat = self.create_cost_sequence_bypass_fat()
 
         self.write_to_csv()
         
