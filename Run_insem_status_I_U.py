@@ -1,12 +1,13 @@
 '''Run_insem_status_IU.py'''
+
 from container import get_dependency
-from milk_basics import MilkBasics
-from date_range import DateRange
+
+
 
 class RunInsemStatusIU:
     def __init__(self):
-        self.milk_basics = MilkBasics()
-        self.date_range = DateRange()
+        self.milk_basics = get_dependency('milk_basics')
+        self.date_range = get_dependency('date_range')
         self.lactation_basics = get_dependency('lactation_basics')
         
         self.wet_dry = get_dependency('wet_dry')
@@ -23,4 +24,5 @@ class RunInsemStatusIU:
         self.i_u_merge = get_dependency('i_u_merge')
 
 if __name__ == "__main__":
-    RunInsemStatusIU()
+    obj = RunInsemStatusIU()
+    obj.load_and_process()    

@@ -77,5 +77,5 @@ class DepreciationCalc:
     
     
 if __name__ == "__main__":
-    DepreciationCalc()
-        
+    obj=DepreciationCalc()
+    obj.load_and_process()         

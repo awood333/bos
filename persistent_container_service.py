@@ -107,10 +107,7 @@ class ContainerService:
     
     def _preload_dependencies(self):
         """Pre-load frequently used dependencies"""
-        preload_list = [
-             'status_data', 
-            'feedcost_basics', 'insem_ultra_basics'
-        ]
+        preload_list = ['milk_basics', 'date_range']
         
         print("Pre-loading dependencies...")
         for dep_name in preload_list:

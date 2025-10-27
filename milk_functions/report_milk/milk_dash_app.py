@@ -104,7 +104,7 @@ def run_milk_dash_app():
 
     tenday_df  = report.tenday
     halfday_df = report.halfday 
-    groups_df  =  report.groups
+    groups_df  =  report.WB_groups
 
 
     app = Dash(__name__)
@@ -245,4 +245,4 @@ def run_milk_dash_app():
     app.run_server(debug=False, port=8051)
 
 if __name__ == "__main__":
-    run_milk_dash_app()    
+    obj = run_milk_dash_app()    

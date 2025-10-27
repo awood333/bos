@@ -7,9 +7,8 @@ import  pandas  as pd
 # import threading
 
 from container import get_dependency
-from persistent_container_service import ContainerClient
-from milk_basics import MilkBasics
-from date_range import DateRange
+# from persistent_container_service import ContainerClient
+
 
 class InsemUltraData:
     def __init__(self):
@@ -39,13 +38,13 @@ class InsemUltraData:
         self.days_milking = None
 
     def load_and_process(self):
-        client = ContainerClient()
-        self.DR = DateRange()
-        self.MB = MilkBasics()
+        # client = ContainerClient()
+        self.DR = get_dependency('date_range')
+        self.MB = get_dependency('milk_basics')
         self.data = self.MB.data
-        self.IUB = client.get_dependency('insem_ultra_basics')
-        self.SD = client.get_dependency('status_data')
-        self.SD2 = client.get_dependency('status_data2')
+        self.IUB = get_dependency('insem_ultra_basics')
+        self.SD = get_dependency('status_data')
+        self.SD2 = get_dependency('status_data2')
         self.status_col = self.SD2.status_col
         self.alive_mask = self.data['bd']['death_date'].isnull()
         self.date_format = '%m/%d/%Y'
@@ -266,4 +265,5 @@ class InsemUltraData:
         
         
 if __name__ == "__main__":
-    iud = InsemUltraData()
+    obj = InsemUltraData()
+    obj.load_and_process() 

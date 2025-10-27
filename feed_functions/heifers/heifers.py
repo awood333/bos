@@ -288,4 +288,5 @@ class Heifers:
             
      
 if __name__ == "__main__":
-    Heifers()
+    obj = Heifers()
+    # obj.load_and_process()    

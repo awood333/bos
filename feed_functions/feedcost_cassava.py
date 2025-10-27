@@ -2,14 +2,12 @@
 
 import inspect
 import pandas as pd
-from datetime import datetime
+# from datetime import datetime
 from container import get_dependency
 from persistent_container_service import ContainerClient
-from milk_basics import MilkBasics
-from date_range import DateRange
 
 
-class Feedcost_bypass_fat:
+class Feedcost_cassava:
     def __init__(self):
         print(f"Feedcost_bypass_fat instantiated by: {inspect.stack()[1].filename}")
         self.MB = None
@@ -21,18 +19,18 @@ class Feedcost_bypass_fat:
         self.dateRange = None
         self.herd_daily = None
         self.all_groups_count = None
-        self.daily_amt_bypass_fat = None
-        self.daily_price_seq_bypass_fat = None
-        self.cost_sequence_bypass_fat = None
+        self.daily_amt_cassava = None
+        self.daily_price_seq_cassava = None
+        self.cost_sequence_cassava = None
 
     def load_and_process(self):
         client = ContainerClient()
-        self.MB = MilkBasics()
-        self.DR = DateRange()
+        self.MB = get_dependency('milk_basics')
+        self.DR = get_dependency('date_range')
         self.SD = client.get_dependency('status_data')
         self.FCB = client.get_dependency('feedcost_basics')
         self.SG = client.get_dependency('model_groups')
-        price_seq1 = pd.read_csv("F:\\COWS\\data\\feed_data\\feed_csv\\bypass_fat_price_seq.csv")
+        price_seq1 = pd.read_csv("F:\\COWS\\data\\feed_data\\feed_csv\\cassava_price_seq.csv")
 
         self.dateRange = self.DR.date_range_daily
         self.price_seq = price_seq1.loc[:, ['datex', 'unit_price']].set_index('datex')
@@ -41,9 +39,9 @@ class Feedcost_bypass_fat:
         self.herd_daily = self.SD.herd_daily
         self.all_groups_count = self.SG.all_groups_count
 
-        self.daily_amt_bypass_fat = self.create_daily_amt_bypass_fat()
-        self.daily_price_seq_bypass_fat = self.create_daily_price_seq_bypass_fat()
-        self.cost_sequence_bypass_fat = self.create_cost_sequence_bypass_fat()
+        self.daily_amt_bypass_fat = self.create_daily_amt_cassava()
+        self.daily_price_seq_bypass_fat = self.create_daily_price_seq_cassava()
+        self.cost_sequence_bypass_fat = self.create_cost_sequence_cassava()
 
         self.write_to_csv()
         
@@ -89,4 +87,5 @@ class Feedcost_bypass_fat:
         self.daily_amt_cassava      .to_csv('F:\\COWS\\data\\feed_data\\feed_consumption\\daily_amt_cassava.csv')
         
 if __name__ == "__main__" :
-    FPD = Feedcost_cassava()
+    obj = Feedcost_cassava()
+    obj.load_and_process()    

@@ -19,4 +19,5 @@ class RunFinanceFunctions:
         self.tax_docs_noncapex      = TaxDocs_NonCapex()
 
 if __name__ == "__main__":
-    RunFinanceFunctions()
+    obj=RunFinanceFunctions()
+    obj.load_and_process()    

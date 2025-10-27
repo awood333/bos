@@ -8,9 +8,8 @@ import pandas as pd
 import numpy as np
 
 from container import get_dependency
-from persistent_container_service import ContainerClient
-from milk_basics import MilkBasics
-from date_range import DateRange
+# from persistent_container_service import ContainerClient
+
 
 # from utilities.logging_setup import  setup_debug_logging, debug_method
 
@@ -18,6 +17,9 @@ from date_range import DateRange
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 class MilkAggregates:
+
+    print(f"MilkAggregates instantiated by: {inspect.stack()[1].filename}")
+
     def __init__(self):
         self.MB = None
         self.data = None
@@ -48,14 +50,20 @@ class MilkAggregates:
         self.weekly = None
         self.start = None
         self.stop = None
+        self.AM_liters = None
+        self.AM_wy = None
+        self.PM_liters = None
+        self.PM_wy = None
+        self.daily_milk = None
+        self.datex = None
 
     def load_and_process(self):
-        client = ContainerClient()
-        self.MB = MilkBasics()
+
+        self.MB = get_dependency('milk_basics')
         self.data = self.MB.data
-        self.DR = DateRange()
-        self.IUB = client.get_dependency('insem_ultra_basics')
-        self.IUD = client.get_dependency('insem_ultra_data')
+        self.DR = get_dependency('date_range')
+        self.IUB = get_dependency('insem_ultra_basics')
+        self.IUD = get_dependency('insem_ultra_data')
         self.allx = self.IUD.allx
 
         [self.maxcols, self.idx_am, self.idx_pm, 
@@ -316,7 +324,6 @@ class MilkAggregates:
         return self.monthly,  self.weekly, self.start, self.stop
     
 
-    @debug_method
     def write_to_csv(self):
         print(">>> write_to_csv called")
         self.fullday    .to_csv('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv')
@@ -329,5 +336,5 @@ class MilkAggregates:
         
       
 if __name__ == '__main__':
-    MilkAggregates()
-    
+    obj=MilkAggregates()
+    obj.load_and_process()      

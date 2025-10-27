@@ -94,7 +94,8 @@ class NutritionCows:
     
     
 if __name__ == "__main__":
-  NutritionCows()
+  obj=NutritionCows()
+  obj.load_and_process()   
     
   # def abc(self):
   #   nutval1 = []

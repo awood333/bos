@@ -1,32 +1,34 @@
 import inspect
 import pandas as pd
 from container import get_dependency
-from persistent_container_service import ContainerClient
+# from persistent_container_service import ContainerClient
 
 
 class ReportMilk:
     def __init__(self):
+        
         print(f"ReportMilk instantiated by: {inspect.stack()[1].filename}")
+
         self.MA = None
-        self.MGW = None
-        self.SG = None
+        self.WG = None
+        self.MG = None
         self.tenday = None
         self.halfday = None
-        self.groups = None
+        self.WB_groups = None
 
     def load_and_process(self):
-        client = ContainerClient()
-        self.MA = client.get_dependency('milk_aggregates')
-        self.MGW = client.get_dependency('milking_groups_whiteboard')
-        self.SG = client.get_dependency('model_groups')
-        self.tenday, self.halfday, self.groups = self.createReportMilk()
+        # client = ContainerClient()
+        self.MA = get_dependency('milk_aggregates')
+        self.WG = get_dependency('whiteboard_groups')
+        self.MG = get_dependency('model_groups')
+        self.tenday, self.halfday, self.WB_groups = self.createReportMilk()
 
 
     def createReportMilk(self): 
 
         tenday  = self.MA.tenday.copy()
         halfday = self.MA.halfday.copy()
-        groups  = self.SG.whiteboard_model_groups.copy()
+        WB_groups  = self.WG.whiteboard_groups_tenday.copy()
 
 
         column_formats = {
@@ -75,9 +77,10 @@ class ReportMilk:
             tenday_formatted[col] = pd.to_numeric(tenday_formatted.iloc[:, idx], errors='coerce').round(0).astype('Int64').astype(str)
 
         halfday_formatted = format_dataframe(halfday, column_formats)
-        groups_formatted = format_dataframe(groups, column_formats)
+        groups_formatted = format_dataframe(WB_groups, column_formats)
 
         return tenday_formatted, halfday_formatted, groups_formatted
     
-# if __name__ == "__main__":
-#     ReportMilk()
+if __name__ == "__main__":
+    obj = ReportMilk()
+    obj.load_and_process()    

@@ -141,4 +141,4 @@ class RawMilkUpdate:
 
 
 if __name__ =="__main__":
-    RawMilkUpdate()
+    obj=RawMilkUpdate()

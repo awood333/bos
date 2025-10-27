@@ -5,8 +5,6 @@ from datetime import datetime
 import pandas as pd
 from container import get_dependency
 from persistent_container_service import ContainerClient
-from milk_basics import MilkBasics
-from date_range import DateRange
 
 
 class Feedcost_corn:
@@ -28,8 +26,8 @@ class Feedcost_corn:
 
     def load_and_process(self):
         client = ContainerClient()
-        self.MB = MilkBasics()
-        self.DR = DateRange()
+        self.MB = get_dependency('milk_basics')
+        self.DR = get_dependency('date_range')
         self.SD = client.get_dependency('status_data')
         self.FCB = client.get_dependency('feedcost_basics')
         self.SG = client.get_dependency('model_groups')
@@ -82,4 +80,5 @@ class Feedcost_corn:
         self.daily_amt_corn      .to_csv('F:\\COWS\\data\\feed_data\\feed_consumption\\daily_amt_corn.csv')
         
 if __name__ == "__main__" :
-    FPD = Feedcost_corn()
+    obj = Feedcost_corn()
+    obj.load_and_process()     

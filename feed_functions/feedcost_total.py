@@ -80,4 +80,5 @@ class Feedcost_total:
         self.total_feedcost_monthly     .to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\total_feedcost_monthly.csv')
         
 if __name__ == "__main__":
-    Main = Feedcost_total()
+    obj = Feedcost_total()
+    obj.load_and_process()    
