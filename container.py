@@ -49,12 +49,16 @@ class Container:
             When someone asks for 'date_range' use the _create_date_range method to create it
             But only create it ONCE (singleton behavior)
             Lazy Creation - The actual DateRange instance is only created when someone first calls: container.get('date_range)"""     
+        # Register core data dependencies
+        self.register_singleton('milk_basics', self._create_milk_basics)
+        self.register_singleton('date_range', self._create_date_range)
         
         # Status
         self.register_singleton('status_data',          self._create_status_data)
         self.register_singleton('status_data2',         self._create_status_data2)
         self.register_singleton('wet_dry',              self._create_wet_dry)
         self.register_singleton('model_groups',        self._create_model_groups)
+        self.register_singleton('whiteboard_groups',        self._create_whiteboard_groups)        
         self.register_singleton('model_groups_tenday', self._create_model_groups)        
         
         # Insem
@@ -71,22 +75,27 @@ class Container:
         self.register_singleton('feedcost_corn',        self._create_feedcost_corn)
         self.register_singleton('feedcost_bypass_fat',  self._create_feedcost_bypass_fat)
         self.register_singleton('feedcost_total',       self._create_feedcost_total)
-        
+
+        #groups and tests
+        self.register_singleton('whiteboard_groups',    self._create_whiteboard_groups)     
+        self.register_singleton('model_groups',         self._create_model_groups)     
+        self.register_singleton('compare_model_whiteboard_groups', self._create_compare_model_whiteboard_groups)     
+        self.register_singleton('tests_on_whiteboard', self._create_tests_on_whiteboard)             
+           
         # Milk
         self.register_singleton('milk_aggregates',      self._create_milk_aggregates)
-        self.register_singleton('milking_groups_whiteboard',self._create_milking_groups_tenday)
         self.register_singleton('sahagon',              self._create_sahagon)
         
         # Lactation
         self.register_singleton('lactation_basics',     self._create_lactation_basics)
-        self.register_singleton('_create_lactations',   self._create_lactations)
+        self.register_singleton('create_lactations',    self._create_lactations)
         self.register_singleton('this_lactation',       self._create_this_lactation)
         self.register_singleton('weekly_lactations',    self._create_weekly_lactations)
 
         # Report Milk
-        self.register_singleton('_create_report_milk',      self._create_report_milk)
-        self.register_singleton('_create_report_milk_xlsx', self._create_report_milk_xlsx)        
-        self.register_singleton('run_milk_dash_app',        self._create_run_milk_dash_app)        
+        self.register_singleton('create_report_milk',      self._create_report_milk)
+        self.register_singleton('create_report_milk_xlsx', self._create_report_milk_xlsx)        
+        self.register_singleton('run_milk_dash_app',       self._create_run_milk_dash_app)        
 
 
         # Finance
@@ -110,70 +119,65 @@ class Container:
     def register_transient(self, name: str, factory: Callable[[], Any]):
         """Register a transient dependency (new instance each time)"""
         self._transients[name] = factory
-        
-    def get(self, name: str) -> Any:
-        """Get a dependency by name"""
-        with self._lock:
-            # print(f"[CONTAINER] Lock acquired for: {name}")
-            # print(f"[CONTAINER] Currently creating: {self._creating}")
-            # print(f"[CONTAINER] Singletons: {list(self._singletons.keys())}")
-
-            # Check if it's a singleton that's already created
-            if name in self._singletons:
-                # print(f"[CONTAINER] Returning existing singleton for: {name}")
-                return self._singletons[name]
             
+    def get(self, name: str) -> Any:
+        """Get a dependency by name, ensuring it is fully initialized (including load_and_process)."""
+        with self._lock:
+            # Return existing singleton if already created
+            if name in self._singletons:
+                return self._singletons[name]
+
             # Check if it's a registered singleton factory
             if name in self._factories:
-                # Get complete call stack for debugging
-                stack_info = []
-                for i, frame in enumerate(inspect.stack()[1:8]):  # Get 7 levels deep
-                    stack_info.append(f"   {i}: {frame.filename}:{frame.lineno} in {frame.function}")
-                
-                # print(f"🔍 Creating singleton: {name}")
-                # print("📍 Complete call stack:")
-                # for line in stack_info:
-                #     print(line)
-                
-                # Initialize tracking attributes if they don't exist
+                # Circular dependency detection and dependency graph tracking
                 if not hasattr(self, '_creating'):
                     self._creating = set()
                 if not hasattr(self, '_creation_order'):
                     self._creation_order = []
-                
-                # Check for circular dependencies with detailed chain tracking
+
                 if name in self._creating:
                     print("🚨 CIRCULAR DEPENDENCY DETECTED!")
-                    # print(f"   Trying to create: {name}")
-                    # print(f"   Currently creating: {list(self._creating)}")
-                    # print(f"   Creation order: {' → '.join(self._creation_order)}")
                     raise RuntimeError(f"Circular dependency: {' → '.join(self._creation_order)} → {name}")
-                
+
                 self._creating.add(name)
                 self._creation_order.append(name)
 
-                # Track dependency graph edge
                 parent = self._creation_order[-2] if len(self._creation_order) > 1 else None
                 if parent:
-                    self._dependency_graph.add_edge(parent, name)                
-                
+                    self._dependency_graph.add_edge(parent, name)
+
                 try:
-                    # print(f"🏗️  Starting creation of: {name}")
                     instance = self._factories[name]()
+                    # Call load_and_process() if it exists and hasn't been called yet
+                    load_proc = getattr(instance, "load_and_process", None)
+                    if callable(load_proc):
+                        # Use a flag to avoid double-calling
+                        if not hasattr(instance, "_load_and_process_called"):
+                            load_proc()
+                            setattr(instance, "_load_and_process_called", True)
                     self._singletons[name] = instance
-                    # print(f"✅ Successfully created: {name}")
+#dependency graph
+                    # self.show_dependency_graph() 
+                    
+                    
                     return instance
                 finally:
                     self._creating.remove(name)
                     self._creation_order.remove(name)
                     print(f"🔚 Finished creating: {name}")
-        
-        # Check if it's a transient
-        if name in self._transients:
-            print(f"Creating transient: {name}")
-            return self._transients[name]()
-        
-        raise ValueError(f"Dependency '{name}' not registered")
+
+            # Check if it's a transient
+            if name in self._transients:
+                print(f"Creating transient: {name}")
+                instance = self._transients[name]()
+                load_proc = getattr(instance, "load_and_process", None)
+                if callable(load_proc):
+                    if not hasattr(instance, "_load_and_process_called"):
+                        load_proc()
+                        setattr(instance, "_load_and_process_called", True)
+                return instance
+
+            raise ValueError(f"Dependency '{name}' not registered")
         
     def get_typed(self, dependency_type: Type[T], name: Optional[str] = None) -> T:
         """Get a typed dependency"""
@@ -205,8 +209,16 @@ class Container:
         plt.show()
 
     
-    # Factory methods for creating dependencies - NO PARAMETERS!
+    # Factory methods for creating dependencies 
+    def _create_milk_basics(self):
+        from milk_basics import MilkBasics
+        return MilkBasics()
+
+    def _create_date_range(self):
+        from date_range import DateRange
+        return DateRange()
     
+    # Status functions
     def _create_status_data(self):
         from status_functions.status_data import StatusData
         return StatusData()
@@ -219,10 +231,7 @@ class Container:
         from status_functions.wet_dry import WetDry
         return WetDry()
     
-    def _create_model_groups(self):
-        from status_functions.model_groups import ModelGroups
-        return ModelGroups()
-    
+    # Insem functions
     def _create_insem_ultra_basics(self):
         from insem_functions.insem_ultra_basics import InsemUltraBasics
         return InsemUltraBasics()
@@ -267,15 +276,31 @@ class Container:
     def _create_feedcost_total(self):
         from feed_functions.feedcost_total import Feedcost_total
         return Feedcost_total()
+    
+    # Groups and tests
+        
+    def _create_model_groups(self):
+        from groups_and_tests.model_groups import ModelGroups
+        return ModelGroups()
+        
+    def _create_whiteboard_groups(self):
+        from groups_and_tests.whiteboard_groups import WhiteboardGroups
+        return WhiteboardGroups()
+    
+    def _create_tests_on_whiteboard(self):
+        from groups_and_tests.tests_on_whiteboard import TestsOnWhiteboard
+        return TestsOnWhiteboard()
+    
+    def _create_compare_model_whiteboard_groups(self):
+        from groups_and_tests.compare_model_whiteboard_groups import CompareModelWhiteboardGroups
+        return CompareModelWhiteboardGroups
+
 
     # Milk functions 
     def _create_milk_aggregates(self):
         from milk_functions.milk_aggregates import MilkAggregates
         return MilkAggregates()
-    
-    def _create_milking_groups_tenday(self):
-        from milk_functions.milking_groups_whiteboard import MilkingGroups_whiteboard
-        return MilkingGroups_whiteboard()
+
     
     def _create_sahagon(self):
         from milk_functions.sahagon import sahagon
@@ -390,7 +415,7 @@ if __name__ == "__main__":
     container.get('feedcost_total')
     container.get('this_lactation')
     container.get('milk_aggregates')
-    container.get('milking_groups_whiteboard')
+    container.get('milking_groups')
 
     container.get('lactation_basics')
     container.get('milk_income')

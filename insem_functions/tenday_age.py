@@ -24,8 +24,9 @@ class TendayMilkingDays:
     def tenday_days(self):
         td = self.MA.tenday.reset_index()
         self.td2 = pd.merge(td, self.preg, on='WY_id', how='left')
-        self.td2.to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\tenday.csv')
+        self.td2.to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\tenday_days.csv')
         return self.td2
         
 if __name__ ==     "__main__"    :
-    tenday_days = TendayMilkingDays()
+    obj = TendayMilkingDays()
+    obj.load_and_process()      

@@ -2,9 +2,9 @@
 import inspect
 import os       #don't erase
 import pandas as pd
-from milk_basics import MilkBasics
-from date_range import DateRange
 
+from container import get_dependency
+from persistent_container_service import ContainerClient
 
 
 class DataLoader:
@@ -54,9 +54,9 @@ class Feedcost_basics:
         self.feedcost_monthly = None
 
     def load_and_process(self):
-        self.MB = MilkBasics()
+        self.MB = get_dependency('milk_basics')
         self.MB.load_and_process()
-        self.DR = DateRange()
+        self.DR = get_dependency('date_range')
         self.DR.load_and_process()
         self.data_loader = DataLoader('F:/COWS/data/feed_data/feed_csv')
 
@@ -428,6 +428,7 @@ class Feedcost_basics:
     
 
 if __name__ == "__main__":
-    Feedcost_basics()
+    obj = Feedcost_basics()
+    obj.load_and_process()
     
                  

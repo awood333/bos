@@ -24,4 +24,5 @@ class FinanceDataBackup:
 
 
 if __name__ == "__main__":
-    FinanceDataBackup()
+    obj = FinanceDataBackup()
+    obj.load_and_process()    

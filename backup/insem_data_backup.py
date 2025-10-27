@@ -44,4 +44,5 @@ class InsemDataBackup:
 
 
 if __name__ == "__main__":
-    InsemDataBackup()
+    obj = InsemDataBackup()
+    obj.load_and_process()    

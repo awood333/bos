@@ -1,11 +1,10 @@
 '''Wet_Dry.py'''
 import inspect
 import pandas as pd
-# from container import get_dependency
+from container import get_dependency
 # import logging
 from utilities.logging_setup import  setup_debug_logging, debug_method
-from milk_basics import MilkBasics
-from date_range import DateRange
+
 
 today = pd.Timestamp.today()
 
@@ -25,7 +24,7 @@ class WetDry:
         self.wdd_monthly = None
 
     def load_and_process(self):
-        self.MB = MilkBasics()
+        self.MB = get_dependency('milk_basics')
         self.data = self.MB.data
         self.ext_rng = self.MB.data['ext_rng']
         self.milk1 = self.MB.data['milk']
@@ -202,4 +201,5 @@ class WetDry:
 
 
 if __name__ == '__main__':
-    WetDry()
+    obj=WetDry()
+    obj.load_and_process()      

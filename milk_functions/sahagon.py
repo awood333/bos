@@ -2,11 +2,12 @@
 from datetime import datetime
 import pandas as pd
 from date_range import DateRange
+from container import get_dependency
 
 class sahagon:
     def __init__(self):
 
-        self.DR = DateRange()
+        self.DR = get_dependency('date_range')
         self.today = datetime.now()
         self.dm_daily = self.get_data()
         self.dm_daily_monthly = self.get_monthly()
@@ -45,4 +46,4 @@ class sahagon:
     
     
 if __name__ == '__main__':
-    sahagon = sahagon()
+    obj = sahagon()

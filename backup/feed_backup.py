@@ -20,4 +20,5 @@ class FeedDataBackup:
             print(f"Backup folder already exists: {self.backup_folder}")
 
 if __name__ == "__main__":
-    FeedDataBackup()
+    obj = FeedDataBackup()
+    obj.load_and_process()    

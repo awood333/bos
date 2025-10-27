@@ -12,19 +12,18 @@ class ReportMilkXlsx:
     def __init__(self):
         print(f"ReportMilkXlsx instantiated by: {inspect.stack()[1].filename}")
         self.MA = None
-        self.MGW = None
+        self.WG = None
         self.report_milk = None
 
     def load_and_process(self):
-        client = ContainerClient()
-        self.MA = client.get_dependency('milk_aggregates')
-        self.MGW = client.get_dependency('milking_groups_whiteboard')
+        self.MA = get_dependency('milk_aggregates')
+        self.WG = get_dependency('whiteboard_groups')
         self.report_milk = self.createReportMilk()
 
     def createReportMilk(self):
         tenday1 = self.MA.tenday
         halfday1 = self.MA.halfday
-        groups1  = self.MGW.milking_groups_tenday
+        groups1  = self.WG.whiteboard_groups_tenday
 
         # Drop the index
         tenday  = tenday1 .reset_index(drop=True)
@@ -80,7 +79,7 @@ class ReportMilkXlsx:
         groups_formatted = format_dataframe(groups, column_formats)
 
         # Save to Excel with separate sheets
-        output_path = "F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\report_milk.xlsx"
+        output_path = "F:\\COWS\\data\\milk_data\\groups\\report_milk.xlsx"
 
         with pd.ExcelWriter(output_path, engine='openpyxl') as writer:
             tenday_formatted.to_excel(writer, sheet_name='TenDay', index=False)
@@ -119,7 +118,8 @@ class ReportMilkXlsx:
         }
         return self.report_milk
 
-    # You can update write_to_xlsx to apply formatting to each sheet if needed
+    # gets written to output_path = "F:\\COWS\\data\\milk_data\\groups\\report_milk.xlsx"
 
 if __name__ == "__main__":
-    ReportMilkXlsx()
+    obj = ReportMilkXlsx()
+    obj.load_and_process()    

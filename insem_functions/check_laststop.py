@@ -1,8 +1,6 @@
 '''check_laststop.py'''
 import inspect
 from container import get_dependency
-from milk_basics import MilkBasics
-from date_range import DateRange
 
 
 class CheckLastStop:
@@ -26,8 +24,8 @@ class CheckLastStop:
         self.listx = None
 
     def load_and_process(self):
-        self.MB = MilkBasics()
-        self.DR = DateRange()
+        self.MB = get_dependency('milk_basics')
+        self.DR = get_dependency('date_range')
         self.data = self.MB.data
         self.sd = get_dependency('status_data2')
         self.IUB = get_dependency('insem_ultra_basics')
@@ -74,3 +72,7 @@ class CheckLastStop:
    
 
         return self.listx
+
+if __name__ == "__main__":
+    obj=CheckLastStop()
+    obj.load_and_process()  

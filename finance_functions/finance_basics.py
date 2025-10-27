@@ -131,4 +131,5 @@ class FinanceBasics:
         
     
 if __name__ == "__main__":
-    FinanceBasics()
+    obj=FinanceBasics()
+    obj.load_and_process() 

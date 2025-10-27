@@ -2,8 +2,6 @@ import inspect
 import pandas as pd
 from container import get_dependency
 from persistent_container_service import ContainerClient
-from milk_basics import MilkBasics
-from date_range import DateRange
 
 
 class Ipiv:
@@ -13,7 +11,7 @@ class Ipiv:
         self.DR = None
         self.IUB = None
         self.IUD = None
-        self.MGW = None
+        self.MG = None
         self.insem = None
         self.alive_ids = None
         self.ipiv_milking = None
@@ -21,11 +19,11 @@ class Ipiv:
 
     def load_and_process(self):
         client = ContainerClient()
-        self.MB = MilkBasics()
-        self.DR = DateRange()
+        self.MB = get_dependency('milk_basics')
+        self.DR = get_dependency('date_range')
         self.IUB = client.get_dependency('insem_ultra_basics')
         self.IUD = client.get_dependency('insem_ultra_data')
-        self.MGW = client.get_dependency('milking_groups_whiteboard')
+        self.MG = client.get_dependency('milking_groups')
 
         self.insem = self.IUB.data['i']
         alive_ids1 = self.IUB.data['bd'].loc[self.IUB.data['bd']['death_date'].isnull()]
@@ -42,7 +40,7 @@ class Ipiv:
         lc['last calf#'] += 1
         lc = lc.rename(columns={'last calf#' : 'lact#'})
         
-        group = self.MGW.milking_groups_whiteboard.loc[:,['WY_id', 'group']].copy()
+        group = self.MG.milking_groups.loc[:,['WY_id', 'group']].copy()
         group['WY_id'] = pd.to_numeric(group['WY_id'], errors='coerce').dropna().astype(int)
         group = group.sort_values('WY_id').reset_index(drop=True)
         
@@ -111,4 +109,5 @@ class Ipiv:
     
     
 if __name__ == "__main__":
-    Ipiv()
+    obj=Ipiv()
+    obj.load_and_process()     

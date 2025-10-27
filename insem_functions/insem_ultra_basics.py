@@ -2,10 +2,9 @@
 import inspect
 import pandas as pd
 import numpy as np
-# from container import get_dependency
+from container import get_dependency
 # from persistent_container_service import ContainerClient
-from milk_basics import MilkBasics
-from date_range import DateRange
+
 
 tdy = pd.Timestamp.today()
 
@@ -25,8 +24,8 @@ class InsemUltraBasics:
         self.last_stop = None
 
     def load_and_process(self):
-        self.DR = DateRange()
-        self.MB = MilkBasics()
+        self.DR = get_dependency('date_range')
+        self.MB = get_dependency('milk_basics')
         self.MB.load_and_process()
         self.data = self.MB.data
 
@@ -118,6 +117,6 @@ class InsemUltraBasics:
 
 
 if __name__ == "__main__":
-    InsemUltraBasics()
-
+    obj=InsemUltraBasics()
+    obj.load_and_process() 
     

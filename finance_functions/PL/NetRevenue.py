@@ -23,7 +23,7 @@ class NetRevenue:
 
     def load_and_process(self):
         client = ContainerClient()
-        self.DR = DateRange()
+        self.DR = get_dependency('date_range')
         self.startdate = self.DR.start_date()
         self.MI = client.get_dependency('milk_income')
         self.SG = client.get_dependency('sahagon')
@@ -103,4 +103,5 @@ class NetRevenue:
         
         
 if __name__ == "__main__":
-    NetRevenue()            
+    obj=NetRevenue()            
+    obj.load_and_process()     

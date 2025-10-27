@@ -71,5 +71,6 @@ class DateRange:
     
 
 if __name__ == "__main__":
-    DateRange()
+    obj = DateRange()
+    obj.load_and_process()    
     

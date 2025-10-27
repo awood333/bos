@@ -31,7 +31,7 @@ class CowPL:
 
     def load_and_process(self):
         client = ContainerClient()
-        self.MB = MilkBasics()
+        self.MB = get_dependency('milk_basics')
         self.WD = client.get_dependency('wet_dry')
         self.SD = client.get_dependency('status_data')
         self.MB = client.get_dependency('milk_basics')
@@ -70,8 +70,8 @@ class CowPL:
         
         daysA_list = []
         daysB_list = []
-        self.daysA_df = pd.DataFrame()
-        self.daysB_df = pd.DataFrame()
+        daysA_df = pd.DataFrame()
+        daysB_df = pd.DataFrame()
         
         for i in wetdays.columns:
             days = wetdays.loc[:,i]
@@ -177,4 +177,5 @@ class CowPL:
     
 
 if __name__ == "__main__":
-    CowPL()
+    obj=CowPL()
+    obj.load_and_process()     

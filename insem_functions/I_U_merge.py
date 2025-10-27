@@ -1,18 +1,19 @@
 
 import inspect
 import pandas as pd
-from milk_basics import MilkBasics
-
+from container import get_dependency
 
 class I_U_merge:
     def __init__(self):
+        
         print(f"I_U_merge instantiated by: {inspect.stack()[1].filename}")
+
         self.MB = None
         self.data = None
         self.iu = None
 
     def load_and_process(self):
-        self.MB = MilkBasics()
+        self.MB = get_dependency('milk_basics')
         self.data = self.MB.data
         self.iu = self.create_basics()
         self.create_write_to_csv()
@@ -55,4 +56,5 @@ class I_U_merge:
         self.iu    .to_csv('F:\\COWS\\data\\insem_data\\IU_merge\\IU_merge.csv')
         
 if __name__ == '__main__':
-    IUM = I_U_merge()
+    obj = I_U_merge()
+    obj.load_and_process()  
