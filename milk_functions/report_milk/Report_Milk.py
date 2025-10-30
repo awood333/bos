@@ -51,6 +51,13 @@ class ReportMilk:
             # 'bdate (exp)': 'iso8601',
         }
 
+# The method format_dataframe is defined to take two arguments: dfx (a DataFrame) and formats (a dictionary of column formatting rules).
+# When you call tenday_formatted = format_dataframe(tenday, column_formats), you are passing:
+# tenday as dfx
+# column_formats as formats
+# Inside the method, dfx refers to the DataFrame you passed (tenday in this case), and formats refers to the formatting dictionary.
+# So, each time you call format_dataframe with a different DataFrame (like tenday, halfday, or WB_groups), it applies the formatting rules from column_formats to that DataFrame and returns a formatted copy.
+        
         def format_dataframe(dfx, formats):
             df_formatted = dfx.copy()
             for col in df_formatted.columns:

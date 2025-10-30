@@ -26,22 +26,24 @@ class RawMilkUpdate:
 
             return df
 
-        self.dmAM_liters1   = convert_to_dataframe(data['AM_liters'])
-        self.dmAM_wy1       = convert_to_dataframe(data['AM_wy'])
-        self.dmPM_liters1   = convert_to_dataframe(data['PM_liters'])
-        self.dmPM_wy1       = convert_to_dataframe(data['PM_wy'])
+        self.AM_liters1   = convert_to_dataframe(data['AM_liters'])
+        self.AM_wy1       = convert_to_dataframe(data['AM_wy'])
+        self.PM_liters1   = convert_to_dataframe(data['PM_liters'])
+        self.PM_wy1       = convert_to_dataframe(data['PM_wy'])
 
-        self.group_A1        =convert_to_dataframe(data['group A'])
-        self.group_B1        =convert_to_dataframe(data['group B'])
-        self.sick1           =convert_to_dataframe(data['sick'])
+        self.group_A1       =convert_to_dataframe(data['group_A'])
+        self.group_B1       =convert_to_dataframe(data['group_B'])
+        self.group_C1       =convert_to_dataframe(data['group_C'])
+        self.sick1          =convert_to_dataframe(data['sick'])
         
-        self.dmAM_liters    = self.dmAM_liters1.iloc[:70, :]
-        self.dmAM_wy        = self.dmAM_wy1.iloc[:70, :]
-        self.dmPM_liters    = self.dmPM_liters1.iloc[:70, :]
-        self.dmPM_wy        = self.dmPM_wy1.iloc[:70, :]
-        self.group_A        = self.group_A1.iloc[:80, :]
-        self.group_B        = self.group_B1.iloc[:80, :]
-        self.sick1          = self.sick1.iloc[:80, :]
+        self.dmAM_liters    = self.AM_liters1.iloc[:70, :]
+        self.dmAM_wy        = self.AM_wy1.iloc[:70, :]
+        self.dmPM_liters    = self.PM_liters1.iloc[:70, :]
+        self.dmPM_wy        = self.PM_wy1.iloc[:70, :]
+        self.dmgroup_A      = self.group_A1.iloc[:55, :]
+        self.dmgroup_B      = self.group_B1.iloc[:55, :]
+        self.dmgroup_C      = self.group_C1.iloc[:55, :]
+        self.dmsick         = self.sick1.iloc[:55, :]
         
 
         
@@ -55,10 +57,14 @@ class RawMilkUpdate:
         
         
         
-        self.AM_liters      = pd.read_csv ('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_liters.csv',          index_col=0,header=0)
-        self.AM_wy          = pd.read_csv ('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_wy.csv',              index_col=0,header=0)
-        self.PM_liters      = pd.read_csv ('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_liters.csv',          index_col=0,header=0)
-        self.PM_wy          = pd.read_csv ('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_wy.csv',              index_col=0,header=0)
+        self.AM_liters      = pd.read_csv ('F:\\COWS\\data\\milk_data\\raw\\AM_liters.csv',          index_col=0,header=0)
+        self.AM_wy          = pd.read_csv ('F:\\COWS\\data\\milk_data\\raw\\AM_wy.csv',              index_col=0,header=0)
+        self.PM_liters      = pd.read_csv ('F:\\COWS\\data\\milk_data\\raw\\PM_liters.csv',          index_col=0,header=0)
+        self.PM_wy          = pd.read_csv ('F:\\COWS\\data\\milk_data\\raw\\PM_wy.csv',              index_col=0,header=0)
+        self.group_A        = pd.read_csv ('F:\\COWS\\data\\milk_data\\wb_groups\\group_A.csv',     index_col=0,header=0)
+        self.group_B        = pd.read_csv ('F:\\COWS\\data\\milk_data\\wb_groups\\group_B.csv',      index_col=0,header=0)
+        self.group_C        = pd.read_csv ('F:\\COWS\\data\\milk_data\\wb_groups\\group_C.csv',      index_col=0,header=0)
+        self.sick           = pd.read_csv ('F:\\COWS\\data\\milk_data\\wb_groups\\sick.csv',        index_col=0,header=0)
     
         self.AM_lastdate    = int(self.AM_liters.columns[-1])
         self.dm_lastdate    = self.dmAM_liters.columns[-1] 
@@ -79,6 +85,11 @@ class RawMilkUpdate:
         self.amwy,      self.newdata_AM_wy          = self.create_AM_wy()
         self.pmliters,  self.newdata_pm_liters      = self.create_PM_liters()
         self.pmwy,      self.newdata_PM_wy          = self.create_PM_wy()
+        self.group_A,   self.newdata_group_A        = self.create_group_A()
+        self.group_B,   self.newdata_group_B        = self.create_group_B()
+        self.group_C,   self.newdata_group_C        = self.create_group_C() 
+        self.sick,      self.newdata_sick           = self.create_sick()                
+
         self.write_to_csv()   
         
     
@@ -116,6 +127,25 @@ class RawMilkUpdate:
         self.pmwy=pd.concat([self.PM_wy, self.newdata_PM_wy],axis=1,join='inner')
         return self.pmwy, self.newdata_PM_wy
 
+    def create_group_A(self):
+        self.newdata_group_A = self.dmgroup_A.loc[:,self.AM_lastdate+1:self.dm_lastdate].copy()
+        self.group_a=pd.concat([self.group_A, self.newdata_group_A],axis=1,join='inner')
+        return self.group_A, self.newdata_group_A
+
+    def create_group_B(self):
+        self.newdata_group_B = self.dmgroup_B.loc[:,self.AM_lastdate+1:self.dm_lastdate].copy()
+        self.group_B=pd.concat([self.group_B, self.newdata_group_B],axis=1,join='inner')
+        return self.group_B, self.newdata_group_B
+
+    def create_group_C(self):
+        self.newdata_group_C = self.dmgroup_C.loc[:,self.AM_lastdate+1:self.dm_lastdate].copy()
+        self.group_C =pd.concat([self.group_C, self.newdata_group_C],axis=1,join='inner')
+        return self.group_C, self.newdata_group_C
+
+    def create_sick(self):
+        self.newdata_sick = self.dmsick.loc[:,self.AM_lastdate+1:self.dm_lastdate].copy()
+        self.sick =pd.concat([self.sick, self.newdata_sick],axis=1,join='inner')
+        return self.sick, self.newdata_sick               
 
 #write to file using numeric date format
     def write_to_csv(self):
@@ -123,21 +153,33 @@ class RawMilkUpdate:
         self.amliters   .to_csv(f"D:\\Cows\\data_backup\\milk backup\\rawmilk\\AM_liters\\AM_liters_{self.tdy}.csv")
         self.amliters   .to_csv(f"E:\\Cows\\data_backup\\milk backup\\rawmilk\\AM_liters\\AM_liters_{self.tdy}.csv")
         self.amliters   .to_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_liters.csv',mode='w',header=True,index=True)
-        
+
         # don't really need the ,mode='w',header=True,index=True) but.... 
         
         self.amwy       .to_csv(f"D:\\Cows\\data_backup\\milk backup\\rawmilk\\AM_wy\\AM_wy_{self.tdy}.csv")
         self.amwy       .to_csv(f"E:\\Cows\\data_backup\\milk backup\\rawmilk\\AM_wy\\AM_wy_{self.tdy}.csv")
-        self.amwy       .to_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_wy.csv',mode='w',header=True,index=True)
+        self.amwy       .to_csv( 'F:\\COWS\\data\\milk_data\\raw\\csv\\AM_wy.csv',mode='w',header=True,index=True)
         
         self.pmliters   .to_csv(f"D:\\Cows\\data_backup\\milk backup\\rawmilk\\PM_liters\\PM_liters_{self.tdy}.csv")
         self.pmliters   .to_csv(f"E:\\Cows\\data_backup\\milk backup\\rawmilk\\PM_liters\\PM_liters_{self.tdy}.csv")
-        self.pmliters   .to_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_liters.csv',mode='w',header=True,index=True)
+        self.pmliters   .to_csv( 'F:\\COWS\\data\\milk_data\\raw\\csv\\PM_liters.csv',mode='w',header=True,index=True)
         
         self.pmwy       .to_csv(f"D:\\Cows\\data_backup\\milk backup\\rawmilk\\PM_wy\\PM_wy_{self.tdy}.csv")
         self.pmwy       .to_csv(f"E:\\Cows\\data_backup\\milk backup\\rawmilk\\PM_wy\\PM_wy_{self.tdy}.csv")
-        self.pmwy       .to_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_wy.csv',mode='w',header=True,index=True)
+        self.pmwy       .to_csv( 'F:\\COWS\\data\\milk_data\\raw\\csv\\PM_wy.csv',mode='w',header=True,index=True)
 
+        self.group_A    .to_csv(f"D:\\Cows\\data_backup\\milk backup\\wb_groups\\group_A\\group_A{self.tdy}.csv")
+        self.group_A    .to_csv(f"E:\\Cows\\data_backup\\milk backup\\wb_groups\\group_A\\group_A{self.tdy}.csv")
+        self.group_A    .to_csv( 'F:\\COWS\\data\\milk_data\\wb_groups\\group_A.csv',mode='w',header=True,index=True)
+
+        self.group_B    .to_csv(f"D:\\Cows\\data_backup\\milk backup\\wb_groups\\group_B\\group_B{self.tdy}.csv")
+        self.group_B    .to_csv(f"E:\\Cows\\data_backup\\milk backup\\wb_groups\\group_B\\group_B{self.tdy}.csv")
+        self.group_B    .to_csv( 'F:\\COWS\\data\\milk_data\\wb_groups\\group_B.csv',mode='w',header=True,index=True)
+
+        self.group_C    .to_csv(f"D:\\Cows\\data_backup\\milk backup\\wb_groups\\group_C\\group_C{self.tdy}.csv")
+        self.group_C    .to_csv(f"E:\\Cows\\data_backup\\milk backup\\wb_groups\\group_C\\group_C{self.tdy}.csv")
+        self.group_C    .to_csv( 'F:\\COWS\\data\\milk_data\\wb_groups\\group_C.csv',mode='w',header=True,index=True)
+                
 
 
 if __name__ =="__main__":

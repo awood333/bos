@@ -10,7 +10,6 @@ class RunMilkDataUpdate:
         self.insem_ultra_data = get_dependency('insem_ultra_data')
         self.milk_aggregates = get_dependency('milk_aggregates')
         self.this_lactation = get_dependency('this_lactation')
-        self.milking_groups = ('milking_groups')
         self.report_milk_xlsx = get_dependency('report_milk_xlsx')
         self.run_milk_dash_app = get_dependency('run_milk_dash_app')
 
