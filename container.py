@@ -91,6 +91,7 @@ class Container:
         self.register_singleton('create_lactations',    self._create_lactations)
         self.register_singleton('this_lactation',       self._create_this_lactation)
         self.register_singleton('weekly_lactations',    self._create_weekly_lactations)
+        self.register_singleton('lactations',           self._create_lactations)        
 
         # Report Milk
         self.register_singleton('create_report_milk',      self._create_report_milk)
@@ -323,6 +324,9 @@ class Container:
         from milk_functions.lactation.weekly_lactations import WeeklyLactations
         return WeeklyLactations()
     
+    def _create_lactations(self):
+        from milk_functions.lactation.lactations import Lactations
+        return Lactations()    
 
     #Report_Milk
     def _create_report_milk(self):
@@ -390,40 +394,9 @@ def reset_container():
     """Reset the global container (useful for testing)"""
     container.reset()
 
-
-if __name__ == "__main__":
-    # Example usage
-    print("Available dependencies:")
-    for name, dep_type in container.list_dependencies().items():
-        print(f"  {name}: {dep_type}")
     
-# Try creating all dependencies
-    container.get('status_data')
-    container.get('status_data2')
-    container.get('wet_dry')
-    container.get('model_groups')
-    container.get('insem_ultra_basics')
-    container.get('insem_ultra_data')
-    container.get('check_last_stop')
-    container.get('i_u_merge')
-    container.get('ipiv')
-    container.get('feedcost_basics')
-    container.get('feedcost_beans')
-    container.get('feedcost_cassava')
-    container.get('feedcost_corn')
-    container.get('feedcost_bypass_fat')
-    container.get('feedcost_total')
-    container.get('this_lactation')
-    container.get('milk_aggregates')
-    container.get('milking_groups')
-
-    container.get('lactation_basics')
-    container.get('milk_income')
-    container.get('net_revenue')
-    container.get('cow_pl')
-    container.get('report_milk')
-    container.get('report_milk_xlsx')
-
-
-    # ref show_dependency_graph above.   after running your script, open dependency_graph.png to view the graph.
-    container.show_dependency_graph()    
+#Yes, your if __name__ == "__main__": guard is correct.
+#It ensures that the code inside only runs when you execute container.py directly, 
+# not when it is imported as a module.
+if __name__ == "__main__":
+    pass

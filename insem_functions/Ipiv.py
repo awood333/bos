@@ -1,8 +1,6 @@
 import inspect
 import pandas as pd
 from container import get_dependency
-from persistent_container_service import ContainerClient
-
 
 class Ipiv:
     def __init__(self):
@@ -18,12 +16,10 @@ class Ipiv:
         self.ipiv_milkers = None
 
     def load_and_process(self):
-        client = ContainerClient()
         self.MB = get_dependency('milk_basics')
         self.DR = get_dependency('date_range')
-        self.IUB = client.get_dependency('insem_ultra_basics')
-        self.IUD = client.get_dependency('insem_ultra_data')
-        self.MG = client.get_dependency('milking_groups')
+        self.IUB = get_dependency('insem_ultra_basics')
+        self.IUD = get_dependency('insem_ultra_data')
 
         self.insem = self.IUB.data['i']
         alive_ids1 = self.IUB.data['bd'].loc[self.IUB.data['bd']['death_date'].isnull()]
@@ -39,12 +35,7 @@ class Ipiv:
         lc = self.IUB.last_calf[['WY_id', 'last calf#']].copy()
         lc['last calf#'] += 1
         lc = lc.rename(columns={'last calf#' : 'lact#'})
-        
-        group = self.MG.milking_groups.loc[:,['WY_id', 'group']].copy()
-        group['WY_id'] = pd.to_numeric(group['WY_id'], errors='coerce').dropna().astype(int)
-        group = group.sort_values('WY_id').reset_index(drop=True)
-        
-        # net_rev = self.CPL.net_revenue['net revenue']      
+         
        
         # Filter with alive_ids
         this_calf = lc[lc['WY_id'].isin(self.alive_ids)].reset_index(drop=True)
@@ -70,38 +61,34 @@ class Ipiv:
             index=['WY_id'],
             columns='try_num',
             aggfunc='first',
-            dropna=False
-         
+            dropna=False 
         )
         
-        ipiv_milking2 = pd.merge(group,ipiv_milking1, on='WY_id', how='right')
-        ipiv_milking3 = pd.merge(lc, ipiv_milking2, on='WY_id', how='right')
-        ipiv_milking = ipiv_milking3.sort_values('WY_id').reset_index(drop=True)
-        ipiv_milking['WY_id'] = pd.to_numeric(ipiv_milking['WY_id'], errors='coerce').astype(int)
-        ipiv_milking['lact#'] = pd.to_numeric(ipiv_milking['lact#'], errors='coerce').astype(int)        
-        
-        
-        self.ipiv_milking = ipiv_milking                                
-
+        ipiv_milking1.index = ipiv_milking1.index.astype(str)
+        self.ipiv_milking = ipiv_milking1.sort_index()
              
         return self.ipiv_milking
     
     def add_cols_from_allx(self):
         
-        xxx = self.IUD.allx[['WY_id', 'u_read', 'days milking']]
+        xxx = self.IUD.allx[['WY_id', 'u_read', 'days milking']].set_index('WY_id', drop=True)
+        xxx.index = xxx.index.astype(int).astype(str)
+   
+
         
-        ipiv_milkers1 = pd.merge(self.ipiv_milking, xxx, how='outer', on='WY_id')
-        
-        ipiv_milkers1 = ipiv_milkers1.sort_values('WY_id').reset_index(drop=True)
+        ipiv_milkers1 = pd.merge(xxx, self.ipiv_milking, how='right', left_index=True, right_index=True)
+        ipiv_milkers1.index = ipiv_milkers1.index.astype(int)
+
+        ipiv_milkers2 = ipiv_milkers1.sort_index()
 
         # Move 'u_read' and 'days milking' after 'WY_id'
-        cols = ipiv_milkers1.columns.tolist()
-        for col in ['u_read', 'days milking']:
-            cols.remove(col)
-        cols = cols[:1] + ['u_read', 'days milking'] + cols[1:]
-        ipiv_milkers1 = ipiv_milkers1[cols]
+        # cols = ipiv_milkers2.columns.tolist()
+        # for col in ['u_read', 'days milking']:
+        #     cols.remove(col)
+        # cols = cols[:1] + ['u_read', 'days milking'] + cols[1:]
+        # ipiv_milkers1 = ipiv_milkers2[cols]
                 
-        self.ipiv_milkers = ipiv_milkers1 
+        self.ipiv_milkers = ipiv_milkers2 
         return self.ipiv_milkers
     
     def write_to_csv(self):

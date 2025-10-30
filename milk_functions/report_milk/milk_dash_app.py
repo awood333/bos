@@ -238,11 +238,22 @@ def run_milk_dash_app():
         style={'backgroundColor': "#181616", 'padding': '20px'}
     )
     print("🔍 run_dash_app: Starting server...")
-    try:
-        webbrowser.open("http://127.0.0.1:8051/")
-    except Exception as e:
-        print(f"Could not open browser: {e}")
+
+    import threading
+
+    def open_browser():
+        try:
+            webbrowser.get('firefox').open_new("http://127.0.0.1:8051/")
+        except Exception as e:
+            print(f"Could not open Firefox: {e}")
+            # fallback to default browser
+            try:
+                webbrowser.open("http://127.0.0.1:8051/")
+            except Exception as e2:
+                print(f"Could not open default browser: {e2}")
+
+    threading.Timer(1.5, open_browser).start()
     app.run_server(debug=False, port=8051)
 
 if __name__ == "__main__":
-    obj = run_milk_dash_app()    
+    run_milk_dash_app()    

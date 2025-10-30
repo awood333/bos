@@ -20,9 +20,9 @@ class RunInsemStatusIU:
         self.check_last_stop = get_dependency('check_last_stop')
         self.insem_ultra_basics = get_dependency('insem_ultra_basics')
         self.insem_ultra_data = get_dependency('insem_ultra_data')
-        self.ipiv = get_dependency('ipiv')
+        # self.ipiv = get_dependency('ipiv')
         self.i_u_merge = get_dependency('i_u_merge')
 
 if __name__ == "__main__":
     obj = RunInsemStatusIU()
-    obj.load_and_process()    
+  
