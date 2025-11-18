@@ -3,11 +3,8 @@
 from    datetime import datetime
 import  inspect
 import  pandas  as pd
-# import time
-# import threading
 
 from container import get_dependency
-# from persistent_container_service import ContainerClient
 
 
 class InsemUltraData:

@@ -1,14 +1,12 @@
-'''feedcost_beans.py'''
+'''feedcost_CP_005_21P.py'''
 
-# from datetime import datetime
 import inspect
 import pandas as pd
 from container import get_dependency
 
-
-class Feedcost_beans:
+class Feedcost_CP_005_21P:
     def __init__(self):
-        print(f"Feedcost_beans instantiated by: {inspect.stack()[1].filename}")
+        print(f"Feedcost_CP_005_21P instantiated by: {inspect.stack()[1].filename}")
         self.MB = None
         self.DR = None
         self.FCB = None
@@ -19,9 +17,9 @@ class Feedcost_beans:
         self.dateRange = None
         self.herd_daily = None
         self.all_groups_count = None
-        self.daily_amt_beans = None
-        self.daily_price_seq_beans = None
-        self.cost_sequence_beans = None
+        self.daily_amt_CP_005_21P = None
+        self.daily_price_seq_CP_005_21P = None
+        self.cost_sequence_CP_005_21P = None
 
     def load_and_process(self):
         self.MB = get_dependency('milk_basics')
@@ -30,8 +28,8 @@ class Feedcost_beans:
         self.SG = get_dependency('model_groups')
         self.SD = get_dependency('status_data')
 
-        self.bid1 = pd.read_csv("F:\\COWS\\data\\feed_data\\feed_invoice_data\\beans_invoice_detail.csv")
-        price_seq1 = pd.read_csv("F:\\COWS\\data\\feed_data\\feed_csv\\beans_price_seq.csv")
+        self.bid1 = pd.read_csv("F:\\COWS\\data\\feed_data\\feed_invoice_data\\CP_005_21P_invoice_detail.csv")
+        price_seq1 = pd.read_csv("F:\\COWS\\data\\feed_data\\feed_csv\\CP_005_21P_price_seq.csv")
 
         self.dateRange = self.DR.date_range_daily
         self.price_seq = price_seq1.loc[:, ['datex', 'unit_price']].set_index('datex')
@@ -40,15 +38,16 @@ class Feedcost_beans:
         self.herd_daily = self.SD.herd_daily
         self.all_groups_count = self.SG.all_groups_count
 
-        self.daily_amt_beans = self.create_daily_amt_beans()
-        self.daily_price_seq_beans = self.create_daily_price_seq_beans()
-        self.cost_sequence_beans = self.create_cost_sequence_beans()
+        self.daily_amt_CP_005_21P = self.create_daily_amt_CP_005_21P()
+        self.daily_price_seq_CP_005_21P = self.create_daily_price_seq_CP_005_21P()
+        self.cost_sequence_CP_005_21P = self.create_cost_sequence_CP_005_21P()
 
         self.write_to_csv()
+
         
 
-    def create_daily_amt_beans(self):
-        daily_amt= self.FCB.feed_series_dict['beans']['dad']
+    def create_daily_amt_CP_005_21P(self):
+        daily_amt= self.FCB.feed_series_dict['CP_005_21P']['dad']
         groups_count= self.all_groups_count
         herd_daily_dry = self.herd_daily[['dry']]  # Get only the 'dry' column
         daily_amt = pd.concat([daily_amt, groups_count, herd_daily_dry], axis=1).fillna(0) 
@@ -61,28 +60,28 @@ class Feedcost_beans:
         daily_amt['total_amt'] = daily_amt[['fresh_amt'
             ,'group_a_amt','group_b_amt','dry_amt']].sum(axis=1)
         
-        self.daily_amt_beans = daily_amt
+        self.daily_amt_CP_005_21P = daily_amt
                 
-        return self.daily_amt_beans
+        return self.daily_amt_CP_005_21P
 
 
-    def create_daily_price_seq_beans(self):
-        self.daily_price_seq_beans= self.price_seq.reindex(self.dateRange).ffill()
-        return self.daily_price_seq_beans
+    def create_daily_price_seq_CP_005_21P(self):
+        self.daily_price_seq_CP_005_21P= self.price_seq.reindex(self.dateRange).ffill()
+        return self.daily_price_seq_CP_005_21P
         
         
-    def create_cost_sequence_beans(self):
-        dcs1 = pd.concat(( self.daily_amt_beans, self.daily_price_seq_beans), axis=1)
+    def create_cost_sequence_CP_005_21P(self):
+        dcs1 = pd.concat(( self.daily_amt_CP_005_21P, self.daily_price_seq_CP_005_21P), axis=1)
         dcs1['daily cost'] = dcs1['unit_price'] * dcs1['total_amt']
         
-        self.cost_sequence_beans = dcs1
-        return self.cost_sequence_beans
+        self.cost_sequence_CP_005_21P = dcs1
+        return self.cost_sequence_CP_005_21P
         
              
     def write_to_csv(self):
-        self.cost_sequence_beans  .to_csv('F:\\COWS\\data\\feed_data\\feed_consumption\\cost_sequence_beans.csv')
-        self.daily_amt_beans      .to_csv('F:\\COWS\\data\\feed_data\\feed_consumption\\daily_amt_beans.csv')
+        self.cost_sequence_CP_005_21P  .to_csv('F:\\COWS\\data\\feed_data\\feed_consumption\\cost_sequence_CP_005_21P.csv')
+        self.daily_amt_CP_005_21P      .to_csv('F:\\COWS\\data\\feed_data\\feed_consumption\\daily_amt_CP_005_21P.csv')
         
 if __name__ == "__main__" :
-    obj = Feedcost_beans()
-    obj.load_and_process()
+    obj = Feedcost_CP_005_21P()
+    obj.load_and_process()     

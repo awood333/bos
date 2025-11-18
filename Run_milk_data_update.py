@@ -11,7 +11,7 @@ class RunMilkDataUpdate:
         self.milk_aggregates = get_dependency('milk_aggregates')
         self.this_lactation = get_dependency('this_lactation')
         self.report_milk_xlsx = get_dependency('report_milk_xlsx')
-        self.run_milk_dash_app = get_dependency('run_milk_dash_app')
+        # self.run_milk_dash_app = get_dependency('run_milk_dash_app')
 
 if __name__ == "__main__":
     RunMilkDataUpdate()

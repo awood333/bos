@@ -3,8 +3,6 @@ import inspect
 from datetime import datetime as dt
 import pandas as pd
 from container import get_dependency
-from persistent_container_service import ContainerClient
-
 
 class DepreciationCalc:
     def __init__(self):
@@ -16,8 +14,7 @@ class DepreciationCalc:
         self.available_depr_details = None
 
     def load_and_process(self):
-        client = ContainerClient()
-        CP = client.get_dependency('capex_projects')
+        CP = get_dependency('capex_projects')
         self.ptoc = CP.ptoc.copy()
         self.ptoc3 = self.create_depreciation()
         self.available_depr_summary = self.create_tax_period()

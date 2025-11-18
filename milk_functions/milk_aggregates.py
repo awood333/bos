@@ -8,12 +8,10 @@ import pandas as pd
 import numpy as np
 
 from container import get_dependency
-# from persistent_container_service import ContainerClient
-
 
 # from utilities.logging_setup import  setup_debug_logging, debug_method
-
 # import logging
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 class MilkAggregates:
@@ -46,8 +44,10 @@ class MilkAggregates:
         self.halfday = None
         self.tenday = None
         self.tenday1 = None
-        self.monthly = None
-        self.weekly = None
+        self.monthly_summary = None
+        self.weekly_summary = None
+        self.monthly_avg = None
+        self.weekly_avg = None
         self.start = None
         self.stop = None
         self.AM_liters = None
@@ -59,12 +59,12 @@ class MilkAggregates:
 
     def load_and_process(self):
 
-        self.MB = get_dependency('milk_basics')
-        self.data = self.MB.data
-        self.DR = get_dependency('date_range')
-        self.IUB = get_dependency('insem_ultra_basics')
-        self.IUD = get_dependency('insem_ultra_data')
-        self.allx = self.IUD.allx
+        self.MB     = get_dependency('milk_basics')
+        self.data   = self.MB.data
+        self.DR     = get_dependency('date_range')
+        self.IUB    = get_dependency('insem_ultra_basics')
+        self.IUD    = get_dependency('insem_ultra_data')
+        self.allx   = self.IUD.allx
 
         [self.maxcols, self.idx_am, self.idx_pm, 
          self.wy_am_np, self.wy_pm_np,
@@ -76,28 +76,20 @@ class MilkAggregates:
 
         self.tenday, self.tenday1 = self.ten_day()
 
-        [self.monthly, self.weekly, self.start, self.stop] = self.create_monthly_weekly()
+        [self.monthly_summary, self.weekly_summary, 
+        self.start, self.stop,
+        self.monthly_avg, self.weekly_avg]    = self.create_monthly_weekly()
 
         self.write_to_csv()
 
-    # def create_basepath(self):
-
-    #     if os.name == 'nt':  # Windows
-    #         self.LBP = 'F:\\COWS\\data\\milk_data\\'
-    #         self.RBP = 'Z:/My Drive/COWS/data/milk_data'
-    #     elif os.name == 'posix':  # Linux
-    #         self.LBP = '/home/alanw/data/milk_data'
-    #         self.RBP = 'gdrive:My Drive/COWS/data/milk_data'
-
-    #     return self.LBP, self.RBP
     
 
     def basics(self):       
 
-        self.AM_liters = pd.read_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_liters.csv',index_col=0, header=0)
-        self.AM_wy     = pd.read_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\AM_wy.csv',index_col=0, header=0)
-        self.PM_liters = pd.read_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_liters.csv',index_col=0, header=0)
-        self.PM_wy     = pd.read_csv('F:\\COWS\\data\\milk_data\\raw\\csv\\PM_wy.csv',index_col=0, header=0)
+        self.AM_liters = pd.read_csv('F:\\COWS\\data\\milk_data\\raw\\AM_liters.csv',index_col=0, header=0)
+        self.AM_wy     = pd.read_csv('F:\\COWS\\data\\milk_data\\raw\\AM_wy.csv',index_col=0, header=0)
+        self.PM_liters = pd.read_csv('F:\\COWS\\data\\milk_data\\raw\\PM_liters.csv',index_col=0, header=0)
+        self.PM_wy     = pd.read_csv('F:\\COWS\\data\\milk_data\\raw\\PM_wy.csv',index_col=0, header=0)
         
         self.daily_milk = pd.read_excel("F:\\COWS\\data\\daily_milk.ods")
        
@@ -116,13 +108,12 @@ class MilkAggregates:
         liters_pm  = self.PM_liters
         wy_pm      = self.PM_wy
 
-        datex2 = liters_am.T.index.astype(int)
-        self.datex = pd.to_datetime(datex2, origin='1899-12-30', unit='D')
+        self.datex = pd.to_datetime(self.AM_liters.columns, errors="coerce")
         last_index_value = self.datex[-1]
         print('last index value ', last_index_value)
 
-        self.maxcols     = len(self.datex)             #1575                          #len of dates (col headers for liters - which starts with 'start_date')
-        maxrows     = len(self.data['bd']['WY_id'])   #201                          #len of groupx - will accomodate new calves - continuous series from 1~200 will be the output col heading 
+        self.maxcols     = len(self.datex)             #1575  #len of dates (col headers for liters - which starts with 'start_date')
+        maxrows     = len(self.data['bd']['WY_id'])   #201    #len of groupx - will accomodate new calves - continuous series from 1~200 will be the output col heading 
 
         idx     = np.zeros((maxrows+1,self.maxcols), dtype=int)    
         self.idx_am  = idx.copy()
@@ -147,7 +138,7 @@ class MilkAggregates:
         i = 0
 
         while i < self.maxcols:
-            index1 = self.wy_am_np[:,i]    #70,1869
+            index1 = self.wy_am_np[:,i]    # col array from wy_am
             index2 = np.nan_to_num(index1, nan=0).astype(int)
 
             value1 = self.liters_am_np[:,i]   #70 1869
@@ -160,7 +151,7 @@ class MilkAggregates:
         am1 = pd.DataFrame(target_am)
 
         self.am = am1.T
-        self.am.columns = self.datex
+        self.am.columns = self.AM_liters.columns
         self.am.replace(0,np.nan,inplace=True)
         self.am.drop(self.am.columns[0], axis=1, inplace=True)
 
@@ -306,22 +297,24 @@ class MilkAggregates:
         milkrowsum =     milk.sum(axis=1,skipna=True)    #sum for that day, all cows
         milkrowcount = milk.count(axis=1)               # count of cows on that day
         
-        milk['sum'] =    milkrowsum                      #blank col sets up the group agg
-        milk['count'] =  milkrowcount
-        milk['year']   =   milk.index.year
-        milk['month']  =   milk.index.month
+        milk['sum']     = milkrowsum                      #blank col sets up the group agg
+        milk['count']   = milkrowcount
+        milk['year']    = milk.index.year
+        milk['month']   = milk.index.month
+        milk['week']    = milk.index.isocalendar().week
         
-        self.monthly    =   milk.groupby(['year','month'],as_index=False).agg({'sum': 'sum', 'count':'mean'})
+        self.monthly_summary=   milk.groupby(['year','month'],as_index=False).agg({'sum': 'sum', 'count':'mean'})
+        self.monthly_avg    =   milk.groupby(['year','month'],as_index=False).agg('mean')
 
-        # this placement of 'milk' adds the week col and keeps the col arrangement straight in monthly
-        milk['week']   =   milk.index.isocalendar().week
+        self.weekly_summary =   milk.groupby(['year','month', 'week'],as_index=False).agg({'sum': 'sum', 'count':'mean'})
+        self.weekly_avg     = milk.groupby(['year','month', 'week'],as_index=False).agg('mean')
 
-        self.weekly     =   milk.groupby(['year','month','week'],   as_index=False).agg({'sum': 'sum', 'count':'mean'})
+        self.monthly_summary[['count', 'sum']] = self.monthly_summary[['count', 'sum']].map(format_num)
+        self.weekly_summary [['count', 'sum']] = self.weekly_summary [['count', 'sum']].map(format_num)
 
-        self.monthly[['count', 'sum']] = self.monthly[['count', 'sum']].map(format_num)
-        self.weekly [['count', 'sum']] = self.weekly [['count', 'sum']].map(format_num)
-
-        return self.monthly,  self.weekly, self.start, self.stop
+        return [self.monthly_summary, self.weekly_summary, 
+            self.start, self.stop,
+            self.monthly_avg, self.weekly_avg]
     
 
     def write_to_csv(self):
@@ -330,8 +323,12 @@ class MilkAggregates:
         self.fullday_xl .to_csv('F:\\COWS\\data\\milk_data\\fullday_xl_format\\fullday_xl.csv')
         self.tenday     .to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\tenday.csv')
         self.tenday1    .to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\tenday1.csv')
-        self.monthly    .to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\monthly.csv')
-        self.weekly     .to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\weekly.csv')
+
+        self.monthly_summary .to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\monthly_summary.csv')
+        self.weekly_summary  .to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\weekly_summary.csv')
+        self.monthly_avg     .to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\monthly_avg.csv')
+        self.weekly_avg      .to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\weekly_avg.csv')
+
         self.halfday    .to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\halfday.csv')
         
       

@@ -93,18 +93,12 @@ def get_style_cell_conditional_fortenday(table_columns):
       
 def run_milk_dash_app():        
   
-    report       = get_dependency('report_milk')
-
-
-#You only need to call your Dash setup code once. 
-# The container should register the function, but you should not call it from inside itself.
-    # REMOVE the following two lines:
-    # run_milk_dash_app = get_dependency('run_milk_dash_app')
-    # run_milk_dash_app()
+    report  = get_dependency('report_milk')
 
     tenday_df  = report.tenday
     halfday_df = report.halfday 
     groups_df  =  report.WB_groups
+    compare_groups_df = report.CompareGroups
 
 
     app = Dash(__name__)
@@ -133,6 +127,12 @@ def run_milk_dash_app():
                             cell_selectable=True,
                             style_cell_conditional=get_style_cell_conditional_fortenday(tenday_df.columns),
                             style_data_conditional=[
+                                {
+                                    'if': {'column_id': 'u_read'},
+                                    'textAlign': 'center',
+                                    'verticalAlign': 'middle',
+                                },
+                                
                                 {
                                     'if': {
                                         'filter_query': '{pct chg from avg} >= 0.15',
@@ -180,6 +180,8 @@ def run_milk_dash_app():
                         ),
                     ], style=get_panel_style()),
 
+
+#Groups
                     html.Div([
                         html.H2("Groups", 
                                 style={'textAlign': 'center', 'color': '#00bcd4'}),
@@ -194,6 +196,12 @@ def run_milk_dash_app():
                             cell_selectable=True,
                             style_cell_conditional=get_style_cell_conditional(groups_df.columns),
                             style_data_conditional=[
+
+                                {
+                                    'if': {'column_id': 'u_read'},
+                                    'textAlign': 'center',
+                                    'verticalAlign': 'middle',
+                                },
                                 # Center align all cells in 'group' column
                                 {
                                     'if': {'column_id': 'group'},
@@ -223,6 +231,44 @@ def run_milk_dash_app():
         ],
                         ),
                         
+                    ], style=get_panel_style()),
+
+# ...compare groups...
+                    html.Div([
+                        html.H2("Compare Model vs Whiteboard Groups", 
+                                style={'textAlign': 'center', 'color': '#00bcd4'}),
+                        dash_table.DataTable(
+                            id='compare-groups-table',
+                            data=compare_groups_df.to_dict('records'),
+                            columns=[{"name": i, "id": i} for i in compare_groups_df.columns],
+                            style_table=get_table_style(),
+                            style_header={**get_table_header_style(), 'height': '100px'},
+                            style_cell={**get_table_cell_style(), 'textAlign': 'center'},
+                            cell_selectable=True,
+                            style_cell_conditional=get_style_cell_conditional(compare_groups_df.columns),
+                            style_data_conditional=[
+                                # Highlight mismatches in 'comp' column
+                                {
+                                    'if': {
+                                        'filter_query': '{comp} = "X"',
+                                        'column_id': 'comp'
+                                    },
+                                    'backgroundColor': "#3C141F",
+                                    'color':  "#F5C7D4",
+                                    'fontWeight': 'bold'
+                                    'horizontalAlignment'
+                                },
+                                # Optionally, highlight matches (empty string) in 'comp'
+                                {
+                                    'if': {
+                                        'filter_query': '{comp} = ""',
+                                        'column_id': 'comp'
+                                    },
+                                    'backgroundColor': "#111111",
+                                    'color': 'white'
+                                },
+                            ],
+                        ),
                     ], style=get_panel_style()),
                 ],
                 style={

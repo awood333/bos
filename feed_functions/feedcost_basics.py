@@ -4,8 +4,6 @@ import os       #don't erase
 import pandas as pd
 
 from container import get_dependency
-from persistent_container_service import ContainerClient
-
 
 class DataLoader:
     def __init__(self,base_path):
@@ -55,9 +53,7 @@ class Feedcost_basics:
 
     def load_and_process(self):
         self.MB = get_dependency('milk_basics')
-        self.MB.load_and_process()
         self.DR = get_dependency('date_range')
-        self.DR.load_and_process()
         self.data_loader = DataLoader('F:/COWS/data/feed_data/feed_csv')
 
         self.rng_monthly  = self.DR.date_range_monthly
@@ -75,10 +71,8 @@ class Feedcost_basics:
         self.totalcost_B_df = self.create_total_cost_B()
         self.totalcost_C_df = self.create_total_cost_C()
         self.totalcost_D_df = self.create_total_cost_D()
-        self.feedcost_daily, self.feedcost_monthly = self.create_feedcostByGroup()
+        self.feedcost_daily, self.feedcost_monthly = self.create_total_feedcostByGroup()
         self.write_to_csv()
-
-
 
     def create_feed_cost_dict(self):
         self.price_seq_dict = {}
@@ -107,11 +101,9 @@ class Feedcost_basics:
                 } for feed in self.feed_type
             }
         return self.feed_series_dict
-
-       
-       
-    #    this method makes a simple table of the current cost values
+     
     def create_last_values(self):
+    #    this method makes a simple table of the current cost values
         
         last_values_all = {
             feed: {
@@ -170,7 +162,6 @@ class Feedcost_basics:
         
         return self.last_values_all_df, self.current_feedcost, self.unit_prices_daily
     
-     
     def create_cost_A(self):
 
         # NOTE: if you add a feed type, make sure it gets accessed in ALL the methods below 
@@ -190,8 +181,7 @@ class Feedcost_basics:
         self.last_cost_details_A_df = pd.DataFrame.from_dict(last_cost_details_A, orient='index')
         
         return self.cost_dict_A, self.last_cost_details_A_df 
-        
-         
+           
     def create_cost_B(self):
         self.cost_dict_B = { feed: [] for feed in self.feed_type }
         
@@ -210,7 +200,6 @@ class Feedcost_basics:
 
         return self.cost_dict_B, self.last_cost_details_B_df 
     
-
     def create_cost_C(self):
         self.cost_dict_C = { feed: [] for feed in self.feed_type }
         
@@ -250,7 +239,6 @@ class Feedcost_basics:
 
         return self.cost_dict_D, self.last_cost_details_D_df 
         
-    
     def create_total_cost_A(self):
 
         corn_series     = pd.Series(self.cost_dict_A['corn']).astype(float)
@@ -395,7 +383,7 @@ class Feedcost_basics:
         return self.totalcost_D_df
             
 
-    def create_feedcostByGroup(self):
+    def create_total_feedcostByGroup(self):
         
         feedcost1a  = pd.DataFrame(self.totalcost_A_df  ['totalcostA'])
         feedcost1b  = pd.DataFrame(self.totalcost_B_df  ['totalcostB'])
@@ -416,16 +404,14 @@ class Feedcost_basics:
     
     def write_to_csv(self):
         
-        self.current_feedcost       .to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\current_feedcost_per_cow.csv')
+        self.current_feedcost       .to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\current_feedcost.csv')
         self.unit_prices_daily      .to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\unit_prices_daily.csv')
         self.totalcost_D_df         .to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\totalcost_D_df.csv')
         # self.last_values_all_df     .to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\last_values_all_df.csv')
                 
-        self.feedcost_daily     .to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\feedcostByGroup__per_cow_daily.csv')
-        self.feedcost_monthly   .to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\feedcostByGroup__per_cow_monthly.csv')
+        self.feedcost_daily     .to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\feedcostByGroup_daily.csv')
+        self.feedcost_monthly   .to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\feedcostByGroup_monthly.csv')
         
-    
-    
 
 if __name__ == "__main__":
     obj = Feedcost_basics()
