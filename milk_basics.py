@@ -117,4 +117,5 @@ class MilkBasics:
 
 
 if __name__ == '__main__':
-    MilkBasics()
+    mb=MilkBasics()
+    mb.load_and_process()

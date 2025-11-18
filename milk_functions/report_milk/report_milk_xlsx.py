@@ -5,7 +5,6 @@ import pandas as pd
 from openpyxl.styles import Alignment
 from openpyxl import load_workbook
 from container import get_dependency
-from persistent_container_service import ContainerClient
 
 
 class ReportMilkXlsx:
@@ -14,6 +13,7 @@ class ReportMilkXlsx:
         self.MA = None
         self.WG = None
         self.report_milk = None
+        
 
     def load_and_process(self):
         self.MA = get_dependency('milk_aggregates')

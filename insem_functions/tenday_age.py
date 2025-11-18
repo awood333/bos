@@ -2,7 +2,6 @@ import inspect
 import pandas as pd 
 
 from container import get_dependency
-from persistent_container_service import ContainerClient
 
 class TendayMilkingDays:
     def __init__(self):
@@ -14,11 +13,10 @@ class TendayMilkingDays:
         self.td2 = None
 
     def load_and_process(self):
-        client = ContainerClient()
-        self.IUD = client.get_dependency('insem_ultra_data')
-        self.MA = client.get_dependency('milk_aggregates')
-        self.days = self.IUD.allx.loc[:, ['WY_id', 'days milking']]
-        self.preg = self.IUD.allx.loc[:, ['WY_id', 'u_read', 'expected bdate']]
+        self.IUD = get_dependency('insem_ultra_data')
+        self.MA  = get_dependency('milk_aggregates')
+        self.days= self.IUD.allx.loc[:, ['WY_id', 'days milking']]
+        self.preg= self.IUD.allx.loc[:, ['WY_id', 'u_read', 'expected bdate']]
         self.td2 = self.tenday_days()
 
     def tenday_days(self):

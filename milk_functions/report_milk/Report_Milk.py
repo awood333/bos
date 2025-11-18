@@ -1,7 +1,6 @@
 import inspect
 import pandas as pd
 from container import get_dependency
-# from persistent_container_service import ContainerClient
 
 
 class ReportMilk:
@@ -17,11 +16,13 @@ class ReportMilk:
         self.WB_groups = None
 
     def load_and_process(self):
-        # client = ContainerClient()
+
         self.MA = get_dependency('milk_aggregates')
         self.WG = get_dependency('whiteboard_groups')
         self.MG = get_dependency('model_groups')
-        self.tenday, self.halfday, self.WB_groups = self.createReportMilk()
+        self.CompareGroups  = get_dependency('compare_model_whiteboard_groups')
+
+        self.tenday, self.halfday, self.WB_groups, self.CompareGroups = self.createReportMilk()
 
 
     def createReportMilk(self): 
@@ -29,6 +30,7 @@ class ReportMilk:
         tenday  = self.MA.tenday.copy()
         halfday = self.MA.halfday.copy()
         WB_groups  = self.WG.whiteboard_groups_tenday.copy()
+        CompareGroups = self.CompareGroups.compare_groups()
 
 
         column_formats = {
@@ -49,14 +51,19 @@ class ReportMilk:
             'days milking': '{:.0f}',
             'expected bdate': 'iso8601',
             # 'bdate (exp)': 'iso8601',
+            'whiteboard group': 'text',
+            'model group' : 'text',
+            'comp' : 'text'
         }
 
 # The method format_dataframe is defined to take two arguments: dfx (a DataFrame) and formats (a dictionary of column formatting rules).
 # When you call tenday_formatted = format_dataframe(tenday, column_formats), you are passing:
 # tenday as dfx
 # column_formats as formats
-# Inside the method, dfx refers to the DataFrame you passed (tenday in this case), and formats refers to the formatting dictionary.
-# So, each time you call format_dataframe with a different DataFrame (like tenday, halfday, or WB_groups), it applies the formatting rules from column_formats to that DataFrame and returns a formatted copy.
+# Inside the method, dfx refers to the DataFrame you passed (tenday in this case), 
+# and formats refers to the formatting dictionary.
+# So, each time you call format_dataframe with a different DataFrame (like tenday, halfday, or WB_groups), 
+# it applies the formatting rules from column_formats to that DataFrame and returns a formatted copy.
         
         def format_dataframe(dfx, formats):
             df_formatted = dfx.copy()
@@ -85,8 +92,9 @@ class ReportMilk:
 
         halfday_formatted = format_dataframe(halfday, column_formats)
         groups_formatted = format_dataframe(WB_groups, column_formats)
+        CompareGroups_formatted = format_dataframe(CompareGroups, column_formats)
 
-        return tenday_formatted, halfday_formatted, groups_formatted
+        return tenday_formatted, halfday_formatted, groups_formatted, CompareGroups_formatted
     
 if __name__ == "__main__":
     obj = ReportMilk()

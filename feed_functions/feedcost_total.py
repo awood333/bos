@@ -3,25 +3,25 @@
 import inspect
 import pandas as pd
 from container import get_dependency
-from persistent_container_service import ContainerClient
 
 class Feedcost_total:
     def __init__(self):
         print(f"Feedcost_total instantiated by: {inspect.stack()[1].filename}")
-        self.bean_cost = None
-        self.cassava_cost = None
-        self.corn_cost = None
+
+        self.bean_cost      = None
+        self.cassava_cost   = None
+        self.corn_cost      = None
         self.bypassfat_cost = None
-        self.feedcost = None
+        self.feedcost       = None
         self.total_feedcost_details_last = None
         self.total_feedcost_monthly = None
 
     def load_and_process(self):
-        client = ContainerClient()
-        self.bean_cost      = client.get_dependency('feedcost_beans')
-        self.cassava_cost   = client.get_dependency('feedcost_cassava')
-        self.corn_cost      = client.get_dependency('feedcost_corn')
-        self.bypassfat_cost = client.get_dependency('feedcost_bypass_fat')
+
+        self.bean_cost      = get_dependency('feedcost_beans')
+        self.cassava_cost   = get_dependency('feedcost_cassava')
+        self.corn_cost      = get_dependency('feedcost_corn')
+        self.bypassfat_cost = get_dependency('feedcost_bypass_fat')
 
         self.feedcost, self.total_feedcost_details_last = self.create_feedcost_total()
         self.total_feedcost_monthly = self.create_monthly()
@@ -54,9 +54,6 @@ class Feedcost_total:
         self.total_feedcost_details_last = tfc_details
 
         return self.feedcost, self.total_feedcost_details_last
-    
-    
-    
     
     def create_monthly(self):
         fct = self.feedcost['total feedcost'].to_frame()

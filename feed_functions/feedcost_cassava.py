@@ -4,7 +4,6 @@ import inspect
 import pandas as pd
 # from datetime import datetime
 from container import get_dependency
-from persistent_container_service import ContainerClient
 
 
 class Feedcost_cassava:
@@ -24,12 +23,11 @@ class Feedcost_cassava:
         self.cost_sequence_cassava = None
 
     def load_and_process(self):
-        client = ContainerClient()
         self.MB = get_dependency('milk_basics')
         self.DR = get_dependency('date_range')
-        self.SD = client.get_dependency('status_data')
-        self.FCB = client.get_dependency('feedcost_basics')
-        self.SG = client.get_dependency('model_groups')
+        self.SD = get_dependency('status_data')
+        self.FCB= get_dependency('feedcost_basics')
+        self.SG = get_dependency('model_groups')
         price_seq1 = pd.read_csv("F:\\COWS\\data\\feed_data\\feed_csv\\cassava_price_seq.csv")
 
         self.dateRange = self.DR.date_range_daily

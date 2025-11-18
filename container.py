@@ -76,22 +76,25 @@ class Container:
         self.register_singleton('feedcost_bypass_fat',  self._create_feedcost_bypass_fat)
         self.register_singleton('feedcost_total',       self._create_feedcost_total)
 
+      
+        # milk_functions
+        self.register_singleton('milk_aggregates',      self._create_milk_aggregates)
+        self.register_singleton('raw_milk_update',      self._create_raw_milk_update)
+        
         #groups and tests
         self.register_singleton('whiteboard_groups',    self._create_whiteboard_groups)     
         self.register_singleton('model_groups',         self._create_model_groups)     
         self.register_singleton('compare_model_whiteboard_groups', self._create_compare_model_whiteboard_groups)     
-        self.register_singleton('tests_on_whiteboard', self._create_tests_on_whiteboard)             
-           
-        # Milk
-        self.register_singleton('milk_aggregates',      self._create_milk_aggregates)
-        self.register_singleton('sahagon',              self._create_sahagon)
-        
+        self.register_singleton('tests_on_whiteboard',      self._create_tests_on_whiteboard)
+     
         # Lactation
         self.register_singleton('lactation_basics',     self._create_lactation_basics)
         self.register_singleton('create_lactations',    self._create_lactations)
         self.register_singleton('this_lactation',       self._create_this_lactation)
         self.register_singleton('weekly_lactations',    self._create_weekly_lactations)
         self.register_singleton('lactations',           self._create_lactations)        
+        self.register_singleton('lactations_log_standard', self._create_lactations_log_standard)
+        self.register_singleton('this_lactation_by_date' , self._create_this_lactation_by_date)                     
 
         # Report Milk
         self.register_singleton('create_report_milk',      self._create_report_milk)
@@ -278,8 +281,19 @@ class Container:
         from feed_functions.feedcost_total import Feedcost_total
         return Feedcost_total()
     
-    # Groups and tests
-        
+
+
+    # Milk functions 
+    def _create_milk_aggregates(self):
+        from milk_functions.milk_aggregates import MilkAggregates
+        return MilkAggregates()
+    
+    def _create_raw_milk_update(self):
+        from milk_functions.raw_milk_update import RawMilkUpdate
+        return RawMilkUpdate()
+
+
+    # Groups and tests  
     def _create_model_groups(self):
         from groups_and_tests.model_groups import ModelGroups
         return ModelGroups()
@@ -294,18 +308,9 @@ class Container:
     
     def _create_compare_model_whiteboard_groups(self):
         from groups_and_tests.compare_model_whiteboard_groups import CompareModelWhiteboardGroups
-        return CompareModelWhiteboardGroups
+        return CompareModelWhiteboardGroups()
 
 
-    # Milk functions 
-    def _create_milk_aggregates(self):
-        from milk_functions.milk_aggregates import MilkAggregates
-        return MilkAggregates()
-
-    
-    def _create_sahagon(self):
-        from milk_functions.sahagon import sahagon
-        return sahagon()
 
     # Lactation functions 
     def _create_lactation_basics(self):
@@ -326,7 +331,15 @@ class Container:
     
     def _create_lactations(self):
         from milk_functions.lactation.lactations import Lactations
-        return Lactations()    
+        return Lactations()
+        
+    def _create_lactations_log_standard(self):
+        from milk_functions.lactation.lactations_log_standard import LactationsLogStandard
+        return LactationsLogStandard()
+    
+    def _create_this_lactation_by_date(self):
+        from milk_functions.lactation.this_lactation_by_date import ThisLactationByDate
+        return ThisLactationByDate()
 
     #Report_Milk
     def _create_report_milk(self):

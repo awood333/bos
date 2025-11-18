@@ -2,8 +2,8 @@
 import inspect
 import pandas as pd
 from container import get_dependency
-# import logging
-from utilities.logging_setup import  setup_debug_logging, debug_method
+
+
 
 
 today = pd.Timestamp.today()
@@ -50,7 +50,7 @@ class WetDry:
         # WY_ids = WY_ids1[250:254]
         i=0
         
-        lacts   = self.MB.data['stop'].index      # lact# float
+        lacts   = self.MB.data['stop'].index      # lact# (float)
 
         for i in WY_ids:
             for j in lacts:

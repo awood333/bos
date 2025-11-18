@@ -2,7 +2,6 @@
 import inspect
 import pandas as pd
 from container import get_dependency
-from persistent_container_service import ContainerClient
 from date_range import DateRange
 
 
@@ -22,12 +21,11 @@ class NetRevenue:
         self.net_revenue_monthly = None
 
     def load_and_process(self):
-        client = ContainerClient()
         self.DR = get_dependency('date_range')
         self.startdate = self.DR.start_date()
-        self.MI = client.get_dependency('milk_income')
-        self.SG = client.get_dependency('sahagon')
-        self.TF = client.get_dependency('feedcost_total')
+        self.MI = get_dependency('milk_income')
+        self.SG = get_dependency('sahagon')
+        self.TF = get_dependency('feedcost_total')
 
         self.feedcost1 = self.TF.feedcost
         self.feedcost1.index = pd.to_datetime(self.feedcost1.index, errors='coerce')
