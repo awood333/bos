@@ -19,6 +19,7 @@ class RawMilkUpdate:
         self.group_A_csv = None
         self.group_B_csv = None
         self.group_C_csv = None
+        self.group_F_csv = None        
         self.sick_csv = None
 
         self.amliters = None
@@ -30,6 +31,8 @@ class RawMilkUpdate:
         self.pmliters = None
         self.newdata_PM_wy = None
         self.newdata_PM_liters = None
+        self.group_F = None
+        self.newdata_group_F = None
         self.group_A = None
         self.newdata_group_A = None
         self.group_B = None
@@ -53,6 +56,7 @@ class RawMilkUpdate:
         self.AM_wy_ods       = self.convert_to_dataframe(data['AM_wy'])
         self.PM_liters_ods   = self.convert_to_dataframe(data['PM_liters'])
         self.PM_wy_ods       = self.convert_to_dataframe(data['PM_wy'])
+        self.group_F_ods     = self.convert_to_dataframe(data['fresh'])
         self.group_A_ods     = self.convert_to_dataframe(data['group_A'])
         self.group_B_ods     = self.convert_to_dataframe(data['group_B'])
         self.group_C_ods     = self.convert_to_dataframe(data['group_C'])
@@ -62,6 +66,7 @@ class RawMilkUpdate:
         self.dmAM_wy        = self.AM_wy_ods.iloc[:70, :]
         self.dmPM_liters    = self.PM_liters_ods.iloc[:70, :]
         self.dmPM_wy        = self.PM_wy_ods.iloc[:70, :]
+        self.dmgroup_F      = self.group_F_ods.iloc[:55, :]
         self.dmgroup_A      = self.group_A_ods.iloc[:55, :]
         self.dmgroup_B      = self.group_B_ods.iloc[:55, :]
         self.dmgroup_C      = self.group_C_ods.iloc[:55, :]
@@ -76,6 +81,7 @@ class RawMilkUpdate:
             'group_A_csv':   'F:\\COWS\\data\\milk_data\\wb_groups\\group_A.csv',
             'group_B_csv':   'F:\\COWS\\data\\milk_data\\wb_groups\\group_B.csv',
             'group_C_csv':   'F:\\COWS\\data\\milk_data\\wb_groups\\group_C.csv',
+            'group_F_csv':   'F:\\COWS\\data\\milk_data\\wb_groups\\group_F.csv',
             'sick_csv':      'F:\\COWS\\data\\milk_data\\wb_groups\\sick.csv'
         }
         for attr, path in csv_files.items():
@@ -104,6 +110,7 @@ class RawMilkUpdate:
         self.amwy,      self.newdata_AM_wy          = self.create_AM_wy()
         self.pmliters,  self.newdata_pm_liters      = self.create_PM_liters()
         self.pmwy,      self.newdata_PM_wy          = self.create_PM_wy()
+        self.group_F,   self.newdata_group_F        = self.create_group_F()        
         self.group_A,   self.newdata_group_A        = self.create_group_A()
         self.group_B,   self.newdata_group_B        = self.create_group_B()
         self.group_C,   self.newdata_group_C        = self.create_group_C() 
@@ -155,6 +162,11 @@ class RawMilkUpdate:
         self.newdata_PM_wy = self.dmPM_wy.loc[:,self.next_date:self.dm_lastdate].copy()
         self.pmwy=pd.concat([self.PM_wy_csv, self.newdata_PM_wy],axis=1,join='inner')
         return self.pmwy, self.newdata_PM_wy
+    
+    def create_group_F(self):
+        self.newdata_group_F = self.dmgroup_F.loc[:,self.next_date:self.dm_lastdate].copy()
+        self.group_F=pd.concat([self.group_F_csv, self.newdata_group_F],axis=1,join='inner')
+        return self.group_F, self.newdata_group_F
 
     def create_group_A(self):
         self.newdata_group_A = self.dmgroup_A.loc[:,self.next_date:self.dm_lastdate].copy()
@@ -208,6 +220,10 @@ class RawMilkUpdate:
         self.group_C    .to_csv(f"D:\\Cows\\data_backup\\milk backup\\wb_groups\\group_C\\group_C{self.tdy}.csv")
         self.group_C    .to_csv(f"E:\\Cows\\data_backup\\milk backup\\wb_groups\\group_C\\group_C{self.tdy}.csv")
         self.group_C    .to_csv( 'F:\\COWS\\data\\milk_data\\wb_groups\\group_C.csv',mode='w',header=True,index=True)
+        
+        self.group_F    .to_csv(f"D:\\Cows\\data_backup\\milk backup\\wb_groups\\group_F\\fresh{self.tdy}.csv")
+        self.group_F    .to_csv(f"E:\\Cows\\data_backup\\milk backup\\wb_groups\\group_F\\fresh{self.tdy}.csv")
+        self.group_F    .to_csv( 'F:\\COWS\\data\\milk_data\\wb_groups\\group_F.csv',mode='w',header=True,index=True)
         
 
 

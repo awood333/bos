@@ -36,6 +36,8 @@ class Feedcost_basics:
         self.last_values_all_df = None
         self.current_feedcost = None
         self.unit_prices_daily = None
+        self.cost_dict_F = None
+        self.last_cost_details_F_df = None        
         self.cost_dict_A = None
         self.last_cost_details_A_df = None
         self.cost_dict_B = None
@@ -63,10 +65,12 @@ class Feedcost_basics:
         self.price_seq_dict, self.daily_amt_dict = self.create_feed_cost_dict()
         self.feed_series_dict = self.create_separate_feed_series()
         self.last_values_all_df, self.current_feedcost, self.unit_prices_daily = self.create_last_values()
+        self.cost_dict_F, self.last_cost_details_F_df = self.create_cost_F()        
         self.cost_dict_A, self.last_cost_details_A_df = self.create_cost_A()
         self.cost_dict_B, self.last_cost_details_B_df = self.create_cost_B()
         self.cost_dict_C, self.last_cost_details_C_df = self.create_cost_C()
         self.cost_dict_D, self.last_cost_details_D_df = self.create_cost_D()
+        self.totalcost_F_df = self.create_total_cost_F()        
         self.totalcost_A_df = self.create_total_cost_A()
         self.totalcost_B_df = self.create_total_cost_B()
         self.totalcost_C_df = self.create_total_cost_C()
@@ -162,6 +166,27 @@ class Feedcost_basics:
         
         return self.last_values_all_df, self.current_feedcost, self.unit_prices_daily
     
+    def create_cost_F(self):
+
+        # NOTE: if you add a feed type, make sure it gets accessed in ALL the methods below 
+        self.cost_dict_F = {feed: [] for feed in self.feed_type}
+        
+        for i in self.rng_daily:
+            for feed in self.feed_type:
+                unit_price = self.price_seq_dict[feed].loc[i, 'unit_price']
+                fresh_kg = self.daily_amt_dict[feed].loc[i, 'fresh_kg']
+                cost_F = unit_price * fresh_kg
+                self.cost_dict_F[feed].append(cost_F)
+                
+        last_cost_details_F = {
+            key: value[-1] for key, value in self.cost_dict_F.items()
+            }
+            
+        self.last_cost_details_F_df = pd.DataFrame.from_dict(last_cost_details_F, orient='index')
+        
+        return self.cost_dict_A, self.last_cost_details_A_df 
+
+
     def create_cost_A(self):
 
         # NOTE: if you add a feed type, make sure it gets accessed in ALL the methods below 
@@ -239,6 +264,41 @@ class Feedcost_basics:
 
         return self.cost_dict_D, self.last_cost_details_D_df 
         
+    
+    def create_total_cost_F(self):
+
+        corn_series     = pd.Series(self.cost_dict_F['corn']).astype(float)
+        cassava_series  = pd.Series(self.cost_dict_F['cassava']).astype(float)
+        beans_series    = pd.Series(self.cost_dict_F['beans']).astype(float)
+        straw_series    = pd.Series(self.cost_dict_F['straw']).astype(float)
+        CP_milk2_series = pd.Series(self.cost_dict_F['CP_milk2']).astype(float)
+        CP_005_21P_series   = pd.Series(self.cost_dict_F['CP_005_21P']).astype(float)
+        NaHCO3_series       = pd.Series(self.cost_dict_F['NaHCO3']).astype(float)
+        bypass_fat_series   = pd.Series(self.cost_dict_F['bypass_fat']).astype(float)
+
+        totalcostF = (corn_series   + cassava_series
+                      + beans_series + straw_series 
+                      + bypass_fat_series + CP_005_21P_series 
+                      + NaHCO3_series + CP_milk2_series
+                     ) 
+            
+
+        df = pd.DataFrame({
+            'corn': corn_series,
+            'cassava': cassava_series,
+            'beans': beans_series,
+            'straw': straw_series,
+            'bypass_fat': bypass_fat_series,
+            'CP_005_21P': CP_005_21P_series,
+            'NaHCO3': NaHCO3_series,
+            'CP_milk2' : CP_milk2_series,
+
+            'totalcostF': totalcostF
+        })
+        
+        df.index = self.rng_daily
+        self.totalcost_F_df = df  
+    
     def create_total_cost_A(self):
 
         corn_series     = pd.Series(self.cost_dict_A['corn']).astype(float)
@@ -384,12 +444,13 @@ class Feedcost_basics:
             
 
     def create_total_feedcostByGroup(self):
-        
+
+        feedcost1f  = pd.DataFrame(self.totalcost_F_df  ['totalcostF'])        
         feedcost1a  = pd.DataFrame(self.totalcost_A_df  ['totalcostA'])
         feedcost1b  = pd.DataFrame(self.totalcost_B_df  ['totalcostB'])
         feedcost1c  = pd.DataFrame(self.totalcost_C_df  ['totalcostC'])
         feedcost1d  = pd.DataFrame(self.totalcost_D_df  ['totalcostD'])
-        feedcost_daily1   = pd.concat((feedcost1a, feedcost1b, feedcost1c, feedcost1d), axis=1)
+        feedcost_daily1   = pd.concat((feedcost1f, feedcost1a, feedcost1b, feedcost1c, feedcost1d), axis=1)
         feedcost_daily1.index.name = 'datex'
         
         feedcost_monthly1 = pd.DataFrame(feedcost_daily1)
