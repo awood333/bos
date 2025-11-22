@@ -84,7 +84,7 @@ class Container:
         #groups and tests
         self.register_singleton('whiteboard_groups',    self._create_whiteboard_groups)     
         self.register_singleton('model_groups',         self._create_model_groups)     
-        self.register_singleton('compare_model_whiteboard_groups', self._create_compare_model_whiteboard_groups)     
+        self.register_singleton('compare_model_whiteboard_groups_last', self._create_compare_model_whiteboard_groups_last)     
         self.register_singleton('tests_on_whiteboard',      self._create_tests_on_whiteboard)
      
         # Lactation
@@ -93,8 +93,9 @@ class Container:
         self.register_singleton('this_lactation',       self._create_this_lactation)
         self.register_singleton('weekly_lactations',    self._create_weekly_lactations)
         self.register_singleton('lactations',           self._create_lactations)        
-        self.register_singleton('lactations_log_standard', self._create_lactations_log_standard)
-        self.register_singleton('this_lactation_by_date' , self._create_this_lactation_by_date)                     
+        self.register_singleton('lactations_log_standard',   self._create_lactations_log_standard)
+        self.register_singleton('this_lactation_by_date_WB', self._create_this_lactation_by_date_WB)
+        self.register_singleton('this_lactation_by_date_model', self._create_this_lactation_by_date_model)                                  
 
         # Report Milk
         self.register_singleton('create_report_milk',      self._create_report_milk)
@@ -306,9 +307,9 @@ class Container:
         from groups_and_tests.tests_on_whiteboard import TestsOnWhiteboard
         return TestsOnWhiteboard()
     
-    def _create_compare_model_whiteboard_groups(self):
-        from groups_and_tests.compare_model_whiteboard_groups import CompareModelWhiteboardGroups
-        return CompareModelWhiteboardGroups()
+    def _create_compare_model_whiteboard_groups_last(self):
+        from groups_and_tests.compare_model_whiteboard_groups_last import CompareModelWhiteboardGroups_Last
+        return CompareModelWhiteboardGroups_Last()
 
 
 
@@ -337,9 +338,15 @@ class Container:
         from milk_functions.lactation.lactations_log_standard import LactationsLogStandard
         return LactationsLogStandard()
     
-    def _create_this_lactation_by_date(self):
-        from milk_functions.lactation.this_lactation_by_date import ThisLactationByDate
-        return ThisLactationByDate()
+    def _create_this_lactation_by_date_WB(self):
+        from milk_functions.lactation.net_rev_this_lactation_by_date_WB import NetRevThisLactationByDate_WB
+        return NetRevThisLactationByDate_WB()
+    
+    def _create_this_lactation_by_date_model(self):
+        from milk_functions.lactation.net_rev_this_lactation_by_date_model import NetRevThisLactationByDate_model
+        return NetRevThisLactationByDate_model()
+    
+
 
     #Report_Milk
     def _create_report_milk(self):

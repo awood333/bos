@@ -1,6 +1,8 @@
 '''milk_functions\\model_groups.py'''
 import inspect
 import pandas as pd
+import json
+import math
 
 from container import get_dependency
 
@@ -24,7 +26,9 @@ class ModelGroups:
         self.group_A_ids = None
         self.group_B_ids = None
         self.group_C_ids = None
+        self.groups_by_date_by_cow = None
         self.all_groups_count = None
+        self.model_groups_dict = None           
         self.model_groups_lastrow = None
         self.all_groups_count_monthly = None
 
@@ -44,10 +48,14 @@ class ModelGroups:
          self.group_B_ids, self.group_C_ids, 
          self.all_groups_count]     = self.create_model_groups()
         
+        self.groups_by_date_by_cow = self.create_model_groups_df()
+        
+        self.model_groups_dict      = self.create_model_groups_dict()
         self.model_groups_lastrow   = self.get_model_groups_lastrow()
 
         self.all_groups_count_monthly = self.create_monthly()
         self.write_to_csv()
+        self.save_model_groups_json()
         
 
     def create_model_groups (self):
@@ -60,7 +68,7 @@ class ModelGroups:
 
         milk1 = self.MB.data['milk'].loc[self.startdate:, :]
         
-    
+
         fresh,      groupA,         groupB,         groupC          = [],[],[],[]
         fresh_ids1, groupA_ids1,    groupB_ids1,    groupC_ids1     = [],[],[],[]
         fresh_ids,  groupA_ids,     groupB_ids,     groupC_ids      = [],[],[],[]
@@ -154,7 +162,85 @@ class ModelGroups:
         
         return [self.fresh_ids, self.group_A_ids, self.group_B_ids,
                 self.group_C_ids, self.all_groups_count]
-        
+
+
+    def create_model_groups_df(self, start_date=None):
+        """
+        Creates a DataFrame with WY_ids as columns and dates as index,
+        with group labels ("F", "A", "B", "C") as values.
+        Does not modify or replace create_model_groups.
+        """
+        # Use start_date if provided, else use self.startdate
+        if start_date is None:
+            start_date = self.startdate
+
+        # Get all dates from all_groups_count index (already filtered by startdate)
+        all_dates = pd.to_datetime(self.all_groups_count.index)
+        wy_ids = [str(int(wy)) for wy in self.SD.alive_ids]
+
+        # Prepare empty DataFrame
+        result = pd.DataFrame(index=all_dates.strftime('%Y-%m-%d'), columns=wy_ids)
+
+        # Helper: assign group label for each WY_id per date
+        for date in all_dates:
+            date_str = date.strftime('%Y-%m-%d')
+            for df, label in [
+                (self.fresh_ids, "F"),
+                (self.group_A_ids, "A"),
+                (self.group_B_ids, "B"),
+                (self.group_C_ids, "C")
+            ]:
+                if date in df.index:
+                    ids = df.loc[date].dropna()
+                    for wy_id in ids:
+                        wy_id_str = str(int(wy_id))
+                        if wy_id_str in result.columns:
+                            result.at[date_str, wy_id_str] = label
+
+        # Sort columns numerically
+        sorted_cols = sorted([int(col) for col in result.columns])
+        result = result[[str(col) for col in sorted_cols]]
+
+        self.groups_by_date_by_cow = result
+        return self.groups_by_date_by_cow
+    
+    
+    def create_model_groups_dict(self):
+        def df_ids_to_dict(df):
+            return {
+                str(date): [str(id) for id in df.loc[date].dropna().values]
+                for date in df.index
+            }
+
+        self.model_groups_dict = {
+            "fresh_ids": df_ids_to_dict(self.fresh_ids),
+            "group_A_ids": df_ids_to_dict(self.group_A_ids),
+            "group_B_ids": df_ids_to_dict(self.group_B_ids),
+            "group_C_ids": df_ids_to_dict(self.group_C_ids)
+        }
+        return self.model_groups_dict
+
+
+    def replace_nan_in_dict(self, obj):
+        if isinstance(obj, dict):
+            return {str(k): self.replace_nan_in_dict(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [self.replace_nan_in_dict(v) for v in obj]
+        elif obj is None or (isinstance(obj, float) and math.isnan(obj)) or obj is pd.NA:
+            return "NaN"
+        else:
+            return obj
+
+    def save_model_groups_json(self, filepath="F:\\COWS\\data\\status\\model_groups.json"):
+        # Convert DataFrames to dicts
+        dict_to_save = {k: v.to_dict() if hasattr(v, "to_dict") else v for k, v in self.model_groups_dict.items()}
+        # Replace NaN/NA
+        cleaned_dict = self.replace_nan_in_dict(dict_to_save)
+        # Save as JSON
+        with open(filepath, "w", encoding="utf-8") as f:
+            json.dump(cleaned_dict, f, indent=2, default=str)
+
+            
         
     def get_model_groups_lastrow(self):
         f1=self.fresh_ids.iloc[-1:,:].copy()
@@ -219,6 +305,11 @@ class ModelGroups:
         self.group_C_ids.to_csv('F:\\COWS\\data\\status\\group_C_ids_model.csv')
 
         self.all_groups_count_monthly  .to_csv('F:\\COWS\\data\\status\\all_groups_count_monthly.csv')        
+
+        # Replace NaN/NA in model_groups_dict before saving as JSON
+        cleaned_dict = self.replace_nan_in_dict(self.model_groups_dict)
+        with open("F:\\COWS\\data\\status\\model_groups_dict.json", 'w', encoding='utf-8') as f:
+            json.dump(cleaned_dict, f, indent=2, default=str)           
     
 if __name__ == "__main__":
     model_groups = ModelGroups()

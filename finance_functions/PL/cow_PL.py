@@ -5,6 +5,10 @@ import pandas as pd
 from container import get_dependency
 
 class CowPL:
+    ''' creates a df with total net revenue over the life of each cow
+        ---does not calc netrev by each lactation'''
+
+
     def __init__(self):
         print(f"CowPL instantiated by: {inspect.stack()[1].filename}")
         self.MB = None
@@ -30,7 +34,7 @@ class CowPL:
 
     def load_and_process(self):
         self.MB = get_dependency('milk_basics')
-        self.WD = get_dependency('wet_dry')
+        self.WD = get_dependency('wet_dry') #shows all cows w numbered days milking
         self.SD = get_dependency('status_data')
         self.MB = get_dependency('milk_basics')
 
@@ -91,6 +95,8 @@ class CowPL:
 
         self.wetdays = wetdays
         
+        #group days returns a df with total days in groups
+        # wetdays returns df with numbered wetdays for each live cow (from full_wdd.csv)
         return self.group_days, self.wetdays
     
     

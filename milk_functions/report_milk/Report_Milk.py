@@ -11,6 +11,7 @@ class ReportMilk:
         self.MA = None
         self.WG = None
         self.MG = None
+        self.CompareGroups = None
         self.tenday = None
         self.halfday = None
         self.WB_groups = None
