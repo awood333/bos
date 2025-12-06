@@ -1,8 +1,10 @@
 '''milk_funtions.report_milk.milk_dash_app.py'''
 
+import threading
+import webbrowser
+
 from dash import Dash, html, dash_table
 import pandas as pd
-import webbrowser
 from container import get_dependency
 
 
@@ -94,11 +96,14 @@ def get_style_cell_conditional_fortenday(table_columns):
 def run_milk_dash_app():        
   
     report  = get_dependency('report_milk')
+    xl      = get_dependency('report_milk_xlsx')  #this is enough to run the mod
+
 
     tenday_df  = report.tenday
     halfday_df = report.halfday 
     groups_df  =  report.WB_groups
     compare_groups_df = report.CompareGroups
+
 
 
     app = Dash(__name__)
@@ -285,7 +290,7 @@ def run_milk_dash_app():
     )
     print("🔍 run_dash_app: Starting server...")
 
-    import threading
+
 
     def open_browser():
         try:

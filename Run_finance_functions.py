@@ -1,23 +1,44 @@
 '''Run_finance_functions.py'''
-from container import get_dependency
+
+from finance_functions.finance_basics import FinanceBasics
+from finance_functions.capex.capex_projects import CapexProjects
+from finance_functions.capex.capex_basics import CapexBasics
+
+from finance_functions.income.milk_income import MilkIncome
+from finance_functions.income.income_statement import IncomeStatement
+from finance_functions.net_revenue.net_rev_this_lactation_WB import NetRevThisLactation_WB
+from finance_functions.net_revenue.net_rev_this_lactation_model import NetRevThisLactation_model
+
+from finance_functions.PL.NetRevenue import NetRevenue
 from finance_functions.tax_docs.tax_docs_depreciation import TaxDocs_Depreciation
 from finance_functions.tax_docs.tax_docs_non_capex import TaxDocs_NonCapex
 
 class RunFinanceFunctions:
     def __init__(self):
         
-        self.feedcost_basics    = get_dependency('feedcost_basics')
-        self.status_data        = get_dependency('status_data')
-        self.finance_basics     = get_dependency('finance_basics')
-        self.capex_basics       = get_dependency('capex_basics')
-        self.capex_projects     = get_dependency('capex_projects')
-        self.milk_income        = get_dependency('milk_income')
-        self.net_revenue        = get_dependency('net_revenue')
-        self.income_statement   = get_dependency('income_statement')
+        
+        self.finance_basics     = FinanceBasics()
+        self.capex_basics       = CapexBasics()
+        self.capex_projects     = CapexProjects()
+        self.milk_income        = MilkIncome()
+        self.net_revenue        = NetRevenue()
+        self.income_statement   = IncomeStatement()
+        # self.tax_docs_depreciation  = TaxDocs_Depreciation()
+        # self.tax_docs_noncapex      = TaxDocs_NonCapex()
+
+        # Call processing methods
+        self.finance_basics.load_and_process()
+        self.capex_basics.load_and_process()
+        self.capex_projects.load_and_process()
+        self.milk_income.load_and_process()
+        self.net_revenue.load_and_process()
+        self.income_statement.load_and_process()
+        # self.tax_docs_depreciation.load_and_process()   uncomment after revising script
+        # self.tax_docs_noncapex.load_and_process()
 
         self.tax_docs_depreciation  = TaxDocs_Depreciation()
         self.tax_docs_noncapex      = TaxDocs_NonCapex()
 
 if __name__ == "__main__":
     obj=RunFinanceFunctions()
-    obj.load_and_process()    
+  

@@ -10,11 +10,13 @@ class InsemDataBackup:
         self.bd, self.lb, self.i, self.sd, self.u  = self.read_csv_data()
         self.write_to_csv()
 
+
+
     def read_csv_data(self):
 
         self.bd = pd.read_csv  ('F:\\COWS\\data\\csv_files\\birth_death.csv')
 
-        self.heifbd = pd.read_csv  ('F:\\COWS\\data\\csv_files\\heifers.csv')
+        self.heifbd = pd.read_csv('F:\\COWS\\data\\csv_files\\heifers.csv')
         self.lb = pd.read_csv  ('F:\\COWS\\data\\csv_files\\live_births.csv')
         self.i  = pd.read_csv  ('F:\\COWS\\data\\csv_files\\insem.csv')
         self.sd = pd.read_csv  ('F:\\COWS\\data\\csv_files\\stop_dates.csv')
@@ -45,4 +47,3 @@ class InsemDataBackup:
 
 if __name__ == "__main__":
     obj = InsemDataBackup()
-    obj.load_and_process()    

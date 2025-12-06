@@ -21,4 +21,4 @@ class FeedDataBackup:
 
 if __name__ == "__main__":
     obj = FeedDataBackup()
-    obj.load_and_process()    
+    # obj.load_and_process()    

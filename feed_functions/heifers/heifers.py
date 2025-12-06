@@ -3,42 +3,57 @@
 from datetime import datetime, timedelta
 import pandas as pd
 import numpy as np
+from container import get_dependency
 
-from feed_functions.feedcost_basics import Feedcost_basics
-from insem_functions.Insem_ultra_data import InsemUltraData
 
 class Heifers:
     def __init__(self):
+        self.FCB = get_dependency('feedcost_basics')
+        self.IUD = get_dependency('insem_ultra_data')
 
-        self.FCB = Feedcost_basics()
-        self.IUD = InsemUltraData()
-        
-        
-        #feed costs
+        now = datetime.now()
+        self.today = pd.to_datetime(now)
+        self.rng = pd.date_range('2024-07-12', self.today)  # bdate of oldest heifer
+        self.days_to_sale = 365+365+60  # days to 2months before calving...based on insem at 18m
+        self.days_to_calf = 365+365+90  # 820 this is cut-off for feed calc
+
+        # Placeholders for data to be loaded/processed
+        self.dry_feed_cost = None
+        self.dry_feed_kg = None
+        self.dry_feed_cost_kg = None
+        self.TMR_costper_kg = None
+        self.bean_cost = None
+
+        self.heifers = None
+        self.heifer_ids_list = None
+        self.heifer_days = None
+        self.milk_drinking_days = None
+        self.cost_milk = None
+        self.TMR_cost = None
+        self.TMR_current_cost = None
+        self.yellow_beans_amt_days = None
+        self.yellow_beans_cost = None
+
+    def load_and_process(self):
+        # Feed costs
         self.dry_feed_cost  = self.FCB.current_feedcost['dry_cost'].loc['sum']
         self.dry_feed_kg    = self.FCB.current_feedcost['dry_kg'].loc['sum']
         self.dry_feed_cost_kg = self.dry_feed_cost / self.dry_feed_kg
         self.TMR_costper_kg = self.dry_feed_cost / self.dry_feed_kg
         self.bean_cost  =  self.FCB.current_feedcost['unit_price'].loc['beans']
 
-        now = datetime.now()
-        self.today = pd.to_datetime(now)
-        self.rng = pd.date_range('2024-07-12', self.today)  #bdate of oldest heifer
-        self.days_to_sale = 365+365+60  #days to 2months before calving...based on insem at 18m
-        self.days_to_calf = 365+365+90 #820 this is cut-off for feed calc
-        
+        # Methods
+        self.heifers, self.heifer_ids_list = self.create_heifer_df()
+        self.heifer_days = self.create_heifer_days()
 
-        self.heifers, self.heifer_ids_list       = self.create_heifer_df()
-        self.heifer_days                     = self.create_heifer_days()
-        
-        [self.milk_drinking_days, 
-        self.cost_milk ]                = self.calc_milkdrinking_days()
-        
-        self.TMR_cost, self.TMR_current_cost   = self.calc_TMR_days()
-        
-        [self.yellow_beans_amt_days, 
-        self.yellow_beans_cost]         = self.create_yellow_beans_days()
-        
+        [self.milk_drinking_days,
+         self.cost_milk] = self.calc_milkdrinking_days()
+
+        self.TMR_cost, self.TMR_current_cost = self.calc_TMR_days()
+
+        [self.yellow_beans_amt_days,
+         self.yellow_beans_cost] = self.create_yellow_beans_days()
+
         self.align_days()
         
         
@@ -48,7 +63,7 @@ class Heifers:
         heifers1 = pd.read_csv("F:\\COWS\\data\\csv_files\\heifers.csv", 
             header=0, index_col=None)
         heifers1['b_date'] = pd.to_datetime(heifers1['b_date'])
-        heifers1['first_calf_bdate'] = pd.to_datetime(heifers1['first_calf_bdate'])
+        heifers1['first_calf_bdate'] = pd.to_datetime(heifers1['calf_bdate'])
         heifers1['adj_bdate'] = pd.to_datetime(heifers1['adj_bdate'])
         heifers1['gone_date'] = pd.to_datetime(heifers1['gone_date'])
         
@@ -289,4 +304,4 @@ class Heifers:
      
 if __name__ == "__main__":
     obj = Heifers()
-    # obj.load_and_process()    
+    obj.load_and_process()    

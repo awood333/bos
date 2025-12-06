@@ -1,6 +1,7 @@
 '''milk_functions.WhiteboardGroups.py'''
 import inspect
 import os
+from pyexcel_ods import get_data
 import pandas as pd
 import json
 pd.set_option('future.no_silent_downcasting', True)
@@ -14,6 +15,8 @@ class WhiteboardGroups:
 
         print(f"WhiteboardGroups instantiated by: {inspect.stack()[1].filename}")
         
+        self.ods_data = get_data('F:\\COWS\\data\\daily_milk.ods')
+
         self.MA = None
         self.MB = None
         self.BD = None
@@ -52,39 +55,37 @@ class WhiteboardGroups:
         self.alive_mask = self.SD2.alive_mask['WY_id'].astype(str).reset_index(drop=True)
 
         self.fullday    = self.MA.fullday.copy()
-        self.fullday_last = self.MA.fullday.iloc[-1:, :].copy()
+        self.fullday_last    = self.MA.fullday.iloc[-1:, :].copy()
+
         self.tenday     = self.MA.tenday
 
+        start_date      ='2025-09-01'
+        stop_date       = self.fullday_last.index[0]  #.index[0] gets the first (and only) value from this Index
+        self.date_range = pd.date_range(start_date, stop_date)
 
 
-        # Load group CSVs and ensure columns are datetime
-        base_path = 'F:\\COWS\\data\\milk_data\\wb_groups'
-        group_files = {
-            'fresh_df'  : 'group_F.csv',
-            'group_a_df': 'group_A.csv',
-            'group_b_df': 'group_B.csv',
-            'group_c_df': 'group_C.csv',
-            'sick_df'   : 'sick.csv'
-        }
-        for attr, fname in group_files.items():
-            group_df          = pd.read_csv(os.path.join(base_path, fname), index_col='index')
-            group_df.columns  = pd.to_datetime(group_df.columns, errors='coerce')
-            setattr(self, attr, group_df)
+        def sheet_to_df(sheet):
+            data = self.ods_data[sheet]
+            df = pd.DataFrame(data)
+            df = df.iloc[2:].reset_index(drop=True)
+            df.columns = df.iloc[0]
+            df = df[1:].reset_index(drop=True)
+            df.set_index(df.columns[0], inplace=True)
+            df.index = df.index.fillna(0)
+            df.index = df.index.astype(int)
+            df.columns = pd.to_datetime(df.columns, errors='coerce')
+            df = df.iloc[:55, :]
+            return df
+            
+        self.fresh_df   = sheet_to_df('fresh')
+        self.group_a_df = sheet_to_df('group_A')
+        self.group_b_df = sheet_to_df('group_B')
+        self.group_c_df = sheet_to_df('group_C')
+        self.sick_df    = sheet_to_df('sick')
 
-                # Build all_dates from the union of all group DataFrame columns
-        all_dates = pd.to_datetime(
-            sorted(
-                set(self.group_a_df.columns)
-                | set(self.group_b_df.columns)
-                | set(self.group_c_df.columns)
-                | set(self.fresh_df.columns)
-                | set(self.sick_df.columns)
-            ),
-            errors="coerce"
-        )        
+
         
-        self.start_date='2025-09-01'
-        self.date_range = all_dates[all_dates >= pd.to_datetime(self.start_date)]
+
 
         # Now all self.fresh_df, self.group_a_df, ... have datetime columns
         self.groups_matrix, self.whiteboard_groups_dict = self.create_whiteboard_groups_dict()
@@ -97,6 +98,7 @@ class WhiteboardGroups:
 
 
     def create_whiteboard_groups_dict(self):
+        #the group_df is the page from daily milk, so shape 55,xxx
         def get_ids_by_date(group_df):
             result = {}
             for date in self.date_range:
@@ -117,13 +119,13 @@ class WhiteboardGroups:
 
         # Build the main groups_matrix DataFrame for reuse
         wy_ids = [str(int(wy)) for wy in self.BD['WY_id']]
-        groups_matrix = pd.DataFrame(index=self.date_range.strftime('%Y-%m-%d'), columns=wy_ids)
+        groups_matrix = pd.DataFrame(index=self.date_range, columns=wy_ids)  #.strftime('%Y-%m-%d')
         for group_label, group_dict in [
             ('F', whiteboard_groups_dict.get('fresh_ids', {})),
             ('A', whiteboard_groups_dict.get('group_A_ids', {})),
             ('B', whiteboard_groups_dict.get('group_B_ids', {})),
             ('C', whiteboard_groups_dict.get('group_C_ids', {})),
-            ('Sick', whiteboard_groups_dict.get('sick_ids', {}))
+            ('sick', whiteboard_groups_dict.get('sick_ids', {}))
         ]:
             for date_str, ids in group_dict.items():
                 for wy_id in ids:
@@ -134,10 +136,23 @@ class WhiteboardGroups:
         sorted_cols = sorted([int(col) for col in groups_matrix.columns])
         groups_matrix = groups_matrix[[str(col) for col in sorted_cols]]
 
+        # Apply sick value replacement 
+        groups_matrix = self.replace_sick_with_previous(groups_matrix)
         self.groups_matrix = groups_matrix  # Store for reuse
 
         return self.groups_matrix, self.whiteboard_groups_dict
-            
+    
+
+    def replace_sick_with_previous(self, df):
+        df = df.copy()
+        for col in df.columns:
+            col_vals = df[col].tolist()
+            for i in range(1, len(col_vals)):
+                if isinstance(col_vals[i], str) and col_vals[i].lower() == 'sick':
+                    col_vals[i] = col_vals[i-1]
+            df[col] = col_vals
+        return df
+                    
 
     def replace_nan_in_dict(self, obj):
         if isinstance(obj, dict):
@@ -166,7 +181,8 @@ class WhiteboardGroups:
         return self.groups_by_date_by_cow
 
     def create_whiteboard_groups_specific_date(self):
-        # Just select the row for the specific date from self.groups_matrix
+        '''#returns df with the WY_id and group on spec date'''
+
         self.specific_date = '2025-09-27'
         specific_date2 = pd.to_datetime(self.specific_date).strftime('%Y-%m-%d')
         # Get the group assignments for this date
@@ -175,7 +191,7 @@ class WhiteboardGroups:
         group_df = row.reset_index()
         group_df.columns = ['WY_id', 'group']
         group_df = group_df.dropna(subset=['group'])
-        self.whiteboard_groups_specific_date = group_df
+        self.whiteboard_groups_specific_date = group_df 
         return self.whiteboard_groups_specific_date, self.specific_date
 
     def create_whiteboard_groups_for_dailymilk(self):
@@ -203,7 +219,7 @@ class WhiteboardGroups:
         a1 = get_group_df(self.group_a_df, 'A')
         b1 = get_group_df(self.group_b_df, 'B')
         c1 = get_group_df(self.group_c_df, 'C')
-        s1 = get_group_df(self.sick_df, 'Sick')
+        s1 = get_group_df(self.sick_df, 'sick')
 
         frames = [f1, a1, b1, c1, s1]
         d1 = pd.concat(frames, axis=0)
@@ -238,9 +254,9 @@ class WhiteboardGroups:
         a3 = get_group_slice(self.group_a_df, 'A')
         b3 = get_group_slice(self.group_b_df, 'B')
         c3 = get_group_slice(self.group_c_df, 'C')
-        s1 = get_group_slice(self.sick_df, 'Sick')
+        s1 = get_group_slice(self.sick_df, 'sick')
 
-        # Sick group special ฉีดยา group_label)
+        # sick group special ฉีดยา group_label)
         s1 = self.sick_df.iloc[:70, -1].copy()
         s2 = [str(int(float(x))) for x in pd.to_numeric(s1, errors='coerce') if pd.notna(x)]
         s3 = td2[td2['WY_id'].astype(str).isin(s2)].copy()
@@ -262,8 +278,8 @@ class WhiteboardGroups:
     def write_to_csv(self):
         self.whiteboard_groups_tenday       .to_csv('F:\\COWS\\data\\milk_data\\groups\\whiteboard_groups_tenday.csv')
         self.whiteboard_groups_for_dailymilk.to_csv('F:\\COWS\\data\\milk_data\\groups\\whiteboard_groups_for_dailymilk.csv')
-        self.groups_by_date_by_cow          .to_csv('F:\\COWS\\data\\milk_data\\groups\\groups_by_date_by_cow.csv')
-        self.whiteboard_groups_specific_date.to_csv(f'F:\\COWS\\data\\milk_data\\groups\\whiteboard_groups_specific_date_{self.specific_date}.csv')
+        self.groups_by_date_by_cow          .to_csv('F:\\COWS\\data\\milk_data\\groups\\whiteboard_groups_by_date_by_cow.csv')
+        self.whiteboard_groups_specific_date.to_csv('F:\\COWS\\data\\milk_data\\groups\\whiteboard_groups_specific_date.csv')
 
         # Replace NaN/NA in model_groups_dict before saving as JSON
         cleaned_dict = self.replace_nan_in_dict(self.whiteboard_groups_dict)

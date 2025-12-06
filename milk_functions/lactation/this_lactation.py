@@ -15,13 +15,15 @@ class ThisLactation():
 
         self.MB = get_dependency('milk_basics')
         self.WD = get_dependency('wet_dry')
+        self.SD = get_dependency('status_data')
         self.milking_wkly, self.milking_daily,  = self.create_daily_weekly()
         
         self.create_write_to_csv()
         
 
     def create_daily_weekly(self):
-        milking_daily = self.WD.milking_liters # milking_liters is an ongoing lact (in WD)-- there can only be one....
+        milking_daily = self.WD.milking_liters 
+        # milking_liters is an ongoing lact (in WD)-- there can only be one....
         grouping_key  = milking_daily.index //7 +1
         self.milking_wkly  = milking_daily.groupby(grouping_key).mean()
         self.milking_daily = milking_daily
