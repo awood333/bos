@@ -21,7 +21,7 @@ class ReportMilk:
         self.MA = get_dependency('milk_aggregates')
         self.WG = get_dependency('whiteboard_groups')
         self.MG = get_dependency('model_groups')
-        self.CompareGroups  = get_dependency('compare_model_whiteboard_groups')
+        self.CompareGroups  = get_dependency('compare_model_whiteboard_groups_last')
 
         self.tenday, self.halfday, self.WB_groups, self.CompareGroups = self.createReportMilk()
 

@@ -1,11 +1,10 @@
 '''insem_ultra_data.py'''
 
-from    datetime import datetime
+from    datetime import datetime, timedelta
 import  inspect
 import  pandas  as pd
 
 from container import get_dependency
-
 
 class InsemUltraData:
     def __init__(self):
@@ -33,6 +32,8 @@ class InsemUltraData:
         self.all_preg = None
         self.all_not_preg = None
         self.days_milking = None
+        self.not_preg = None
+        self.no_insem = None
 
     def load_and_process(self):
         # client = ContainerClient()
@@ -54,7 +55,10 @@ class InsemUltraData:
         self.last_valid_ultra = self.create_last_valid_ultra()
         self.last_invalid_ultra = self.create_last_invalid_ultra()
         self.df7 = self.create_df()
-        [self.allx, self.all_milking, self.all_dry, self.all_preg, self.all_not_preg, self.days_milking] = self.create_allx()
+        (self.allx, self.all_milking, 
+        self.all_dry, self.all_preg, 
+        self.all_not_preg, self.days_milking) = self.create_allx()
+        self.not_preg, self.no_insem = self.create_not_preg_df()
         self.create_write_to_csv()
         
         
@@ -137,7 +141,6 @@ class InsemUltraData:
                              how = 'left',
                              on = 'WY_id'
                              )
-# use .loc to set the 'if' conditions
         valid_ultra2.loc[
                 valid_ultra2['u_read'] == ( 'ok'),'expected bdate'
                 ] = valid_ultra2['i_date'] + pd.to_timedelta(282, unit='D')
@@ -209,11 +212,13 @@ class InsemUltraData:
         df6         = df6[df6['status'] != 'G']
         df6         = df6.drop(columns=['ids'])
         df6         = df6.reset_index(drop=True)
+        df6['exp drydate'] = df6['expected bdate'] - timedelta(days=61)
+        df6['WY_id'] = df6['WY_id'].astype(int)
 
         self.df7 = df6
         
         return self.df7
-    
+
     
     def create_allx(self):
         
@@ -234,6 +239,7 @@ class InsemUltraData:
             'u_read',
             'age ultra',
             'expected bdate',
+            'exp drydate',
             'i_check',
             'u_check1',
             'u_check2'
@@ -246,20 +252,80 @@ class InsemUltraData:
         self.all_not_preg = self.allx[ (self.allx['u_read'] != 'ok') ]
         self.days_milking = self.allx[['WY_id','days milking']]
         
-        return [self.allx, self.all_milking, 
+        return (self.allx, self.all_milking, 
                 self.all_dry, self.all_preg, 
-                self.all_not_preg, self.days_milking]
+                self.all_not_preg, self.days_milking)
     
+
+    def create_not_preg_df(self):
+        notpreg1 = self.all_not_preg.loc[
+            (
+                (self.all_not_preg['age insem'] >= 40)
+            & (self.all_not_preg['age insem'] .notnull())
+            )
+            |
+            self.all_not_preg['i_date'] .isnull()
+            
+        ]
+
+
+
+        notpreg2 = notpreg1[
+            [
+            'WY_id',
+            'status',
+            'days milking',
+            'i_calf#',
+            'i_date',
+            'age insem',
+            'u_calf#',
+            'u_date',
+            'u_read',
+            'age ultra',
+            'u_check2'
+            ]
+        ]
+
+        notpreg2 = notpreg2.rename(columns={'u_check2' : 'ultra-insem days'})
+        notpreg2 = notpreg2.sort_values('ultra-insem days', ascending=False).reset_index(drop=True)
+
+        notpreg3 = notpreg2.loc[(notpreg2['status'] == 'M')]
+        self.not_preg = notpreg3
+
+        self.no_insem = notpreg3.loc[
+            notpreg3['i_date'] .isna()
+        ].sort_values('days milking', ascending=False).reset_index(drop=True)
+
+
+
+        return self.not_preg, self.no_insem
+
+
+
     
     def create_write_to_csv(self):
               
         self.allx        .to_csv('F:\\COWS\\data\\insem_data\\allx.csv')
         self.all_milking .to_csv('F:\\COWS\\data\\insem_data\\all_milking.csv')
         self.all_dry     .to_csv('F:\\COWS\\data\\insem_data\\all_dry.csv')
-        self.last_valid_ultra  .to_csv('F:\\COWS\\data\\insem_data\\last_valid_ultra.csv') 
+        self.not_preg    .to_csv('F:\\COWS\\data\\insem_data\\not_preg.csv')
+        self.no_insem    .to_csv('F:\\COWS\\data\\insem_data\\no_insem.csv')
+        self.last_valid_ultra  .to_csv('F:\\COWS\\data\\insem_data\\last_valid_ultra.csv')
+
+        date_cols = ['i_date', 'u_date', 'last stop date', 'last calf bdate', 'expected bdate', 'exp drydate']
+        for col in date_cols:
+            if col in self.allx.columns:
+                self.allx[col] = self.allx[col].dt.strftime('%Y-%m-%d')
+            if col in self.not_preg.columns:
+                self.not_preg[col] = self.not_preg[col].dt.strftime('%Y-%m-%d')
+            if col in self.no_insem.columns:
+                self.no_insem[col] = self.no_insem[col].dt.strftime('%Y-%m-%d') 
     
-        self.allx.to_excel('F:\\COWS\\data\\insem_data\\allx.xlsx', index=False)
-        
+        with pd.ExcelWriter('F:\\COWS\\data\\insem_data\\insem_data.xlsx', engine='xlsxwriter') as writer:
+                    self.allx.to_excel(writer,      sheet_name='allx', index=False)
+                    self.not_preg.to_excel(writer,  sheet_name='not_preg', index=False)
+                    self.no_insem.to_excel(writer,  sheet_name='no_insem', index=False)
+       
         
 if __name__ == "__main__":
     obj = InsemUltraData()

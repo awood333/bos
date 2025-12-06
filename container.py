@@ -93,9 +93,10 @@ class Container:
         self.register_singleton('this_lactation',       self._create_this_lactation)
         self.register_singleton('weekly_lactations',    self._create_weekly_lactations)
         self.register_singleton('lactations',           self._create_lactations)        
-        self.register_singleton('lactations_log_standard',   self._create_lactations_log_standard)
-        self.register_singleton('this_lactation_by_date_WB', self._create_this_lactation_by_date_WB)
-        self.register_singleton('this_lactation_by_date_model', self._create_this_lactation_by_date_model)                                  
+        self.register_singleton('lactations_log_standard',      self._create_lactations_log_standard)
+        self.register_singleton('this_lactation_by_date_WB',    self._create_this_lactation_by_date_WB)
+        self.register_singleton('this_lactation_by_date_model', self._create_this_lactation_by_date_model)
+        self.register_singleton('lactation_plots', self._create_lactation_plots)                                          
 
         # Report Milk
         self.register_singleton('create_report_milk',      self._create_report_milk)
@@ -112,6 +113,8 @@ class Container:
         self.register_singleton('cow_pl',               self._create_cow_pl)
         self.register_singleton('depreciation',         self._create_depreciation)        
         self.register_singleton('net_revenue',          self._create_net_revenue)
+        self.register_singleton('NetRevThisLactation_WB',   self._create_net_rev_this_lactation_WB)
+        self.register_singleton('NetRevThisLactation_model',self._create_net_rev_this_lactation_model)
 
         # Report/Dashboard dependencies
         self.register_singleton('report_milk',          self._create_report_milk)
@@ -334,17 +337,25 @@ class Container:
         from milk_functions.lactation.lactations import Lactations
         return Lactations()
         
-    def _create_lactations_log_standard(self):
-        from milk_functions.lactation.lactations_log_standard import LactationsLogStandard
-        return LactationsLogStandard()
+
     
     def _create_this_lactation_by_date_WB(self):
-        from milk_functions.lactation.net_rev_this_lactation_by_date_WB import NetRevThisLactationByDate_WB
-        return NetRevThisLactationByDate_WB()
+        from finance_functions.net_revenue.net_rev_this_lactation_WB import NetRevThisLactation_WB
+        return NetRevThisLactation_WB()
     
     def _create_this_lactation_by_date_model(self):
-        from milk_functions.lactation.net_rev_this_lactation_by_date_model import NetRevThisLactationByDate_model
-        return NetRevThisLactationByDate_model()
+        from finance_functions.net_revenue.net_rev_this_lactation_model import NetRevThisLactation_model
+        return NetRevThisLactation_model()
+    
+
+    # Lactation measurements
+    def _create_lactations_log_standard(self):
+        from milk_functions.lactation.lactation_measurements.lactations_log_standard import LactationsLogStandard
+        return LactationsLogStandard()
+    
+    def _create_lactation_plots(self):
+        from milk_functions.lactation.lactation_measurements.lactation_plots import LactationPlots
+        return LactationPlots()        
     
 
 
@@ -394,8 +405,14 @@ class Container:
     def _create_cow_pl(self):
         from finance_functions.PL.cow_PL import CowPL
         return CowPL()
-
     
+    def _create_net_rev_this_lactation_WB(self):
+        from finance_functions.net_revenue.net_rev_this_lactation_WB import NetRevThisLactation_WB
+        return NetRevThisLactation_WB()
+
+    def _create_net_rev_this_lactation_model(self):
+        from finance_functions.net_revenue.net_rev_this_lactation_WB import NetRevThisLactation_model
+        return NetRevThisLactation_model()    
 
 
 # Global container instance

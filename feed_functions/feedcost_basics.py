@@ -30,26 +30,27 @@ class Feedcost_basics:
         self.rng_monthly2 = None
         self.rng_daily = None
 
-        self.price_seq_dict = None
-        self.daily_amt_dict = None
-        self.feed_series_dict = None
+        self.price_seq_dict = {}
+        self.daily_amt_dict = {}
+        self.feed_series_dict = {}
         self.last_values_all_df = None
         self.current_feedcost = None
         self.unit_prices_daily = None
-        self.cost_dict_F = None
+        self.cost_dict_F = {}
         self.last_cost_details_F_df = None        
-        self.cost_dict_A = None
+        self.cost_dict_A = {}
         self.last_cost_details_A_df = None
-        self.cost_dict_B = None
+        self.cost_dict_B = {}
         self.last_cost_details_B_df = None
-        self.cost_dict_C = None
+        self.cost_dict_C = {}
         self.last_cost_details_C_df = None
-        self.cost_dict_D = None
+        self.cost_dict_D = {}
         self.last_cost_details_D_df = None
         self.totalcost_A_df = None
         self.totalcost_B_df = None
         self.totalcost_C_df = None
         self.totalcost_D_df = None
+        self.totalcost_F_df = None
         self.feedcost_daily = None
         self.feedcost_monthly = None
 
@@ -184,7 +185,7 @@ class Feedcost_basics:
             
         self.last_cost_details_F_df = pd.DataFrame.from_dict(last_cost_details_F, orient='index')
         
-        return self.cost_dict_A, self.last_cost_details_A_df 
+        return self.cost_dict_F, self.last_cost_details_F_df 
 
 
     def create_cost_A(self):
@@ -297,7 +298,9 @@ class Feedcost_basics:
         })
         
         df.index = self.rng_daily
-        self.totalcost_F_df = df  
+        self.totalcost_F_df = df
+
+        return self.totalcost_F_df  
     
     def create_total_cost_A(self):
 

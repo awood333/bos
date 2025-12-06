@@ -23,6 +23,15 @@ class RunFeedcostFunctions:
         self.feedcost_CP_milk2  = Feedcost_CP_milk2()
         self.feedcost_total     = Feedcost_total()
         # self.heifer_cost_model = HeiferCostModel()
+
+        # Call processing methods to update CSVs
+        self.feedcost_basics.load_and_process()
+        self.feedcost_beans.load_and_process()
+        self.feedcost_cassava.load_and_process()
+        self.feedcost_corn.load_and_process()
+        self.feedcost_CP_005_21P.load_and_process()
+        self.feedcost_CP_milk2.load_and_process()
+        self.feedcost_total.load_and_process()        
             
 if __name__ == "__main__":
     RunFeedcostFunctions()

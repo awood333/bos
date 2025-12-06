@@ -62,8 +62,6 @@ class Tests_on_model:
         return [self.date_of_change, self.last_date_before_change_feed,
             self.start_date, self.end_date ]
     
-
-
     def create_test_frame(self):
         liters1 = self.fullday.set_index('datex', drop=True)
         liters1.index = pd.to_datetime(liters1.index, format='%Y-%m-%d')

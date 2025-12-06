@@ -16,6 +16,7 @@ class ModelGroups:
         self.WD = None
         # self.MG = None
         self.IUB = None
+        self.IUD = None
         self.MB = None
         self.DR = None
         self.DRM = None
@@ -37,6 +38,7 @@ class ModelGroups:
         self.SD = get_dependency('status_data')
         self.WD = get_dependency('wet_dry')
         self.IUB= get_dependency('insem_ultra_basics')
+        self.IUD= get_dependency('insem_ultra_data')
         self.MB = get_dependency('milk_basics')
         self.DR = get_dependency('date_range')
         
@@ -63,6 +65,14 @@ class ModelGroups:
         wet1a = self.WD.wdd.loc[self.startdate:, :]
         wetT = wet1a.T
         alive_mask = self.SD.alive_ids.astype(int)
+
+        preg = self.IUD.all_preg
+        pregnant_mask1 = preg[['WY_id', 'status']]
+        pregnant_mask2 = pregnant_mask1.loc[pregnant_mask1['status'] == 'M'].reset_index(drop=True)
+        pregnant_mask = pd.Series(pregnant_mask2['WY_id'])
+
+
+
         wet1b = wetT.loc[alive_mask]
         wet = wet1b.T
 
@@ -79,7 +89,7 @@ class ModelGroups:
 
                 
         for date in wet.index:
-            date1   = pd.Timestamp(date)
+            date1   = pd.to_datetime(date)
             j1 = 0
             
             for i in wet.columns:
@@ -91,21 +101,29 @@ class ModelGroups:
                     days1 = j1
                     # j = int(j1) - 1
 
-                    if 0 < days1<= 14 :
+                    if 0 < days1<= 21 :
                         freshx += 1
                         F_ids = i
 
-                    elif (days1 >14 ) and m1 >= 15:   #140 days=20wks
+                    elif (days1 >21 ) and m1 >= 10:   #140 days=20wks
                         groupAx += 1
                         A_ids = i
 
-                    elif (days1 > 14 ) and (m1 < 15 and m1 >=9):
-                        groupBx += 1
-                        B_ids = i
+                    elif (days1 > 21 ) and (m1 < 10):
+                        if i in pregnant_mask.values:
+                            groupBx += 1
+                            B_ids = i
+                        else:
+                            groupBx += 0
+                            B_ids = []
 
-                    elif days1 > 14  and m1 < 9:
-                        groupCx += 1
-                        C_ids = i
+                    elif (days1 > 21) and (m1 < 10):
+                        if i not in pregnant_mask.values:
+                            groupCx += 1
+                            C_ids = i
+                        else:
+                            groupCx += 0
+                            C_ids = []
                     
                     i += 1
                     

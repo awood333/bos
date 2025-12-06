@@ -1,17 +1,25 @@
 '''Run_milk_data_update.py'''
-from container import get_dependency
+
+from milk_functions.milk_aggregates             import MilkAggregates
+from milk_functions.lactation.lactation_basics  import LactationBasics
+from milk_functions.lactation.this_lactation    import ThisLactation
+from milk_functions.report_milk.report_milk_xlsx import ReportMilkXlsx
+
 
 class RunMilkDataUpdate:
     def __init__(self):
 
-        self.milk_basics = get_dependency('milk_basics')
-        self.wet_dry = get_dependency('wet_dry')
-        self.insem_ultra_basics = get_dependency('insem_ultra_basics')
-        self.insem_ultra_data = get_dependency('insem_ultra_data')
-        self.milk_aggregates = get_dependency('milk_aggregates')
-        self.this_lactation = get_dependency('this_lactation')
-        self.report_milk_xlsx = get_dependency('report_milk_xlsx')
-        # self.run_milk_dash_app = get_dependency('run_milk_dash_app')
+
+        self.milk_aggregates    = MilkAggregates()
+        self.lactation_basics   = LactationBasics()
+        self.this_lactation     = ThisLactation()
+        self.report_milk_xlsx   = ReportMilkXlsx()
+
+        self.milk_aggregates.load_and_process()
+        self.lactation_basics.load_and_process()
+        self.this_lactation.load_and_process()
+        self.report_milk_xlsx.load_and_process()
+
 
 if __name__ == "__main__":
     RunMilkDataUpdate()
