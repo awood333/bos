@@ -115,6 +115,7 @@ class Container:
         self.register_singleton('net_revenue',          self._create_net_revenue)
         self.register_singleton('NetRevThisLactation_WB',   self._create_net_rev_this_lactation_WB)
         self.register_singleton('NetRevThisLactation_model',self._create_net_rev_this_lactation_model)
+        self.register_singleton('sahagon',              self._create_sahagon)
 
         # Report/Dashboard dependencies
         self.register_singleton('report_milk',          self._create_report_milk)
@@ -411,8 +412,13 @@ class Container:
         return NetRevThisLactation_WB()
 
     def _create_net_rev_this_lactation_model(self):
-        from finance_functions.net_revenue.net_rev_this_lactation_WB import NetRevThisLactation_model
+        from finance_functions.net_revenue.net_rev_this_lactation_model import NetRevThisLactation_model
         return NetRevThisLactation_model()    
+    
+    def _create_sahagon(self):
+        from finance_functions.income.sahagon import sahagon
+        return sahagon()    
+
 
 
 # Global container instance

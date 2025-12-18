@@ -15,6 +15,7 @@ class CompareModelWhiteboardGroups_Last:
         self.model_groups = get_dependency('model_groups')
         self.whiteboard_groups = get_dependency('whiteboard_groups')
         self.comparison = self.compare_groups()
+        self.write_to_csv()
 
     def compare_groups(self):
         # Get last row of model groups
@@ -49,6 +50,7 @@ class CompareModelWhiteboardGroups_Last:
         # Optional: sort by avg if present
         if 'avg' in merged.columns:
             merged = merged.sort_values(by='avg', ascending=False)
+            
 
         return merged
 

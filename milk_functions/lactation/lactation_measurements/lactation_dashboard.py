@@ -89,13 +89,13 @@ def update_dashboard(n_clicks, wy_id):
 if __name__ == '__main__':
     def open_browser():
         try:
-            webbrowser.get('firefox').open_new("http://127.0.0.1:8051/")
+            webbrowser.get('firefox').open_new("http://127.0.0.1:8052/")
         except Exception as e:
             print(f"Could not open Firefox: {e}")
             try:
-                webbrowser.open("http://127.0.0.1:8051/")
+                webbrowser.open("http://127.0.0.1:8052/")
             except Exception as e2:
                 print(f"Could not open default browser: {e2}")
 
     threading.Timer(1.5, open_browser).start()
-    app.run_server(debug=False, port=8051)
+    app.run_server(debug=False, port=8052)

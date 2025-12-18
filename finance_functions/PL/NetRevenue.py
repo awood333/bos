@@ -11,7 +11,7 @@ class NetRevenue:
         self.DR = None
         self.startdate = None
         self.MI = None
-        self.SG = None
+        self.sahagon = None
         self.TF = None
         self.feedcost1 = None
         self.net_revenue_daily = None
@@ -24,7 +24,7 @@ class NetRevenue:
         self.DR = get_dependency('date_range')
         self.startdate = self.DR.start_date()
         self.MI = get_dependency('milk_income')
-        self.SG = get_dependency('sahagon')
+        self.sahagon = get_dependency('sahagon')
         self.TF = get_dependency('feedcost_total')
 
         self.feedcost1 = self.TF.feedcost
@@ -34,7 +34,7 @@ class NetRevenue:
          self.net_revenue_daily_last,
          self.feedcost_daily] = self.create_net_revenue()
 
-        self.test_daily_net = self.create_test_daily_net()
+        # self.test_daily_net = self.create_test_daily_net()
         self.net_revenue_monthly = self.create_monthly_net()
         self.write_to_csv()
         
@@ -60,18 +60,18 @@ class NetRevenue:
         
         return self.net_revenue_daily, self.net_revenue_daily_last, self.feedcost_daily
     
-    def create_test_daily_net(self):
+    # def create_test_daily_net(self):
         
-        liters1 = self.SG.dm_daily
-        liters1['income_22'] = liters1['liters'] * 22
+    #     liters1 = self.sahagon.dm_daily
+    #     liters1['income_22'] = liters1['liters'] * 22
         
-        fc1= self.feedcost_daily
-        df1= pd.concat([liters1, fc1], axis=1)
-        df1['net_revenue_test'] = df1['income_22'] - df1['total feedcost']
+    #     fc1= self.feedcost_daily
+    #     df1= pd.concat([liters1, fc1], axis=1)
+    #     df1['net_revenue_test'] = df1['income_22'] - df1['total feedcost']
         
-        self.test_daily_net = df1
+    #     self.test_daily_net = df1
         
-        return self.test_daily_net
+    #     return self.test_daily_net
         
     
     
@@ -92,7 +92,7 @@ class NetRevenue:
  
     def write_to_csv(self):
         
-        self.test_daily_net         .to_csv('F:\\COWS\\data\\PL_data\\test_daily_net.csv')
+        # self.test_daily_net         .to_csv('F:\\COWS\\data\\PL_data\\test_daily_net.csv')
         self.net_revenue_daily_last .to_csv('F:\\COWS\\data\\PL_data\\net_revenue_daily_last.csv')
         self.net_revenue_daily      .to_csv('F:\\COWS\\data\\PL_data\\net_revenue_daily.csv')
         self.net_revenue_monthly    .to_csv('F:\\COWS\\data\\PL_data\\net_revenue_monthly.csv')

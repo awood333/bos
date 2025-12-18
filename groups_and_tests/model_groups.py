@@ -62,6 +62,8 @@ class ModelGroups:
 
     def create_model_groups (self):
 
+        # startdatex = pd.to_datetime('2025-12-04')
+        
         wet1a = self.WD.wdd.loc[self.startdate:, :]
         wetT = wet1a.T
         alive_mask = self.SD.alive_ids.astype(int)
@@ -105,27 +107,18 @@ class ModelGroups:
                         freshx += 1
                         F_ids = i
 
-                    elif (days1 >21 ) and m1 >= 10:   #140 days=20wks
+                    elif (days1 >21 ) and m1 >= 12:   #140 days=20wks
                         groupAx += 1
                         A_ids = i
 
-                    elif (days1 > 21 ) and (m1 < 10):
+                    elif (days1 > 21) and (m1 < 12):
                         if i in pregnant_mask.values:
-                            groupBx += 1
-                            B_ids = i
-                        else:
-                            groupBx += 0
-                            B_ids = []
-
-                    elif (days1 > 21) and (m1 < 10):
-                        if i not in pregnant_mask.values:
                             groupCx += 1
                             C_ids = i
                         else:
-                            groupCx += 0
-                            C_ids = []
-                    
-                    i += 1
+                            groupBx += 1
+                            B_ids = i
+                                        
                     
                 
                 if F_ids:    
