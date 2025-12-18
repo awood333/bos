@@ -20,6 +20,7 @@ class LactationsLogStandard:
         self.WY_id = None
         self.days_on_date_of_change = None
         self.date_of_change = None
+        self.lastday = None
 
         # Daily data
         self.m1_daily_all = None
@@ -77,6 +78,7 @@ class LactationsLogStandard:
         self.WD = get_dependency('wet_dry')
 
         self.date_of_change = pd.to_datetime('2025-09-27').date()
+        self.lastday = self.MB.lastday #timestamp
         
         # Methods
 

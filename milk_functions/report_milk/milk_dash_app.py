@@ -96,8 +96,8 @@ def get_style_cell_conditional_fortenday(table_columns):
 def run_milk_dash_app():        
   
     report  = get_dependency('report_milk')
-    xl      = get_dependency('report_milk_xlsx')  #this is enough to run the mod
-
+    xl      = get_dependency('report_milk_xlsx')    #ignore pylint: this is enough to run the mod
+    plots   = get_dependency('lactation_plots')     #ignore pylint: this is enough to run the mod
 
     tenday_df  = report.tenday
     halfday_df = report.halfday 
@@ -276,10 +276,12 @@ def run_milk_dash_app():
                         ),
                     ], style=get_panel_style()),
                 ],
+
+#controls space betw panels
                 style={
                     'display': 'flex',
                     'flexDirection': 'row',
-                    'justifyContent': 'flex-start', #controls space betw panels
+                    'justifyContent': 'flex-start', 
                     'alignItems': 'flex-start',
                     'gap': '10px',
                     'width': '100%',

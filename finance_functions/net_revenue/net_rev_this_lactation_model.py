@@ -4,7 +4,9 @@ import inspect
 import pandas as pd
 import json
 import math
+
 from container import get_dependency
+from finance_functions.net_revenue.net_revenue_weekly_agg_model import aggregate_net_revenue_weekly
 
 class NetRevThisLactation_model():
     def __init__(self):
@@ -52,8 +54,10 @@ class NetRevThisLactation_model():
         self.milk = milk3.loc[self.start_date:,:]
 
         self.max_calfnum_bdate_df   = self.create_max_calfnum_bdate()
-        self.nested_dict, self.net_revenue_model            = self.create_this_lact_by_date()
+        self.nested_dict, self.net_revenue_model = self.create_this_lact_by_date()
+        self.net_revenue_model_weekly = aggregate_net_revenue_weekly(self.net_revenue_model)
         self.create_write_to_csv()
+        # Optionally, add saving weekly data to CSV in create_write_to_csv
         
     def create_max_calfnum_bdate(self):
         max_calf_num    = self.LB.groupby('WY_id')['calf#']  .max().reset_index()
@@ -135,10 +139,14 @@ class NetRevThisLactation_model():
     
     def create_write_to_csv(self):
         self.net_revenue_model.to_csv("F:\\COWS\\data\\milk_data\\groups\\net_revenue_model.csv")
+
         # Replace NaN/NA in nested_dict before saving as JSON
         cleaned_dict = self.replace_nan_in_dict(self.nested_dict)
         with open("F:\\COWS\\data\\milk_data\\groups\\nested_dict_model.json", 'w', encoding='utf-8') as f:
             json.dump(cleaned_dict, f, indent=2, default=str)      
+
+        with open("F:\\COWS\\data\\milk_data\\groups\\nested_dict_WB.json", 'w', encoding='utf-8') as f:
+            json.dump(cleaned_dict, f, indent=2, default=str)     
     
 if __name__ == "__main__":
     tlbd = NetRevThisLactation_model()

@@ -322,11 +322,15 @@ class InsemUltraData:
                 self.no_insem[col] = self.no_insem[col].dt.strftime('%Y-%m-%d') 
     
         with pd.ExcelWriter('F:\\COWS\\data\\insem_data\\insem_data.xlsx', engine='xlsxwriter') as writer:
-                    self.allx.to_excel(writer,      sheet_name='allx', index=False)
-                    self.not_preg.to_excel(writer,  sheet_name='not_preg', index=False)
-                    self.no_insem.to_excel(writer,  sheet_name='no_insem', index=False)
+            self.allx.to_excel(writer,      sheet_name='allx', index=False)
+            self.not_preg.to_excel(writer,  sheet_name='not_preg', index=False)
+            self.no_insem.to_excel(writer,  sheet_name='no_insem', index=False)
        
-        
+        with pd.ExcelWriter('Q:\\My Drive\\COWS\\data\\insem_data\\insem_data.xlsx', engine='xlsxwriter') as writer:
+            self.allx.to_excel(writer,      sheet_name='allx', index=False)
+            self.not_preg.to_excel(writer,  sheet_name='not_preg', index=False)
+            self.no_insem.to_excel(writer,  sheet_name='no_insem', index=False)
+
 if __name__ == "__main__":
     obj = InsemUltraData()
     obj.load_and_process() 

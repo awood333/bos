@@ -68,7 +68,7 @@ class NetRevThisLactation_WB():
         # Get group info
         self.group = self.WBG.groups_by_date_by_cow.loc[self.start_date:, self.milk.columns]
 
-        # Calculate feed cost per cow per day
+        # part of the loadAndProcess --  Calculate feed cost per cow per day
         def get_feedcost(row):
             date = row.name
             return row.apply(lambda grp: self.feed.loc[date, grp] if pd.notna(grp) and grp in self.feed.columns else pd.NA)
