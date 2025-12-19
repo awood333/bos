@@ -2,7 +2,10 @@
 Run_lactation_plot
 '''
 import os
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+
 from container import get_dependency
 import pandas as pd
 import numpy as np

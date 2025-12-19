@@ -99,14 +99,29 @@ class WhiteboardGroups:
 
     def create_whiteboard_groups_dict(self):
         #the group_df is the page from daily milk, so shape 55,xxx
-        def get_ids_by_date(group_df):
-            result = {}
-            for date in self.date_range:
-                if group_df is not None and date in group_df.columns:
-                    ids = group_df[date].replace(['none', '', 'None'], np.nan)
-                    ids = pd.to_numeric(ids, errors='coerce').dropna().astype(int)
-                    result[date.strftime('%Y-%m-%d')] = [str(wy_id) for wy_id in ids]
-            return result
+        def get_ids_by_date(df):
+            # If df is a DataFrame, process each column (date) separately
+            if isinstance(df, pd.DataFrame):
+                result = {}
+                for col in df.columns:
+                    ids = df[col]
+                    # Only process if ids is 1D (Series, list, tuple)
+                    if isinstance(ids, (pd.Series, list, tuple)):
+                        ids_numeric = pd.to_numeric(ids, errors='coerce')
+                        ids_clean = ids_numeric.dropna()
+                        result[str(col)] = ids_clean.astype(int).tolist() if not ids_clean.empty else []
+                    else:
+                        # If not 1D, skip or store as empty
+                        result[str(col)] = []
+                return result
+            else:
+                # Fallback: treat as a single column/list
+                if isinstance(df, (pd.Series, list, tuple)):
+                    ids_numeric = pd.to_numeric(df, errors='coerce')
+                    ids_clean = ids_numeric.dropna()
+                    return {'unknown': ids_clean.astype(int).tolist() if not ids_clean.empty else []}
+                else:
+                    return {'unknown': []}
 
         whiteboard_groups_dict = {
             "fresh_ids": get_ids_by_date(self.fresh_df),
@@ -246,9 +261,10 @@ class WhiteboardGroups:
             # Convert to string WY_ids
             wy_ids = [str(int(float(x))) for x in pd.to_numeric(ids, errors='coerce') if pd.notna(x)]
             # Filter td2 for these WY_ids
-            group_df = td2[td2['WY_id'].astype(str).isin(wy_ids)].copy()
-            group_df.loc[:, 'group'] = group_label
-            return group_df
+            filtered = td2[td2['WY_id'].astype(str).isin(wy_ids)].copy()
+            if not filtered.empty:
+                filtered.loc[:, 'group'] = group_label
+            return filtered
 
         f3 = get_group_slice(self.fresh_df, 'F')
         a3 = get_group_slice(self.group_a_df, 'A')
