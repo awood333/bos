@@ -32,6 +32,7 @@ class NetRevThisLactation_model():
         self.max_calfnum_bdate_df=None
         self.nested_dict = {}
         self.net_revenue_model = None
+        self.net_revenue_model_weekly = None
 
     
     def load_and_process(self):
@@ -55,7 +56,11 @@ class NetRevThisLactation_model():
 
         self.max_calfnum_bdate_df   = self.create_max_calfnum_bdate()
         self.nested_dict, self.net_revenue_model = self.create_this_lact_by_date()
+        # Aggregate weekly net revenue
         self.net_revenue_model_weekly = aggregate_net_revenue_weekly(self.net_revenue_model)
+        # Write both daily and weekly net revenue to CSV
+        self.net_revenue_model.to_csv("F:\\COWS\\data\\milk_data\\groups\\net_revenue_model.csv")
+        self.net_revenue_model_weekly.to_csv("F:\\COWS\\data\\PL_data\\net_revenue_weekly.csv")
         self.create_write_to_csv()
         # Optionally, add saving weekly data to CSV in create_write_to_csv
         
@@ -138,15 +143,28 @@ class NetRevThisLactation_model():
     
     
     def create_write_to_csv(self):
-        self.net_revenue_model.to_csv("F:\\COWS\\data\\milk_data\\groups\\net_revenue_model.csv")
+            # -------------------------------------------------------------
+            # Write daily net revenue DataFrame to CSV
+            # -------------------------------------------------------------
+            if self.net_revenue_model is not None:
+                self.net_revenue_model.to_csv("F:\\COWS\\data\\milk_data\\groups\\net_revenue_model.csv")
 
-        # Replace NaN/NA in nested_dict before saving as JSON
-        cleaned_dict = self.replace_nan_in_dict(self.nested_dict)
-        with open("F:\\COWS\\data\\milk_data\\groups\\nested_dict_model.json", 'w', encoding='utf-8') as f:
-            json.dump(cleaned_dict, f, indent=2, default=str)      
+            # -------------------------------------------------------------
+            # Write weekly net revenue DataFrame to CSV
+            # -------------------------------------------------------------
+            if self.net_revenue_model_weekly is not None:
+                self.net_revenue_model_weekly.to_csv("F:\\COWS\\data\\PL_data\\net_revenue_weekly.csv")
 
-        with open("F:\\COWS\\data\\milk_data\\groups\\nested_dict_WB.json", 'w', encoding='utf-8') as f:
-            json.dump(cleaned_dict, f, indent=2, default=str)     
+            # -------------------------------------------------------------
+            # Replace NaN/NA in nested_dict before saving as JSON
+            # -------------------------------------------------------------
+            cleaned_dict = self.replace_nan_in_dict(self.nested_dict)
+            with open("F:\\COWS\\data\\milk_data\\groups\\nested_dict_model.json", 'w', encoding='utf-8') as f:
+                json.dump(cleaned_dict, f, indent=2, default=str)
+
+            with open("F:\\COWS\\data\\milk_data\\groups\\nested_dict_WB.json", 'w', encoding='utf-8') as f:
+                json.dump(cleaned_dict, f, indent=2, default=str)
+            # -------------------------------------------------------------
     
 if __name__ == "__main__":
     tlbd = NetRevThisLactation_model()
