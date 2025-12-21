@@ -29,7 +29,7 @@
     #     model_groups_list = model_groups_list3.sort_values(by=model_groups_list3.columns[0]).reset_index(drop=True)
     #     model_groups_list.columns = ['sg_list']
         
-    #     # from status_data
+    #     # from StatusData
     #     m = pd.DataFrame(np.array(self.SD.milker_ids[-1]),  columns=['sd_milkers_id'])
         
     #     # concat

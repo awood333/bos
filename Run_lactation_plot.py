@@ -10,7 +10,7 @@ from container import get_dependency
 import pandas as pd
 import numpy as np
 
-output_folder1 = r"Q:\My Drive\COWS\lactation_plots"
+output_folder1 = r"Q:\My Drive\COWS\data\plots\lactation_plots"
 output_folder2 = r"F:\COWS\data\milk_data\lactations\plots\weekly\latest_plots"
 os.makedirs(output_folder1, exist_ok=True)
 

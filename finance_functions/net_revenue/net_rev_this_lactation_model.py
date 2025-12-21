@@ -19,7 +19,7 @@ class NetRevThisLactation_model():
         self.start_date = None
         self.MB = None
         self.WD = None
-        self.SD2= None
+        self.SD= None
         self.alive_mask = None
         self.milk = None
         self.LB = None
@@ -40,8 +40,8 @@ class NetRevThisLactation_model():
         self.start_date = '2025-09-01'
         self.MB = get_dependency('milk_basics')
         self.WD = get_dependency('wet_dry')
-        self.SD2= get_dependency('status_data2')
-        self.alive_mask = self.SD2.alive_mask['WY_id'].astype(str).reset_index(drop=True)        
+        self.SD= get_dependency('statusData')
+        self.alive_mask = self.SD.alive_mask['WY_id'].astype(str).reset_index(drop=True)        
         self.LB = pd.read_csv("F:\\COWS\\data\\csv_files\\live_births.csv", index_col=None)
         self.MG = get_dependency('model_groups')
         self.FB = get_dependency('feedcost_basics')
@@ -50,7 +50,6 @@ class NetRevThisLactation_model():
         #get and slice milk by startdate
         milk1 = pd.read_csv("F:\\COWS\\data\\milk_data\\fullday\\fullday.csv", index_col=0)
         milk2 = milk1.T
-        self.alive_mask = self.SD2.alive_mask['WY_id'].astype(str).reset_index(drop=True)
         milk3 = milk2.loc[self.alive_mask].T
         self.milk = milk3.loc[self.start_date:,:]
 

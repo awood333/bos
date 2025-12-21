@@ -14,7 +14,6 @@ class InsemUltraData:
         self.data = None
         self.IUB = None
         self.SD = None
-        self.SD2 = None
         self.status_col = None
         self.alive_mask = None
         self.date_format = '%m/%d/%Y'
@@ -41,9 +40,8 @@ class InsemUltraData:
         self.MB = get_dependency('milk_basics')
         self.data = self.MB.data
         self.IUB = get_dependency('insem_ultra_basics')
-        self.SD = get_dependency('status_data')
-        self.SD2 = get_dependency('status_data2')
-        self.status_col = self.SD2.status_col
+        self.SD = get_dependency('statusData')
+        self.status_col = self.SD.status_col
         self.alive_mask = self.data['bd']['death_date'].isnull()
         self.date_format = '%m/%d/%Y'
         self.today = pd.Timestamp(datetime.today())

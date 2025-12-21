@@ -20,7 +20,7 @@ class WhiteboardGroups:
         self.MA = None
         self.MB = None
         self.BD = None
-        self.SD2= None
+        self.SD= None
         self.alive_mask = None
         self.milk_aggregates =None
         self.fullday = None
@@ -51,9 +51,9 @@ class WhiteboardGroups:
         self.MB         = get_dependency('milk_basics')
         self.BD         = self.MB.bd.copy()
         self.MA         = get_dependency('milk_aggregates')
-        self.SD2        = get_dependency('status_data2')
-        self.alive_mask = self.SD2.alive_mask['WY_id'].astype(str).reset_index(drop=True)
-
+        self.SD         = get_dependency('statusData')
+        self.alive_mask = self.SD.alive_ids.astype(str)
+# alive_mask = self.SD.alive_ids.astype(int)
         self.fullday    = self.MA.fullday.copy()
         self.fullday_last    = self.MA.fullday.iloc[-1:, :].copy()
 

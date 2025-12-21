@@ -10,7 +10,7 @@ class MilkIncome:
     def __init__(self):
         print(f"MilkIncome instantiated by: {inspect.stack()[1].filename}")
         self.FCB = None
-        self.SD = None
+        # self.SD = None
         self.DR = None
         self.sahagon = None
         self.sahagon_liters = None
@@ -23,7 +23,7 @@ class MilkIncome:
 
     def load_and_process(self):
         self.FCB = get_dependency('feedcost_basics')
-        self.SD  = get_dependency('status_data')
+        # self.SD  = get_dependency('statusData')
         self.DR  = get_dependency('date_range')
         self.sahagon = get_dependency('sahagon')
         self.sahagon_liters = self.sahagon.dm_daily

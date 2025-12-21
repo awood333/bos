@@ -8,6 +8,7 @@ class ThisLactation():
         print(f"ThisLactation instantiated by: {inspect.stack()[1].filename}")
         self.MB = None
         self.WD = None
+        # self.SD = None
         self.milking_wkly = None
         self.milking_daily = None
 
@@ -15,7 +16,7 @@ class ThisLactation():
 
         self.MB = get_dependency('milk_basics')
         self.WD = get_dependency('wet_dry')
-        self.SD = get_dependency('status_data')
+        # self.SD = get_dependency('statusData')
         self.milking_wkly, self.milking_daily,  = self.create_daily_weekly()
         
         self.create_write_to_csv()

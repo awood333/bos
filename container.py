@@ -54,11 +54,10 @@ class Container:
         self.register_singleton('date_range', self._create_date_range)
         
         # Status
-        self.register_singleton('status_data',          self._create_status_data)
-        self.register_singleton('status_data2',         self._create_status_data2)
-        self.register_singleton('wet_dry',              self._create_wet_dry)
+        self.register_singleton('statusData',          self._create_statusData)
+        self.register_singleton('wet_dry',             self._create_wet_dry)
         self.register_singleton('model_groups',        self._create_model_groups)
-        self.register_singleton('whiteboard_groups',        self._create_whiteboard_groups)        
+        self.register_singleton('whiteboard_groups',   self._create_whiteboard_groups)        
         self.register_singleton('model_groups_tenday', self._create_model_groups)        
         
         # Insem
@@ -228,13 +227,9 @@ class Container:
         return DateRange()
     
     # Status functions
-    def _create_status_data(self):
-        from status_functions.status_data import StatusData
+    def _create_statusData(self):
+        from status_functions.statusData import StatusData
         return StatusData()
-    
-    def _create_status_data2(self):
-        from status_functions.status_data2 import StatusData2
-        return StatusData2()
     
     def _create_wet_dry(self):
         from status_functions.wet_dry import WetDry

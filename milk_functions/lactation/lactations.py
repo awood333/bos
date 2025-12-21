@@ -19,7 +19,7 @@ class Lactations:
 
         self.Lacts  = get_dependency('lactation_basics')
         self.MB     = get_dependency('milk_basics')
-        self.SD     = get_dependency('status_data')
+        self.SD     = get_dependency('statusData')
         self.WY_ids = self.MB.data['WY_ids']
 
         self.alive_ids = self.SD.alive_ids.astype(int).to_list()

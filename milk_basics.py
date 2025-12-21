@@ -1,10 +1,11 @@
 '''milk_basics.py'''
-from typing import Dict, Any
+import inspect
 import pandas as pd
 
 
 class MilkBasics:
     def __init__(self):
+        print(f"MilkBasics instantiated by: {inspect.stack()[1].filename}")
         self.data = None
         self.startx = None
         self.stopx = None
@@ -32,30 +33,17 @@ class MilkBasics:
         # date cols
         self.startx   ['b_date']        = pd.to_datetime(self.startx['b_date'], errors='coerce')    
         self.stopx    ['stop']          = pd.to_datetime(self.stopx['stop'], errors='coerce')
-
-        
         
         self.startx = self.startx.fillna({'b_date': pd.NaT, 'calf#': pd.NA})
         self.stopx = self.stopx.fillna({'stop': pd.NaT, 'calf#': pd.NA})
-        
-        
+         
         milk1a       = pd.read_csv    ('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv', header = 0, index_col='datex')
         milk1a.index                    = pd.to_datetime(milk1a.index)
         
-
         bd1      = pd.read_csv    ('F:\\COWS\\data\\csv_files\\birth_death.csv',     header = 0)
         self.lb  = pd.read_csv('F:\\COWS\\data\\csv_files\\live_births.csv', index_col=None) 
         self.u   = pd.read_csv('F:\\COWS\\data\\csv_files\\ultra.csv')
         self.i   = pd.read_csv('F:\\COWS\\data\\csv_files\\insem.csv') 
-
-
-
-
-        # date cols
-        
-        # self.startx   ['b_date']        = pd.to_datetime(self.startx['b_date'])    
-        # self.stopx    ['stop']          = pd.to_datetime(self.stopx['stop'])
-        # milk1a.index                    = pd.to_datetime(milk1a.index)
         
         bd1         ['birth_date']      = pd.to_datetime(bd1['birth_date'])
         bd1         ['death_date']      = pd.to_datetime(bd1['death_date'], errors='coerce')        
@@ -66,7 +54,6 @@ class MilkBasics:
         self.u       ['ultra_date']     = pd.to_datetime (self.u     ['ultra_date'], errors='coerce')
         self.i       ['insem_date']     = pd.to_datetime (self.i     ['insem_date'], errors='coerce')
         
-
         start1a  = self.startx.pivot_table (index='WY_id', columns='calf#',    values='b_date', fill_value=pd.NaT)
         stop1a   = self.stopx .pivot_table (index='WY_id', columns='lact_num', values='stop',   fill_value=pd.NaT)
    
