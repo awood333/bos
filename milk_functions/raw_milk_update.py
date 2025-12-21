@@ -225,7 +225,9 @@ class RawMilkUpdate:
         self.group_F    .to_csv(f"E:\\Cows\\data_backup\\milk backup\\wb_groups\\group_F\\fresh{self.tdy}.csv")
         self.group_F    .to_csv( 'F:\\COWS\\data\\milk_data\\wb_groups\\group_F.csv',mode='w',header=True,index=True)
         
-
+        self.sick    .to_csv(f"D:\\Cows\\data_backup\\milk backup\\wb_groups\\sick\\fresh{self.tdy}.csv")
+        self.sick    .to_csv(f"E:\\Cows\\data_backup\\milk backup\\wb_groups\\sick\\fresh{self.tdy}.csv")
+        self.sick    .to_csv( 'F:\\COWS\\data\\milk_data\\wb_groups\\sick.csv',mode='w',header=True,index=True)
 
 if __name__ =="__main__":
     obj=RawMilkUpdate()

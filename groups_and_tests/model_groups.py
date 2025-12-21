@@ -35,7 +35,7 @@ class ModelGroups:
 
     def load_and_process(self):
 
-        self.SD = get_dependency('status_data')
+        self.SD = get_dependency('statusData')
         self.WD = get_dependency('wet_dry')
         self.IUB= get_dependency('insem_ultra_basics')
         self.IUD= get_dependency('insem_ultra_data')
@@ -242,7 +242,7 @@ class ModelGroups:
         else:
             return obj
 
-    def save_model_groups_json(self, filepath="F:\\COWS\\data\\status\\model_groups.json"):
+    def save_model_groups_json(self, filepath="F:\\COWS\\data\\status\\model_groups_ids_dict.json"):
         # Convert DataFrames to dicts
         dict_to_save = {k: v.to_dict() if hasattr(v, "to_dict") else v for k, v in self.model_groups_dict.items()}
         # Replace NaN/NA
@@ -318,9 +318,9 @@ class ModelGroups:
         self.all_groups_count_monthly  .to_csv('F:\\COWS\\data\\status\\all_groups_count_monthly.csv')        
 
         # Replace NaN/NA in model_groups_dict before saving as JSON
-        cleaned_dict = self.replace_nan_in_dict(self.model_groups_dict)
-        with open("F:\\COWS\\data\\status\\model_groups_dict.json", 'w', encoding='utf-8') as f:
-            json.dump(cleaned_dict, f, indent=2, default=str)           
+        # cleaned_dict = self.replace_nan_in_dict(self.model_groups_dict)
+        # with open("F:\\COWS\\data\\status\\model_groups_dict.json", 'w', encoding='utf-8') as f:
+        #     json.dump(cleaned_dict, f, indent=2, default=str)           
     
 if __name__ == "__main__":
     model_groups = ModelGroups()

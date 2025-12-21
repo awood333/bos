@@ -14,7 +14,7 @@ class CheckLastStop:
         self.MB = None
         self.DR = None
         self.data = None
-        self.sd = None
+        self.SD = None
         self.IUB = None
         self.IUD = None
         self.allx = None
@@ -27,11 +27,11 @@ class CheckLastStop:
         self.MB = get_dependency('milk_basics')
         self.DR = get_dependency('date_range')
         self.data = self.MB.data
-        self.sd = get_dependency('status_data2')
+        self.SD = get_dependency('statusData')
         self.IUB = get_dependency('insem_ultra_basics')
         self.IUD = get_dependency('insem_ultra_data')
         self.allx = self.IUD.allx.iloc[:, :5].copy()
-        self.status_col = self.sd.status_col
+        self.status_col = self.SD.status_col
         self.last_stop = self.IUB.last_stop
         self.last_start = self.IUB.last_calf
 

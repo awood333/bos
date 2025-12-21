@@ -28,7 +28,7 @@ class WeeklyLactations():
         self.MB     = get_dependency('milk_basics')
         self.DR     = get_dependency('date_range')
         self.L      = get_dependency('lactations')
-        self.SD     = get_dependency('status_data')
+        self.SD     = get_dependency('statusData')
 
         self.data       = self.MB.data
         self.alive_ids  = self.SD.alive_ids.astype(int).to_list()

@@ -41,7 +41,7 @@ class NetRevThisLactation_WB():
         self.start_date = '2025-09-01'
         self.MB = get_dependency('milk_basics')
         self.WD = get_dependency('wet_dry')
-        self.SD2= get_dependency('status_data2')
+        self.SD2= get_dependency('StatusData2')
         self.alive_mask = self.SD2.alive_mask['WY_id'].astype(str).reset_index(drop=True)        
         self.LB = pd.read_csv("F:\\COWS\\data\\csv_files\\live_births.csv", index_col=None)
         self.WBG = get_dependency('whiteboard_groups')

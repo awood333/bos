@@ -35,7 +35,7 @@ class CowPL:
     def load_and_process(self):
         self.MB = get_dependency('milk_basics')
         self.WD = get_dependency('wet_dry') #shows all cows w numbered days milking
-        self.SD = get_dependency('status_data')
+        self.SD = get_dependency('statusData')
         self.MB = get_dependency('milk_basics')
 
         self.FCB = get_dependency('feedcost_basics')

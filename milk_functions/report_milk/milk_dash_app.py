@@ -95,9 +95,10 @@ def get_style_cell_conditional_fortenday(table_columns):
       
 def run_milk_dash_app():        
   
-    report  = get_dependency('report_milk')
+    report  = get_dependency('report_milk')         #this calls MA WG MG and CompareGroups
     xl      = get_dependency('report_milk_xlsx')    #ignore pylint: this is enough to run the mod
     plots   = get_dependency('lactation_plots')     #ignore pylint: this is enough to run the mod
+    #running 'plots' also calls all the lactation related modules
 
     tenday_df  = report.tenday
     halfday_df = report.halfday 

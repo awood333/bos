@@ -28,7 +28,7 @@ class Feedcost_beans:
         self.DR = get_dependency('date_range')
         self.FCB= get_dependency('feedcost_basics')
         self.SG = get_dependency('model_groups')
-        self.SD = get_dependency('status_data')
+        self.SD = get_dependency('statusData')
 
         self.bid1 = pd.read_csv("F:\\COWS\\data\\feed_data\\feed_invoice_data\\beans_invoice_detail.csv")
         price_seq1 = pd.read_csv("F:\\COWS\\data\\feed_data\\feed_csv\\beans_price_seq.csv")
