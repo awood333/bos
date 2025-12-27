@@ -20,7 +20,7 @@ class DateRange:
         self.date_range_monthly_data = self.create_date_range_monthly()
         
     def start_date(self):
-        self.startdate = pd.to_datetime("2025-01-01")
+        self.startdate = pd.to_datetime("2024-01-01")
         return self.startdate
     
     def end_date_monthly(self):

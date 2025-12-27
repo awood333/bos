@@ -148,12 +148,12 @@ class LactationsLogStandard:
 
     def get_days_milking(self):
         # Ensure wdd index is a DatetimeIndex
-        if not isinstance(self.WD.wdd.index, pd.DatetimeIndex):
-            self.WD.wdd.index = pd.to_datetime(self.WD.wdd.index)
+        if not isinstance(self.WD.wet_days_df.index, pd.DatetimeIndex):
+            self.WD.wet_days_df.index = pd.to_datetime(self.WD.wet_days_df.index)
         # Now you can safely use .date
-        self.WD.wdd.index = self.WD.wdd.index.date
+        self.WD.wet_days_df.index = self.WD.wet_days_df.index.date
         # Now you can safely grab the row
-        self.days_on_date_of_change = pd.DataFrame(self.WD.wdd.loc[self.date_of_change])
+        self.days_on_date_of_change = pd.DataFrame(self.WD.wet_days_df.loc[self.date_of_change])
         return self.days_on_date_of_change
                  
     def create_daily_all(self):

@@ -5,6 +5,9 @@ import webbrowser
 
 from dash import Dash, html, dash_table
 import pandas as pd
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 from container import get_dependency
 
 
@@ -103,7 +106,7 @@ def run_milk_dash_app():
     tenday_df  = report.tenday
     halfday_df = report.halfday 
     groups_df  =  report.WB_groups
-    compare_groups_df = report.CompareGroups
+    # compare_groups_df = report.CompareGroups
 
 
 
@@ -239,43 +242,43 @@ def run_milk_dash_app():
                         
                     ], style=get_panel_style()),
 
-# ...compare groups...
-                    html.Div([
-                        html.H2("Compare Model vs Whiteboard Groups", 
-                                style={'textAlign': 'center', 'color': '#00bcd4'}),
-                        dash_table.DataTable(
-                            id='compare-groups-table',
-                            data=compare_groups_df.to_dict('records'),
-                            columns=[{"name": i, "id": i} for i in compare_groups_df.columns],
-                            style_table=get_table_style(),
-                            style_header={**get_table_header_style(), 'height': '100px'},
-                            style_cell={**get_table_cell_style(), 'textAlign': 'center'},
-                            cell_selectable=True,
-                            style_cell_conditional=get_style_cell_conditional(compare_groups_df.columns),
-                            style_data_conditional=[
-                                # Highlight mismatches in 'comp' column
-                                {
-                                    'if': {
-                                        'filter_query': '{comp} = "X"',
-                                        'column_id': 'comp'
-                                    },
-                                    'backgroundColor': "#3C141F",
-                                    'color':  "#F5C7D4",
-                                    'fontWeight': 'bold'
-                                    'horizontalAlignment'
-                                },
-                                # Optionally, highlight matches (empty string) in 'comp'
-                                {
-                                    'if': {
-                                        'filter_query': '{comp} = ""',
-                                        'column_id': 'comp'
-                                    },
-                                    'backgroundColor': "#111111",
-                                    'color': 'white'
-                                },
-                            ],
-                        ),
-                    ], style=get_panel_style()),
+        # ...compare groups...
+        #             html.Div([
+        #                 html.H2("Compare Model vs Whiteboard Groups", 
+        #                         style={'textAlign': 'center', 'color': '#00bcd4'}),
+        #                 dash_table.DataTable(
+        #                     id='compare-groups-table',
+        #                     data=compare_groups_df.to_dict('records'),
+        #                     columns=[{"name": i, "id": i} for i in compare_groups_df.columns],
+        #                     style_table=get_table_style(),
+        #                     style_header={**get_table_header_style(), 'height': '100px'},
+        #                     style_cell={**get_table_cell_style(), 'textAlign': 'center'},
+        #                     cell_selectable=True,
+        #                     style_cell_conditional=get_style_cell_conditional(compare_groups_df.columns),
+        #                     style_data_conditional=[
+        #                         # Highlight mismatches in 'comp' column
+        #                         {
+        #                             'if': {
+        #                                 'filter_query': '{comp} = "X"',
+        #                                 'column_id': 'comp'
+        #                             },
+        #                             'backgroundColor': "#3C141F",
+        #                             'color':  "#F5C7D4",
+        #                             'fontWeight': 'bold'
+        #                             'horizontalAlignment'
+        #                         },
+        #                         # Optionally, highlight matches (empty string) in 'comp'
+        #                         {
+        #                             'if': {
+        #                                 'filter_query': '{comp} = ""',
+        #                                 'column_id': 'comp'
+        #                             },
+        #                             'backgroundColor': "#111111",
+        #                             'color': 'white'
+        #                         },
+        #                     ],
+        #                 ),
+        #             ], style=get_panel_style()),
                 ],
 
 #controls space betw panels
