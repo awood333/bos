@@ -52,6 +52,7 @@ class Feedcost_basics:
         self.totalcost_D_df = None
         self.totalcost_F_df = None
         self.feedcost_daily = None
+        self.feedcost_weekly = None            
         self.feedcost_monthly = None
 
     def load_and_process(self):
@@ -76,7 +77,7 @@ class Feedcost_basics:
         self.totalcost_B_df = self.create_total_cost_B()
         self.totalcost_C_df = self.create_total_cost_C()
         self.totalcost_D_df = self.create_total_cost_D()
-        self.feedcost_daily, self.feedcost_monthly = self.create_total_feedcostByGroup()
+        self.feedcost_daily, self.feedcost_monthly, self.feedcost_weekly = self.create_total_feedcostByGroup()
         self.write_to_csv()
 
     def create_feed_cost_dict(self):
@@ -447,7 +448,6 @@ class Feedcost_basics:
             
 
     def create_total_feedcostByGroup(self):
-
         feedcost1f  = pd.DataFrame(self.totalcost_F_df  ['totalcostF'])        
         feedcost1a  = pd.DataFrame(self.totalcost_A_df  ['totalcostA'])
         feedcost1b  = pd.DataFrame(self.totalcost_B_df  ['totalcostB'])
@@ -455,16 +455,21 @@ class Feedcost_basics:
         feedcost1d  = pd.DataFrame(self.totalcost_D_df  ['totalcostD'])
         feedcost_daily1   = pd.concat((feedcost1f, feedcost1a, feedcost1b, feedcost1c, feedcost1d), axis=1)
         feedcost_daily1.index.name = 'datex'
-        
+
+        # Monthly aggregation
         feedcost_monthly1 = pd.DataFrame(feedcost_daily1)
         feedcost_monthly1['year']  = feedcost_daily1.index.year
         feedcost_monthly1['month'] = feedcost_daily1.index.month
         feedcost_monthly1['days']  = feedcost_daily1.index.days_in_month    
+        self.feedcost_monthly  = feedcost_monthly1.groupby(['year','month', 'days']).agg('sum')
+
+        # Weekly aggregation
+        feedcost_weekly1 = feedcost_daily1.copy()
+        feedcost_weekly1['week'] = feedcost_weekly1.index.to_series().dt.to_period('W').apply(lambda r: r.start_time)
+        self.feedcost_weekly = feedcost_weekly1.groupby('week').agg('sum').reset_index()
 
         self.feedcost_daily = feedcost_daily1
-        self.feedcost_monthly  = feedcost_monthly1.groupby(['year','month', 'days']). agg('mean')
-        
-        return  self.feedcost_daily, self.feedcost_monthly
+        return self.feedcost_daily, self.feedcost_monthly, self.feedcost_weekly
     
     def write_to_csv(self):
         
@@ -474,6 +479,7 @@ class Feedcost_basics:
         # self.last_values_all_df     .to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\last_values_all_df.csv')
                 
         self.feedcost_daily     .to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\feedcostByGroup_daily.csv')
+        self.feedcost_weekly    .to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\feedcostByGroup_weekly.csv')
         self.feedcost_monthly   .to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\feedcostByGroup_monthly.csv')
         
 

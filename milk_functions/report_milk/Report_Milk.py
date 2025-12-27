@@ -11,7 +11,7 @@ class ReportMilk:
         self.MA = None
         self.WG = None
         self.MG = None
-        self.CompareGroups = None
+        # self.CompareGroups = None
         self.tenday = None
         self.halfday = None
         self.WB_groups = None
@@ -21,9 +21,9 @@ class ReportMilk:
         self.MA = get_dependency('milk_aggregates')
         self.WG = get_dependency('whiteboard_groups')
         self.MG = get_dependency('model_groups')
-        self.CompareGroups  = get_dependency('compare_model_whiteboard_groups_last')
+        # self.CompareGroups  = get_dependency('compare_model_whiteboard_groups_last')
 
-        self.tenday, self.halfday, self.WB_groups, self.CompareGroups = self.createReportMilk()
+        self.tenday, self.halfday, self.WB_groups = self.createReportMilk()
 
 
     def createReportMilk(self): 
@@ -31,7 +31,7 @@ class ReportMilk:
         tenday  = self.MA.tenday.copy()
         halfday = self.MA.halfday.copy()
         WB_groups  = self.WG.whiteboard_groups_tenday.copy()
-        CompareGroups = self.CompareGroups.compare_groups()
+        # CompareGroups = self.CompareGroups.compare_groups()
 
 
         column_formats = {
@@ -93,9 +93,9 @@ class ReportMilk:
 
         halfday_formatted = format_dataframe(halfday, column_formats)
         groups_formatted = format_dataframe(WB_groups, column_formats)
-        CompareGroups_formatted = format_dataframe(CompareGroups, column_formats)
+        # CompareGroups_formatted = format_dataframe(CompareGroups, column_formats)
 
-        return tenday_formatted, halfday_formatted, groups_formatted, CompareGroups_formatted
+        return tenday_formatted, halfday_formatted, groups_formatted
     
 if __name__ == "__main__":
     obj = ReportMilk()

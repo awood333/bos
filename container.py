@@ -84,7 +84,8 @@ class Container:
         self.register_singleton('whiteboard_groups',    self._create_whiteboard_groups)     
         self.register_singleton('model_groups',         self._create_model_groups)     
         self.register_singleton('compare_model_whiteboard_groups_last', self._create_compare_model_whiteboard_groups_last)     
-        self.register_singleton('tests_on_whiteboard',      self._create_tests_on_whiteboard)
+        self.register_singleton('tests_on_whiteboard',  self._create_tests_on_whiteboard)
+        self.register_singleton('wet_dry_groups',       self._create_wet_dry_groups)
      
         # Lactation
         self.register_singleton('lactation_basics',     self._create_lactation_basics)
@@ -114,6 +115,7 @@ class Container:
         self.register_singleton('net_revenue',          self._create_net_revenue)
         self.register_singleton('NetRevThisLactation_WB',   self._create_net_rev_this_lactation_WB)
         self.register_singleton('NetRevThisLactation_model',self._create_net_rev_this_lactation_model)
+        self.register_singleton('net_revenue_by_cow_by_date', self._create_net_revenue_by_cow_by_date)
         self.register_singleton('sahagon',              self._create_sahagon)
 
         # Report/Dashboard dependencies
@@ -310,6 +312,9 @@ class Container:
         from groups_and_tests.compare_model_whiteboard_groups_last import CompareModelWhiteboardGroups_Last
         return CompareModelWhiteboardGroups_Last()
 
+    def _create_wet_dry_groups(self):
+        from groups_and_tests.wet_dry_groups import WetDryGroups
+        return WetDryGroups()
 
 
     # Lactation functions 
@@ -409,6 +414,10 @@ class Container:
     def _create_net_rev_this_lactation_model(self):
         from finance_functions.net_revenue.net_rev_this_lactation_model import NetRevThisLactation_model
         return NetRevThisLactation_model()    
+    
+    def _create_net_revenue_by_cow_by_date(self):
+        from finance_functions.net_revenue.net_revenue_by_cow_by_date import NetRevenueByCowByDate
+        return NetRevenueByCowByDate()
     
     def _create_sahagon(self):
         from finance_functions.income.sahagon import sahagon
