@@ -9,7 +9,6 @@ class Ipiv:
         self.DR = None
         self.IUB = None
         self.IUD = None
-        self.MG = None
         self.insem = None
         self.alive_ids = None
         self.ipiv_milking = None

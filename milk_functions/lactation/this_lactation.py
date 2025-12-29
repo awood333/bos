@@ -16,7 +16,7 @@ class ThisLactation():
 
         self.MB = get_dependency('milk_basics')
         self.WD = get_dependency('wet_dry')
-        # self.SD = get_dependency('statusData')
+        # self.SD = get_dependency('status_data')
         self.milking_wkly, self.milking_daily,  = self.create_daily_weekly()
         
         self.create_write_to_csv()

@@ -25,7 +25,7 @@ class Feedcost_bypass_fat:
     def load_and_process(self):
         self.MB = get_dependency('milk_basics')
         self.DR = get_dependency('date_range')
-        self.SD = get_dependency('statusData')
+        self.SD = get_dependency('status_data')
         self.FCB= get_dependency('feedcost_basics')
         self.SG = get_dependency('model_groups')
         price_seq1 = pd.read_csv("F:\\COWS\\data\\feed_data\\feed_csv\\bypass_fat_price_seq.csv")
