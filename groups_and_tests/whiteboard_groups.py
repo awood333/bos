@@ -51,9 +51,8 @@ class WhiteboardGroups:
         self.MB         = get_dependency('milk_basics')
         self.BD         = self.MB.bd.copy()
         self.MA         = get_dependency('milk_aggregates')
-        self.SD         = get_dependency('statusData')
-        self.alive_mask = self.SD.alive_ids.astype(str)
-# alive_mask = self.SD.alive_ids.astype(int)
+        self.SD         = get_dependency('status_data')
+        self.alive_mask = self.SD.alive_ids_last
         self.fullday    = self.MA.fullday.copy()
         self.fullday_last    = self.MA.fullday.iloc[-1:, :].copy()
 
@@ -192,7 +191,17 @@ class WhiteboardGroups:
 
     def create_groups_by_date_by_cow(self):
         wbg= self.groups_matrix.T
-        self.groups_by_date_by_cow = wbg.loc[self.alive_mask].T
+        # alive_mask is a list of cow IDs matching columns, not index
+        # Select columns using alive_mask, ensure types match
+        try:
+            alive_mask_int = [int(x) for x in self.alive_mask]
+            wbg.columns = wbg.columns.astype(int)
+        except Exception:
+            alive_mask_int = [str(x) for x in self.alive_mask]
+            wbg.columns = wbg.columns.astype(str)
+        # Only select columns that exist in wbg
+        available_cols = [col for col in alive_mask_int if col in wbg.columns]
+        self.groups_by_date_by_cow = wbg.loc[:, available_cols]
         return self.groups_by_date_by_cow
 
     def create_whiteboard_groups_specific_date(self):
@@ -292,10 +301,10 @@ class WhiteboardGroups:
         return self.whiteboard_groups_tenday
 
     def write_to_csv(self):
-        self.whiteboard_groups_tenday       .to_csv('F:\\COWS\\data\\milk_data\\groups\\whiteboard_groups_tenday.csv')
-        self.whiteboard_groups_for_dailymilk.to_csv('F:\\COWS\\data\\milk_data\\groups\\whiteboard_groups_for_dailymilk.csv')
-        self.groups_by_date_by_cow          .to_csv('F:\\COWS\\data\\milk_data\\groups\\whiteboard_groups_by_date_by_cow.csv')
-        self.whiteboard_groups_specific_date.to_csv('F:\\COWS\\data\\milk_data\\groups\\whiteboard_groups_specific_date.csv')
+        self.whiteboard_groups_tenday       .to_csv('F:\\COWS\\data\\groups_and_tests\\whiteboard_groups_tenday.csv')
+        self.whiteboard_groups_for_dailymilk.to_csv('F:\\COWS\\data\\groups_and_tests\\whiteboard_groups_for_dailymilk.csv')
+        self.groups_by_date_by_cow          .to_csv('F:\\COWS\\data\\groups_and_tests\\whiteboard_groups_by_date_by_cow.csv')
+        self.whiteboard_groups_specific_date.to_csv('F:\\COWS\\data\\groups_and_tests\\whiteboard_groups_specific_date.csv')
 
         # Replace NaN/NA in model_groups_dict before saving as JSON
         cleaned_dict = self.replace_nan_in_dict(self.whiteboard_groups_dict)

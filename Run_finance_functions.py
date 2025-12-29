@@ -6,8 +6,8 @@ from finance_functions.capex.capex_basics import CapexBasics
 
 from finance_functions.income.milk_income import MilkIncome
 from finance_functions.income.income_statement import IncomeStatement
-from finance_functions.net_revenue.net_rev_this_lactation_WB import NetRevThisLactation_WB
-from finance_functions.net_revenue.net_rev_this_lactation_model import NetRevThisLactation_model
+from finance_functions.net_revenue.discard.net_rev_this_lactation_WB import NetRevThisLactation_WB
+from finance_functions.net_revenue.discard.net_rev_this_lactation_model import NetRevThisLactation_model
 
 from finance_functions.PL.NetRevenue import NetRevenue
 from finance_functions.tax_docs.tax_docs_depreciation import TaxDocs_Depreciation

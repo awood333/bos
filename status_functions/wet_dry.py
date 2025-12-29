@@ -381,9 +381,21 @@ class WetDry:
             return None
         # Ensure date is datetime
         df['date'] = pd.to_datetime(df['date'], errors='coerce')
-        # Add a 'week' column (ISO week)
-        df['week'] = df['date'].dt.to_period('W').apply(lambda r: r.start_time)
-        # Group by WY_id and week, aggregate: mean for liters/revenue, first for period/day_num
+        # Only create 'period_week' column that restarts week numbering for each (WY_id, period)
+        if 'period' in df.columns:
+            df = df.sort_values(['WY_id', 'period', 'date'])
+            week_starts = df['date'].dt.to_period('W').apply(lambda r: r.start_time)
+            df['period_week'] = (
+                df.groupby(['WY_id', 'period'])['date']
+                .transform(lambda x: pd.factorize(x.dt.to_period('W').apply(lambda r: r.start_time))[0] + 1)
+            )
+        else:
+            df = df.sort_values(['WY_id', 'date'])
+            df['period_week'] = (
+                df.groupby(['WY_id'])['date']
+                .transform(lambda x: pd.factorize(x.dt.to_period('W').apply(lambda r: r.start_time))[0] + 1)
+            )
+ 
         agg_dict = {}
         if 'liters' in df.columns:
             agg_dict['liters'] = 'mean'
@@ -393,8 +405,12 @@ class WetDry:
             agg_dict['period'] = 'first'
         if 'day_num' in df.columns:
             agg_dict['day_num'] = 'first'
+        if 'date' in df.columns:
+            agg_dict['date'] = 'first'  # Keep the earliest date for each week/cow/period
 
-        grouped = df.groupby(['WY_id', 'week'], as_index=False).agg(agg_dict)
+        group_cols = ['WY_id', 'period', 'period_week'] if 'period' in df.columns else ['WY_id', 'period_week']
+        grouped = df.groupby(group_cols, as_index=False).agg(agg_dict)
+
         self.wet_dry_weekly = grouped
         return self.wet_dry_weekly
         

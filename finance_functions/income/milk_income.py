@@ -23,7 +23,7 @@ class MilkIncome:
 
     def load_and_process(self):
         self.FCB = get_dependency('feedcost_basics')
-        # self.SD  = get_dependency('statusData')
+        # self.SD  = get_dependency('status_data')
         self.DR  = get_dependency('date_range')
         self.sahagon = get_dependency('sahagon')
         self.sahagon_liters = self.sahagon.dm_daily
