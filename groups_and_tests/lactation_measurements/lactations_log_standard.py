@@ -1,11 +1,12 @@
 '''milk_functions/lactation/lactations_log_standard.py'''
 import inspect
+import matplotlib.pyplot as plt
+from container import get_dependency
+
 import pandas as pd
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-from container import get_dependency
 
 
 class LactationsLogStandard:

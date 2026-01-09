@@ -310,7 +310,7 @@ def run_milk_dash_app():
                 print(f"Could not open default browser: {e2}")
 
     threading.Timer(1.5, open_browser).start()
-    app.run_server(debug=False, port=8051)
+    app.run(debug=False, port=8051)
 
 if __name__ == "__main__":
     run_milk_dash_app()    

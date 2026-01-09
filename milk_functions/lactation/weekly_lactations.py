@@ -31,7 +31,7 @@ class WeeklyLactations():
         self.SD     = get_dependency('status_data')
 
         self.data       = self.MB.data
-        self.alive_ids  = self.SD.alive_ids.astype(int).to_list()
+        self.alive_ids  = self.SD.alive_ids_last
 
         (self.lact1, self.lact2, 
          self.lact3, self.lact4, 
