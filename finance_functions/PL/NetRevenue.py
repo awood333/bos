@@ -60,33 +60,12 @@ class NetRevenue:
         
         return self.net_revenue_daily, self.net_revenue_daily_last, self.feedcost_daily
     
-    # def create_test_daily_net(self):
-        
-    #     liters1 = self.sahagon.dm_daily
-    #     liters1['income_22'] = liters1['liters'] * 22
-        
-    #     fc1= self.feedcost_daily
-    #     df1= pd.concat([liters1, fc1], axis=1)
-    #     df1['net_revenue_test'] = df1['income_22'] - df1['total feedcost']
-        
-    #     self.test_daily_net = df1
-        
-    #     return self.test_daily_net
-        
-    
-    
     def create_monthly_net(self):
-    
         nrm1 = self.net_revenue_daily
         nrm1['year'] = nrm1.index.year
         nrm1['month'] = nrm1.index.month
-        # nrm1['days'] = nrm1.index.daysinmonth
-        
+                 
         self.net_revenue_monthly = nrm1.groupby(['year','month']).sum()
-        # net_revenue_monthly2 = pd.concat([net_revenue_monthly1, self.heifer_monthly_cost], axis=1)
-        # net_revenue_monthly2['net revenue'] = net_revenue_monthly2['revenue'] - net_revenue_monthly2['heifer_cost']
-
-
         return self.net_revenue_monthly
 
  

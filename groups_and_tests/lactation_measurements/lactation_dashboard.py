@@ -1,19 +1,28 @@
-'''milk_functions.lactation.lactation_measurements.lactation_dashboard'''
-import io
-import base64
+'''groups_and_test.lactation_measurements.lactation_dashboard'''
+
 import threading
 import webbrowser
 
+import io
+import base64
+
 import dash
 from dash import dcc, html, Input, Output, State, dash_table
-
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-from milk_functions.lactation.lactation_measurements.lactations_log_standard import LactationsLogStandard
-from milk_functions.lactation.lactation_measurements.lactation_plots import LactationPlots
-from insem_functions.I_U_merge import I_U_merge
+from container import get_dependency 
+
+
+
+
+
+
+LactationsLogStandard = get_dependency('lactations_log_standard')
+LactationPlots = get_dependency('lactation_plots')
+I_U_merge = get_dependency('i_u_merge')
+
 
 app = dash.Dash(__name__)
 

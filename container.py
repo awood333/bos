@@ -79,12 +79,15 @@ class Container:
         # milk_functions
         self.register_singleton('milk_aggregates',      self._create_milk_aggregates)
         self.register_singleton('raw_milk_update',      self._create_raw_milk_update)
+
+        #plot functions
+        self.register_singleton('plot_net_revenue_model', self._create_plot_net_revenue_model)
+        self.register_singleton('run_lactation_plot',     self._create_run_lactation_plot)
         
         #groups and tests
         self.register_singleton('whiteboard_groups',    self._create_whiteboard_groups)     
         self.register_singleton('model_groups',         self._create_model_groups)     
         self.register_singleton('compare_model_whiteboard_groups_last', self._create_compare_model_whiteboard_groups_last)     
-        self.register_singleton('tests_on_whiteboard',  self._create_tests_on_whiteboard)
         self.register_singleton('wet_dry_groups',       self._create_wet_dry_groups)
      
         # Lactation
@@ -94,8 +97,6 @@ class Container:
         self.register_singleton('weekly_lactations',    self._create_weekly_lactations)
         self.register_singleton('lactations',           self._create_lactations)        
         self.register_singleton('lactations_log_standard',      self._create_lactations_log_standard)
-        self.register_singleton('this_lactation_by_date_WB',    self._create_this_lactation_by_date_WB)
-        self.register_singleton('this_lactation_by_date_model', self._create_this_lactation_by_date_model)
         self.register_singleton('lactation_plots', self._create_lactation_plots)                                          
 
         # Report Milk
@@ -113,9 +114,7 @@ class Container:
         self.register_singleton('cow_pl',               self._create_cow_pl)
         self.register_singleton('depreciation',         self._create_depreciation)        
         self.register_singleton('net_revenue',          self._create_net_revenue)
-        self.register_singleton('NetRevThisLactation_WB',   self._create_net_rev_this_lactation_WB)
-        self.register_singleton('NetRevThisLactation_model',self._create_net_rev_this_lactation_model)
-        self.register_singleton('net_revenue_by_cow_by_date', self._create_net_revenue_by_cow_by_date)
+        # self.register_singleton('net_revenue_by_cow_by_date', self._create_net_revenue_by_cow_by_date)
         self.register_singleton('sahagon',              self._create_sahagon)
 
         # Report/Dashboard dependencies
@@ -293,20 +292,26 @@ class Container:
     def _create_raw_milk_update(self):
         from milk_functions.raw_milk_update import RawMilkUpdate
         return RawMilkUpdate()
+    
+    # plot functions
+    def _create_plot_net_revenue_model(self):
+        from plot_functions.plot_net_revenue_model import PlotNetRevenueModel
+        return PlotNetRevenueModel()
+    
+    def _create_run_lactation_plot(self):
+        from plot_functions.run_lactation_plot import RunLactationPlot
+        return RunLactationPlot()
+
 
 
     # Groups and tests  
     def _create_model_groups(self):
-        from groups_and_tests.discard.model_groups import ModelGroups
+        from groups_and_tests.model_groups import ModelGroups
         return ModelGroups()
         
     def _create_whiteboard_groups(self):
         from groups_and_tests.whiteboard_groups import WhiteboardGroups
         return WhiteboardGroups()
-    
-    def _create_tests_on_whiteboard(self):
-        from groups_and_tests.tests_on_whiteboard import TestsOnWhiteboard
-        return TestsOnWhiteboard()
     
     def _create_compare_model_whiteboard_groups_last(self):
         from groups_and_tests.compare_model_whiteboard_groups_last import CompareModelWhiteboardGroups_Last
@@ -338,24 +343,14 @@ class Container:
         from milk_functions.lactation.lactations import Lactations
         return Lactations()
         
-
     
-    def _create_this_lactation_by_date_WB(self):
-        from finance_functions.net_revenue.discard.net_rev_this_lactation_WB import NetRevThisLactation_WB
-        return NetRevThisLactation_WB()
-    
-    def _create_this_lactation_by_date_model(self):
-        from finance_functions.net_revenue.discard.net_rev_this_lactation_model import NetRevThisLactation_model
-        return NetRevThisLactation_model()
-    
-
     # Lactation measurements
     def _create_lactations_log_standard(self):
-        from milk_functions.lactation.lactation_measurements.lactations_log_standard import LactationsLogStandard
+        from groups_and_tests.lactation_measurements.lactations_log_standard import LactationsLogStandard
         return LactationsLogStandard()
     
     def _create_lactation_plots(self):
-        from milk_functions.lactation.lactation_measurements.lactation_plots import LactationPlots
+        from groups_and_tests.lactation_measurements.lactation_plots import LactationPlots
         return LactationPlots()        
     
 
@@ -406,18 +401,10 @@ class Container:
     def _create_cow_pl(self):
         from finance_functions.PL.cow_PL import CowPL
         return CowPL()
-    
-    def _create_net_rev_this_lactation_WB(self):
-        from finance_functions.net_revenue.discard.net_rev_this_lactation_WB import NetRevThisLactation_WB
-        return NetRevThisLactation_WB()
-
-    def _create_net_rev_this_lactation_model(self):
-        from finance_functions.net_revenue.discard.net_rev_this_lactation_model import NetRevThisLactation_model
-        return NetRevThisLactation_model()    
-    
-    def _create_net_revenue_by_cow_by_date(self):
-        from finance_functions.net_revenue.net_revenue_by_cow_by_date import NetRevenueByCowByDate
-        return NetRevenueByCowByDate()
+        
+    # def _create_net_revenue_by_cow_by_date(self):
+    #     from finance_functions.net_revenue.net_revenue_by_cow_by_date import NetRevenueByCowByDate
+    #     return NetRevenueByCowByDate()
     
     def _create_sahagon(self):
         from finance_functions.income.sahagon import sahagon
