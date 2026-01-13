@@ -20,6 +20,8 @@ COLUMN_WIDTHS = {
     'days milking' : '90px',
     'u_read' : "70px",
     'expected bdate' : "130px",
+    'i_date': '130px',
+    'next ultra check date': '130px',
     'model group' : "60px",
     'whiteboard group' : "60px",
     'comp':"40px",
@@ -110,6 +112,12 @@ def run_milk_dash_app():
 
 
 
+    # Import NextUltraCheck and get the DataFrame
+    from insem_functions.next_ultra_check import NextUltraCheck
+    nuc = NextUltraCheck()
+    nuc.load_and_process()
+    next_ultra_check_df = nuc.get_next_ultra_check()
+
     app = Dash(__name__)
 
     app.layout = html.Div(
@@ -124,7 +132,6 @@ def run_milk_dash_app():
                     html.Div([
                         html.H2("10-Day Summary", 
                                 style={'textAlign': 'center', 'color': '#00bcd4'}),
-                        
                         dash_table.DataTable(
                             id='tenday-table',
                             data=tenday_df.to_dict('records'),
@@ -132,16 +139,19 @@ def run_milk_dash_app():
                             style_table=get_table_style(),
                             style_header=get_table_header_style(),
                             style_cell=get_table_cell_style(),
-                            # page_size=30,    #this sets max rows
                             cell_selectable=True,
                             style_cell_conditional=get_style_cell_conditional_fortenday(tenday_df.columns),
                             style_data_conditional=[
+                                {
+                                    'if': {'column_id': 'WY_id'},
+                                    'textAlign': 'center',
+                                    'verticalAlign': 'middle',
+                                },
                                 {
                                     'if': {'column_id': 'u_read'},
                                     'textAlign': 'center',
                                     'verticalAlign': 'middle',
                                 },
-                                
                                 {
                                     'if': {
                                         'filter_query': '{pct chg from avg} >= 0.15',
@@ -175,7 +185,6 @@ def run_milk_dash_app():
                     html.Div([
                         html.H2("Half-Day Summary", 
                                 style={'textAlign': 'center', 'color': '#00bcd4'}),
-                        
                         dash_table.DataTable(
                             id='halfday-table',
                             data=halfday_df.to_dict('records'),
@@ -183,18 +192,21 @@ def run_milk_dash_app():
                             style_table=get_table_style(),
                             style_header={**get_table_header_style(), 'height': '100px'},
                             style_cell=get_table_cell_style(),
-                            # page_size=30,
                             cell_selectable=True,
                             style_cell_conditional=get_style_cell_conditional(halfday_df.columns),
+                            style_data_conditional=[
+                                {
+                                    'if': {'column_id': 'WY_id'},
+                                    'textAlign': 'center',
+                                    'verticalAlign': 'middle',
+                                },
+                            ],
                         ),
                     ], style=get_panel_style()),
 
-
-#Groups
                     html.Div([
                         html.H2("Groups", 
                                 style={'textAlign': 'center', 'color': '#00bcd4'}),
-                        
                         dash_table.DataTable(
                             id='groups-table',
                             data=groups_df.to_dict('records'),
@@ -205,19 +217,21 @@ def run_milk_dash_app():
                             cell_selectable=True,
                             style_cell_conditional=get_style_cell_conditional(groups_df.columns),
                             style_data_conditional=[
-
+                                {
+                                    'if': {'column_id': 'WY_id'},
+                                    'textAlign': 'center',
+                                    'verticalAlign': 'middle',
+                                },
                                 {
                                     'if': {'column_id': 'u_read'},
                                     'textAlign': 'center',
                                     'verticalAlign': 'middle',
                                 },
-                                # Center align all cells in 'group' column
                                 {
                                     'if': {'column_id': 'group'},
                                     'textAlign': 'center',
                                     'verticalAlign': 'middle',
                                 },
-                                # Make font color blue if value is 'B' in 'group' column
                                 {
                                     'if': {
                                         'filter_query': '{group} = "B"',
@@ -227,7 +241,6 @@ def run_milk_dash_app():
                                     'color': "#CEE9F9",
                                     'fontWeight': 'bold',
                                 },
-                                # Make font color brown if value is 'B' in 'group' column
                                 {
                                     'if': {
                                         'filter_query': '{group} = "C"',
@@ -237,51 +250,33 @@ def run_milk_dash_app():
                                     'color': "#CEE9F9",
                                     'fontWeight': 'bold',
                                 },
-        ],
+                            ],
                         ),
-                        
                     ], style=get_panel_style()),
 
-        # ...compare groups...
-        #             html.Div([
-        #                 html.H2("Compare Model vs Whiteboard Groups", 
-        #                         style={'textAlign': 'center', 'color': '#00bcd4'}),
-        #                 dash_table.DataTable(
-        #                     id='compare-groups-table',
-        #                     data=compare_groups_df.to_dict('records'),
-        #                     columns=[{"name": i, "id": i} for i in compare_groups_df.columns],
-        #                     style_table=get_table_style(),
-        #                     style_header={**get_table_header_style(), 'height': '100px'},
-        #                     style_cell={**get_table_cell_style(), 'textAlign': 'center'},
-        #                     cell_selectable=True,
-        #                     style_cell_conditional=get_style_cell_conditional(compare_groups_df.columns),
-        #                     style_data_conditional=[
-        #                         # Highlight mismatches in 'comp' column
-        #                         {
-        #                             'if': {
-        #                                 'filter_query': '{comp} = "X"',
-        #                                 'column_id': 'comp'
-        #                             },
-        #                             'backgroundColor': "#3C141F",
-        #                             'color':  "#F5C7D4",
-        #                             'fontWeight': 'bold'
-        #                             'horizontalAlignment'
-        #                         },
-        #                         # Optionally, highlight matches (empty string) in 'comp'
-        #                         {
-        #                             'if': {
-        #                                 'filter_query': '{comp} = ""',
-        #                                 'column_id': 'comp'
-        #                             },
-        #                             'backgroundColor': "#111111",
-        #                             'color': 'white'
-        #                         },
-        #                     ],
-        #                 ),
-        #             ], style=get_panel_style()),
+                    html.Div([
+                        html.H2("Next Ultra Check Dates", 
+                                style={'textAlign': 'center', 'color': '#00bcd4'}),
+                        dash_table.DataTable(
+                            id='next-ultra-check-table',
+                            data=next_ultra_check_df.to_dict('records'),
+                            columns=[{"name": i, "id": i} for i in next_ultra_check_df.columns],
+                            style_table=get_table_style(),
+                            style_header=get_table_header_style(),
+                            style_cell={**get_table_cell_style(), 'whiteSpace': 'normal'},
+                            style_data={ 'whiteSpace': 'normal' },
+                            cell_selectable=True,
+                            style_cell_conditional=get_style_cell_conditional(next_ultra_check_df.columns),
+                            style_data_conditional=[
+                                {
+                                    'if': {'column_id': 'WY_id'},
+                                    'textAlign': 'center',
+                                    'verticalAlign': 'middle',
+                                },
+                            ],
+                        ),
+                    ], style=get_panel_style()),
                 ],
-
-#controls space betw panels
                 style={
                     'display': 'flex',
                     'flexDirection': 'row',

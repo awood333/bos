@@ -1,4 +1,3 @@
-
 '''plot_functions.run_lactation_plot'''
 import os
 import matplotlib
@@ -101,3 +100,8 @@ class RunLactationPlot:
             plt.savefig(output_path1)
             plt.savefig(output_path2)
             plt.close()
+
+if __name__ == "__main__":
+    plotter = RunLactationPlot()
+    plotter.load()
+    plotter.process()

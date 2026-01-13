@@ -66,6 +66,7 @@ class Container:
         self.register_singleton('check_last_stop',      self._create_check_last_stop)
         self.register_singleton('i_u_merge',            self._create_i_u_merge)
         self.register_singleton('ipiv',                 self._create_ipiv)
+        self.register_singleton('next_ultra_check',     self._create_next_ultra_check)
         
         # Feed
         self.register_singleton('feedcost_basics',      self._create_feedcost_basics)
@@ -256,6 +257,13 @@ class Container:
     def _create_ipiv(self):
         from insem_functions.ipiv import Ipiv
         return Ipiv()
+    
+    def _create_next_ultra_check(self):
+        from insem_functions.next_ultra_check import NextUltraCheck
+        return NextUltraCheck()
+    
+
+
 
     # Feed functions 
     def _create_feedcost_basics(self):
