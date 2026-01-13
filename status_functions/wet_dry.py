@@ -18,8 +18,11 @@ class WetDry:
         self.data = None
         self.ext_rng = None
         self.milk1 = None
+        self.death_date = None
         self.datex = None
         self.WY_ids = None
+        self.startdate = None
+        self.alive_ids = None
 
         self.wsd = None
         self.wmd = None
@@ -34,10 +37,15 @@ class WetDry:
     def load_and_process(self):
         self.MB = get_dependency('milk_basics')
         self.data = self.MB.data
+        self.death_date = self.MB.bd[['WY_id','death_date']]
         self.ext_rng = self.MB.data['ext_rng']
         self.milk1 = self.MB.data['milk']
         self.datex = self.MB.data['datex']
         self.WY_ids = self.MB.data['start'].columns
+        DR = get_dependency('date_range')
+        self.startdate = DR.startdate
+        SD     = get_dependency('status_data')
+        self.alive_ids = SD.alive_ids.loc[self.startdate,:]
 
         [self.wet_days_df, self.wsd, 
          self.wmd, self.milking_liters] = self.create_wet_days()
@@ -57,21 +65,24 @@ class WetDry:
         wet_max_df1 = wet_max2 = wet_max3 = pd.DataFrame()
         milking_liters1 = milking_liters2 = pd.DataFrame()        
         idx     = self.ext_rng
-        WY_ids  = self.MB.data['WY_ids']   #NOTE:put a 1 to sliceWY_ids = WY_ids1[250:254]
+        # WY_ids  = self.MB.data['WY_ids']   # this runs thru ALL the cows
+
+        WY_ids_alive = self.alive_ids.astype(int)  #this funs thru the cows alive on 'startdate' 
+                #some will not be milking 'now' but the data is useful in judging whether to keep the cow or not.
 
         i=0
         
         lacts   = self.MB.data['stop'].index      # lact# (float)
 
-        for i in WY_ids:
+        for i in WY_ids_alive:
             for j in lacts:
 
                 lastday = self.MB.data['lastday']  # last day of the milk df datex
                 start = self.MB.data ['start'].loc[j, i]
                 stop  = self.MB.data ['stop'] .loc[j, i]
-
                 a = pd.isna(start)  is False  # start value exists
                 b = pd.isna(stop)   is False  # stop value exists
+
                 e = pd.isna(start)  is True   # start value missing
                 f = pd.isna(stop)   is True   # stop value missing
 
@@ -140,7 +151,6 @@ class WetDry:
                 wet_days3 = pd.concat( [wet_days3, wet_days2b],  axis=1) 
                 wet_sum3 = pd.concat(  [wet_sum3, wet_sum2],    axis=0)
                 wet_max3 = pd.concat(  [wet_max3, wet_max2],    axis=0)
-            # print(f"wet_max3 after appending wet_max2 for WY_id {i}: {wet_max3}")
                 
             wet_days2 = pd.DataFrame()
             wet_sum2 = pd.DataFrame()
@@ -166,6 +176,7 @@ class WetDry:
         
         self.wet_days_df = wet_days_df1
         self.milking_liters = milking_liters2
+        # print(self.wet_days_df.loc['2026-01-09':'2026-01-11',250])
             
         return self.wet_days_df, self.wsd, self.wmd , self.milking_liters
     

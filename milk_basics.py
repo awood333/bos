@@ -45,14 +45,14 @@ class MilkBasics:
         self.u   = pd.read_csv('F:\\COWS\\data\\csv_files\\ultra.csv')
         self.i   = pd.read_csv('F:\\COWS\\data\\csv_files\\insem.csv') 
         
-        bd1         ['birth_date']      = pd.to_datetime(bd1['birth_date'])
-        bd1         ['death_date']      = pd.to_datetime(bd1['death_date'], errors='coerce')        
-        bd1         ['arrived']         = pd.to_datetime(bd1['arrived'], errors='coerce')
-        bd1         ['adj_bdate']       = pd.to_datetime(bd1['adj_bdate'], errors='coerce')
+        bd1['birth_date']      = pd.to_datetime(bd1['birth_date'])
+        bd1['death_date']      = pd.to_datetime(bd1['death_date'], errors='coerce')        
+        bd1['arrived']         = pd.to_datetime(bd1['arrived'], errors='coerce')
+        bd1['adj_bdate']       = pd.to_datetime(bd1['adj_bdate'], errors='coerce')
         
-        self.lb      ['b_date']         = pd.to_datetime (self.lb    ['b_date'], errors='coerce')
-        self.u       ['ultra_date']     = pd.to_datetime (self.u     ['ultra_date'], errors='coerce')
-        self.i       ['insem_date']     = pd.to_datetime (self.i     ['insem_date'], errors='coerce')
+        self.lb['b_date']         = pd.to_datetime (self.lb    ['b_date'], errors='coerce')
+        self.u ['ultra_date']     = pd.to_datetime (self.u     ['ultra_date'], errors='coerce')
+        self.i ['insem_date']     = pd.to_datetime (self.i     ['insem_date'], errors='coerce')
         
         start1a  = self.startx.pivot_table (index='WY_id', columns='calf#',    values='b_date', fill_value=pd.NaT)
         stop1a   = self.stopx .pivot_table (index='WY_id', columns='lact_num', values='stop',   fill_value=pd.NaT)

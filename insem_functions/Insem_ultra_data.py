@@ -191,8 +191,6 @@ class InsemUltraData:
                               on='WY_id', 
                               how='left' )  
         
-        # df4               .to_csv('F:\\COWS\\data\\insem_data\\df4.csv') 
-
         df4['age insem'] =  (self.today - df4['i_date']).dt.days
         df4['age ultra'] =  (self.today - df4['u_date']).dt.days
         df4['i_check']    = df4['i_calf#'] - df4['last calf#']
