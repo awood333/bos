@@ -24,6 +24,7 @@ class ModelGroups:
         self.lastday  = None
         self.WD_weekly = None
         self.wet = None
+        self.groups_count_daily = None
 
 
 
