@@ -25,7 +25,8 @@ class Feedcost_basics:
         self.MB = None
         self.DR = None
         self.data_loader = None
-        self.feed_type = ['corn','cassava','beans','straw', 'bypass_fat', 'CP_005_21P', 'NaHCO3', 'CP_milk2']
+        self.feed_type = ['corn','cassava','beans','straw', 'bypass_fat',  'NaHCO3', 
+                          'CP_005_21P', 'CP_005_DSW', 'CP_970_Plus', 'CP_973GM','CP_milk2', 'CP_power_starch' ]
         self.rng_monthly = None
         self.rng_monthly2 = None
         self.rng_daily = None

@@ -28,25 +28,42 @@ class PlotNetRevenueModel:
 
         for cow_id in self.df['WY_id'].unique():
             cow_df = self.df[self.df['WY_id'] == cow_id].sort_values('date')
-            y_weekly = cow_df.groupby('week')['net_revenue'].mean()
-            if y_weekly.isnull().all():
+            # Group by week
+            weekly = cow_df.groupby('week').agg({
+                'revenue': 'mean',
+                'feedcost': 'mean',
+                'net_revenue': 'mean',
+                'date': 'first'
+            }).reset_index()
+            if weekly[['revenue', 'feedcost', 'net_revenue']].isnull().all().all():
                 continue
 
-            fig, ax = plt.subplots(figsize=(14, 7))
-            ax.plot(y_weekly.index, y_weekly.values, 'o-', color='purple', label=f'Weekly Net Revenue WY#{cow_id}')
-            if pd.notna(self.date_of_change):
-                ax.axvline(self.date_of_change, color='green', linestyle='--', linewidth=2, label='Day of Change')
-            ax.set_xlabel('Date (mm/dd)')
-            ax.set_ylabel('Weekly Net Revenue ', color='purple')
-            ax.tick_params(axis='y', labelcolor='purple')
+            fig, ax1 = plt.subplots(figsize=(14, 7))
+            # Stacked bar for revenue and feedcost
+            ax1.bar(weekly['date'], weekly['feedcost'], color='#f7cbe0', label='Feedcost', width=10)
+            ax1.bar(weekly['date'], weekly['revenue'], color='#cef0d1', label='Revenue', width=10, bottom=weekly['feedcost'])
+            ax1.set_ylabel('Weekly Revenue / Feedcost', color='black')
+            ax1.tick_params(axis='y', labelcolor='black')
+            # Secondary axis for net_revenue
+            ax2 = ax1.twinx()
+            ax2.plot(weekly['date'], weekly['net_revenue'], 'o-', color='purple', label='Net Revenue')
+            ax2.set_ylabel('Weekly Net Revenue', color='purple')
+            ax2.tick_params(axis='y', labelcolor='purple')
+            # Date ticks
             week_ticks = pd.date_range(self.df['date'].min(), self.df['date'].max(), freq='14D')
-            ax.set_xticks(week_ticks)
-            ax.set_xticklabels([dt.strftime('%m/%d') for dt in week_ticks], rotation=90)
+            ax1.set_xticks(week_ticks)
+            ax1.set_xticklabels([dt.strftime('%m/%d') for dt in week_ticks], rotation=90)
             for tick in week_ticks:
-                ax.axvline(tick, color='gray', linestyle=':', alpha=0.3, zorder=0)
-            ax.grid(axis='y', linestyle='--', alpha=0.7)
-            ax.set_xlim(self.df['date'].min(), self.df['date'].max())
-            ax.legend(loc='upper center', facecolor='lightgreen', framealpha=0.25)
+                ax1.axvline(tick, color='gray', linestyle=':', alpha=0.3, zorder=0)
+            # Day of change vertical line
+            if pd.notna(self.date_of_change):
+                ax1.axvline(self.date_of_change, color='green', linestyle='--', linewidth=2, label='Day of Change')
+            ax1.grid(axis='y', linestyle='--', alpha=0.7)
+            ax1.set_xlim(self.df['date'].min(), self.df['date'].max())
+            # Legends
+            handles1, labels1 = ax1.get_legend_handles_labels()
+            handles2, labels2 = ax2.get_legend_handles_labels()
+            ax1.legend(handles1 + handles2, labels1 + labels2, loc='upper center', facecolor='lightgreen', framealpha=0.25)
             plt.title(f'Net Revenue - WY {cow_id}', fontsize=20)
             plt.tight_layout()
             output_path = os.path.join(self.output_folder, f"cow_{cow_id}_net_revenue.png")
