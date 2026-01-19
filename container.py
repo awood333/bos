@@ -75,6 +75,7 @@ class Container:
         self.register_singleton('feedcost_corn',        self._create_feedcost_corn)
         self.register_singleton('feedcost_bypass_fat',  self._create_feedcost_bypass_fat)
         self.register_singleton('feedcost_total',       self._create_feedcost_total)
+        self.register_singleton('feedcost_sequences',   self._create_feedcost_sequences)
 
       
         # milk_functions
@@ -289,6 +290,10 @@ class Container:
     def _create_feedcost_total(self):
         from feed_functions.feedcost_total import Feedcost_total
         return Feedcost_total()
+    
+    def _create_feedcost_sequences(self):
+        from feed_functions.feedcost_sequences import FeedCostSequences
+        return FeedCostSequences()
     
 
 
