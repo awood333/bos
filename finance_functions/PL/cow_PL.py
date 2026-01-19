@@ -48,10 +48,11 @@ class CowPL:
         alive_ids2 = alive_ids1.reset_index()
         self.alive_ids = alive_ids2['WY_id']
 
-        # feed costs
-        self.feed_cost_A = self.FCB.current_feedcost['group_a_cost'].loc['sum']
-        self.feed_cost_B = self.FCB.current_feedcost['group_b_cost'].loc['sum']
-        self.feed_cost_dry = self.FCB.current_feedcost['dry_cost'].loc['sum']
+        # feed costs: get the last (total) values for each group from last_values_all_df
+        self.feed_cost_A = self.FCB.last_values_all_df.loc['corn', 'A']
+        self.feed_cost_B = self.FCB.last_values_all_df.loc['corn', 'B']
+        self.feed_cost_C = self.FCB.last_values_all_df.loc['corn', 'C']
+        self.feed_cost_dry = self.FCB.last_values_all_df.loc['corn', 'D']
 
         self.alive_mask_str = self.SD.alive_ids.to_list()
         self.alive_mask_int = self.SD.alive_ids.astype(int).to_list()
