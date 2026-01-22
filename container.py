@@ -70,12 +70,13 @@ class Container:
         
         # Feed
         self.register_singleton('feedcost_basics',      self._create_feedcost_basics)
-        self.register_singleton('feedcost_beans',       self._create_feedcost_beans)
-        self.register_singleton('feedcost_cassava',     self._create_feedcost_cassava)
-        self.register_singleton('feedcost_corn',        self._create_feedcost_corn)
-        self.register_singleton('feedcost_bypass_fat',  self._create_feedcost_bypass_fat)
+        # self.register_singleton('feedcost_beans',       self._create_feedcost_beans)
+        # self.register_singleton('feedcost_cassava',     self._create_feedcost_cassava)
+        # self.register_singleton('feedcost_corn',        self._create_feedcost_corn)
+        # self.register_singleton('feedcost_bypass_fat',  self._create_feedcost_bypass_fat)
         self.register_singleton('feedcost_total',       self._create_feedcost_total)
         self.register_singleton('feedcost_sequences',   self._create_feedcost_sequences)
+        self.register_singleton('feedcost_data',        self._create_feedcost_data)
 
       
         # milk_functions
@@ -271,21 +272,21 @@ class Container:
         from feed_functions.feedcost_basics import Feedcost_basics
         return Feedcost_basics()
     
-    def _create_feedcost_beans(self):
-        from feed_functions.feedcost_beans import Feedcost_beans
-        return Feedcost_beans()
+    # def _create_feedcost_beans(self):
+    #     from feed_functions.feedcost_beans import Feedcost_beans
+    #     return Feedcost_beans()
     
-    def _create_feedcost_cassava(self):
-        from feed_functions.feedcost_cassava import Feedcost_cassava
-        return Feedcost_cassava()
+    # def _create_feedcost_cassava(self):
+    #     from feed_functions.feedcost_cassava import Feedcost_cassava
+    #     return Feedcost_cassava()
     
-    def _create_feedcost_corn(self):
-        from feed_functions.feedcost_corn import Feedcost_corn
-        return Feedcost_corn()
+    # def _create_feedcost_corn(self):
+    #     from feed_functions.feedcost_corn import Feedcost_corn
+    #     return Feedcost_corn()
     
-    def _create_feedcost_bypass_fat(self):
-        from feed_functions.feedcost_bypass_fat import Feedcost_bypass_fat
-        return Feedcost_bypass_fat()
+    # def _create_feedcost_bypass_fat(self):
+    #     from feed_functions.feedcost_bypass_fat import Feedcost_bypass_fat
+    #     return Feedcost_bypass_fat()
 
     def _create_feedcost_total(self):
         from feed_functions.feedcost_total import Feedcost_total
@@ -294,6 +295,10 @@ class Container:
     def _create_feedcost_sequences(self):
         from feed_functions.feedcost_sequences import FeedCostSequences
         return FeedCostSequences()
+    
+    def _create_feedcost_data(self):
+        from feed_functions.feedcost_data import FeedcostData
+        return FeedcostData()
     
 
 

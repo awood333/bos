@@ -36,7 +36,7 @@ class WetDryGroups:
         else:
             self.WDDf = WDD.copy()
 
-        self.GWDDf         = self.assign_groups()
+        self.GWDDf    = self.assign_groups()
         self.FGWDDf   = self.create_feedcost_key()
         self.net_revenue_wet_dry_df     = self.create_wet_dry_df_with_net_revenue()
         self.write_to_csv_json()
