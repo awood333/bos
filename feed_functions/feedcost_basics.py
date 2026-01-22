@@ -153,9 +153,6 @@ class Feedcost_basics:
         return self.last_values_all_df
     
         
-    
-            
-
     def create_total_feedcostByGroup(self):
         # Ensure these are DataFrames, not methods or other types
         def get_group_df(df, col):
