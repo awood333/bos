@@ -26,7 +26,7 @@ class RunLactationPlot:
     def load(self):
         self.TL = get_dependency('this_lactation')
         self.LLS = get_dependency('lactations_log_standard')
-        self.doc = self.LLS.days_on_date_of_change
+        self.doc = self.LLS.days_on_date_of_change1
         # Example/test access (can be removed or kept for debug)
         cow_idx = 94
         _ = self.doc.iloc[self.doc.index.get_loc(cow_idx), 0]
@@ -42,17 +42,17 @@ class RunLactationPlot:
 
     def process(self):
         for cow_id in self.df_weekly.columns:
-            days_on_date_of_change = None
+            days_on_date_of_change1 = None
             if self.doc is not None:
                 try:
                     cow_id_int = int(cow_id)
                     value = self.doc.iloc[self.doc.index.get_loc(cow_id_int), 0]
                     if not pd.isna(value) and value > 0:
-                        days_on_date_of_change = value
+                        days_on_date_of_change1 = value
                 except Exception as e:
                     print(f"Error for cow_id {cow_id}: {e}")
 
-            fig, ax1 = plt.subplots(figsize=(14, 7))
+            fig, ax1 = plt.subplots(figsize=(14, 8))
             # Plot the average weekly line (blue)
             ax1.plot(self.df_weekly.index, self.weekly_avg_all.values, '-', color='blue', label='weekly avg liters/day - all cows', alpha=.8)
             # Plot the individual cow weekly (red)
@@ -82,9 +82,9 @@ class RunLactationPlot:
                 ax2.set_xticklabels(day_ticks, rotation=90)
                 ax2.grid(axis='x', linestyle=':', alpha=0.3)
 
-                # Draw vertical gridline if days_on_date_of_change is valid
-                if days_on_date_of_change is not None:
-                    ax2.axvline(days_on_date_of_change, color='green', linestyle='--', linewidth=3, label='Date of Change')
+                # Draw vertical gridline if days_on_date_of_change1 is valid
+                if days_on_date_of_change1 is not None:
+                    ax2.axvline(days_on_date_of_change1, color='green', linestyle='--', linewidth=3, label='Date of Change')
 
                 # Combine legends
                 lines1, labels1 = ax1.get_legend_handles_labels()

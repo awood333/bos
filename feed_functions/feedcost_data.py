@@ -51,14 +51,11 @@ class FeedcostData:
         # Recompute totals if present
         if 'totals' in daily_groups.columns:
             daily_groups['totals'] = daily_groups[group_cols].sum(axis=1)
-        print('Sample of daily_groups after ffill:')
-        print(daily_groups[group_cols].head(15))
         self.groups_count_daily = daily_groups
         self.feed_types = self.FCB.feed_type
 
         for feed in self.feed_types:
             try:
-                print(f"Processing feed type: {feed}")
                 # Load invoice and price sequence CSVs
                 invoice_path = f"F:/COWS/data/feed_data/feed_invoice_data/{feed}_invoice_detail.csv"
                 price_seq_path = f"F:/COWS/data/feed_data/feed_csv/{feed}_price_seq.csv"

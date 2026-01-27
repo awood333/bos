@@ -10,8 +10,8 @@ class MilkIncome:
     def __init__(self):
         print(f"MilkIncome instantiated by: {inspect.stack()[1].filename}")
         self.FCB = None
-        # self.SD = None
         self.DR = None
+        self.startdate = None
         self.sahagon = None
         self.sahagon_liters = None
         self.income_data = None
@@ -23,8 +23,8 @@ class MilkIncome:
 
     def load_and_process(self):
         self.FCB = get_dependency('feedcost_basics')
-        # self.SD  = get_dependency('status_data')
         self.DR  = get_dependency('date_range')
+        self.startdate = self.DR.start_date()
         self.sahagon = get_dependency('sahagon')
         self.sahagon_liters = self.sahagon.dm_daily
 
@@ -38,11 +38,39 @@ class MilkIncome:
         
     def DataLoader(self):  
 
-        income1 = pd.read_csv('F:\\COWS\\data\\PL_data\\milk_income\\data\\milk_income_data.csv')
-        income1['datex'] = pd.to_datetime(income1['datex'] )
-        income1.set_index('datex', inplace=True)
-        
-        self.income_data = income1
+        old_liters1 = pd.read_csv(r"F:\COWS\data\milk_data\fullday\fullday.csv")
+
+        old_liters1['datex'] = pd.to_datetime(old_liters1['datex'] )
+        old_liters1.set_index('datex', inplace=True)
+
+        #create merged series of milk liters from pre-CP
+        #take the sum of all liters (ignore heldback - should ~make up from milkers biased readings)
+        old_total_liters2 = old_liters1.sum(axis=1)
+        sahagon_cutoff_date = '2025-09-20'
+        # Convert self.startdate (Timestamp) to string for robust date slicing
+        if isinstance(self.startdate, pd.Timestamp):
+            start_date_str = self.startdate.strftime('%Y-%m-%d')
+        else:
+            start_date_str = str(self.startdate)
+        old_liters_pre_cutoff = old_total_liters2.loc[start_date_str:sahagon_cutoff_date]
+
+        new_liters1 = pd.read_excel(r"F:\COWS\data\milk_data\daily_milk\daily_milk.xlsx", sheet_name='stats', header=0)
+        new_litersT = new_liters1.T.reset_index()
+        # If the first row is not a date, drop it (e.g., contains 'sale total', 'heldback AM', etc.)
+        try:
+            pd.to_datetime(new_litersT.loc[0, 'index'])
+        except Exception:
+            new_litersT = new_litersT.iloc[1:].reset_index(drop=True)
+        new_litersT['index'] = pd.to_datetime(new_litersT['index'])
+        # Filter using pd.Timestamp for comparison
+        new_liters2 = new_litersT[new_litersT['index'] > sahagon_cutoff_date]
+        # Set 'index' as the DataFrame index for clean summing and concatenation
+        new_liters2 = new_liters2.set_index('index')
+        new_liters2.index.name = 'datex'
+        # Only use the first column (0), which is the 'sale total' row from pre-transpose
+        new_liters4 = new_liters2.iloc[:, 0]
+        self.income_data = pd.concat([old_liters_pre_cutoff, new_liters4], axis=0)
+
 
         return self.income_data
     
