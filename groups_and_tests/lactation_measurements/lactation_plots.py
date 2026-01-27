@@ -1,4 +1,4 @@
-'''milk_functions//lactation//lactation_measurements//lactation_plots.py'''
+'''groups_and_tests//lactation//lactation_measurements//lactation_plots.py'''
 import numpy as np
 import base64
 import io
@@ -15,7 +15,8 @@ class LactationPlots:
         self.m1_weekly_cow = None
         self.m1_daily_cow = None
         self.default_wy_id = None
-        self.days_on_date_of_change = None
+        self.days_on_date_of_change1 = None
+        self.days_on_date_of_change2 = None
 
         self.m1_maxdiff_weekly_avg = None
         self.m1_maxdiff_daily_avg = None
@@ -28,12 +29,12 @@ class LactationPlots:
 
 
     def load_and_process(self, wy_id=None):
-   
         LLS = get_dependency('lactations_log_standard')
 
         self.m1_weekly_all = LLS.m1_weekly_all
         self.m1_daily_all  = LLS.m1_daily_all
-        doc = LLS.days_on_date_of_change #to be used for a vert line in the plot
+        doc1 = getattr(LLS, 'days_on_date_of_change1', None)
+        doc2 = getattr(LLS, 'days_on_date_of_change2', None)
 
         # Set default WY_id if not provided
         if wy_id is None and self.m1_weekly_all is not None:
@@ -45,12 +46,17 @@ class LactationPlots:
         self.m1_weekly_cow = LLS.m1_weekly_all.loc[:, self.default_wy_id] if self.default_wy_id in LLS.m1_weekly_all.columns else None
         self.m1_daily_cow  = LLS.m1_daily_all.loc[:, self.default_wy_id] if self.default_wy_id in LLS.m1_daily_all.columns else None
 
-        # Set days_on_date_of_change only if > 0 for this cow
-        self.days_on_date_of_change = None
-        if doc is not None and hasattr(doc, 'columns') and self.default_wy_id in doc.columns:
-            value = doc[self.default_wy_id].values[0]
-            if value > 0:
-                self.days_on_date_of_change = value        
+        # Set days_on_date_of_change1 and days_on_date_of_change2 only if > 0 for this cow
+        self.days_on_date_of_change1 = None
+        self.days_on_date_of_change2 = None
+        if doc1 is not None and hasattr(doc1, 'columns') and self.default_wy_id in doc1.columns:
+            value1 = doc1[self.default_wy_id].values[0]
+            if value1 > 0:
+                self.days_on_date_of_change1 = value1
+        if doc2 is not None and hasattr(doc2, 'columns') and self.default_wy_id in doc2.columns:
+            value2 = doc2[self.default_wy_id].values[0]
+            if value2 > 0:
+                self.days_on_date_of_change2 = value2
 
         # Assign maxdiff averages for plotting
         self.m1_maxdiff_weekly_avg = LLS.maxdiff_weekly_avg_all if hasattr(LLS, "maxdiff_weekly_avg_all") else None
@@ -75,7 +81,7 @@ class LactationPlots:
 
 
     def plot_all_v_cow(self, wy_id=None):
-        fig, ax1 = plt.subplots(figsize=(14, 7))
+        fig, ax1 = plt.subplots(figsize=(14, 8))
         weekly_avg_all = self.m1_weekly_all.mean(axis=1)
         ax1.plot(np.arange(0, 52), weekly_avg_all.head(52).values, 'o-', color='blue', label='Weekly Liters - all cows')
         ax1.set_xlabel('Weekly')
@@ -85,9 +91,11 @@ class LactationPlots:
         ax1.grid(axis='x', linestyle=':', alpha=0.7)
         ax1.set_xlim(1, 52)
         ax1.set_xticks(np.arange(0, 52, 5))
-        if self.days_on_date_of_change is not None:
-            ax1.axvline(self.days_on_date_of_change, color='red', linestyle='--', linewidth=1, label='Date of Change')
-
+        # Plot both date_of_change1 and date_of_change2 if available
+        if self.days_on_date_of_change1 is not None:
+            ax1.axvline(self.days_on_date_of_change1, color='red', linestyle='--', linewidth=1, label='Date of Change 1')
+        if self.days_on_date_of_change2 is not None:
+            ax1.axvline(self.days_on_date_of_change2, color='green', linestyle='--', linewidth=1, label='Date of Change 2')
 
         ax2 = ax1.twiny()
         weekly_cow = self.m1_weekly_cow
@@ -114,8 +122,7 @@ class LactationPlots:
         ax2.set_xlim(1, 52)
         ax2.grid(axis='x', linestyle=':', alpha=0.7)
 
-
-         # Add a duplicate x-axis for daily (top), with divisions of 7 days starting at 0
+        # Add a duplicate x-axis for daily (top), with divisions of 7 days starting at 0
         ax3 = ax1.twiny()
         ax3.spines['top'].set_position(('outward', 40))
         num_days = len(daily_cow) if daily_cow is not None else 364
@@ -126,7 +133,6 @@ class LactationPlots:
         # Very light vertical grid for days
         for tick in day_ticks:
             ax3.axvline(x=tick, color='gray', linestyle=':', alpha=0.15, zorder=0)
-
 
         lines1, labels1 = ax1.get_legend_handles_labels()
         lines2, labels2 = ax2.get_legend_handles_labels()
@@ -144,7 +150,7 @@ class LactationPlots:
         return img_base64
 
     def plot_maxdiff(self):
-        fig, ax1 = plt.subplots(figsize=(14, 7))
+        fig, ax1 = plt.subplots(figsize=(14, 8))
         if self.m1_maxdiff_weekly_avg is not None:
             ax1.plot(np.arange(1, 53), self.m1_maxdiff_weekly_avg.head(52).values, 'o-', color='blue', label='Weekly Avg MaxDiff')
         ax1.set_xlabel('Week')
@@ -179,7 +185,7 @@ class LactationPlots:
         print(f"maxdiff_avg.png updated at {output_path}")
 
     def plot_zscore_comparison(self):
-        fig, ax1 = plt.subplots(figsize=(12, 6))
+        fig, ax1 = plt.subplots(figsize=(14, 8))
         ax1.plot(self.avg_zscore_per_row_weekly_log_index, self.avg_zscore_per_row_weekly_log, 'o-', color='blue', label='Weekly Avg Z-Score')
         ax1.set_xlabel('Week')
         ax1.set_ylabel('Weekly Avg Z-Score', color='blue')

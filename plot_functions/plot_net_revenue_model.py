@@ -13,14 +13,16 @@ from container import get_dependency
 class PlotNetRevenueModel:
     def __init__(self):
         self.df = None
-        self.date_of_change = None
+        self.date_of_change1 = None
+        self.date_of_change2 = None
         self.output_folder = None
 
     def load_and_process(self):
         wdg = get_dependency('wet_dry_groups')
         self.df = wdg.net_revenue_wet_dry_df.copy()
         LLS = get_dependency('lactations_log_standard')
-        self.date_of_change = pd.to_datetime(getattr(LLS, 'date_of_change', None))
+        self.date_of_change1 = pd.to_datetime(getattr(LLS, 'date_of_change1', None))
+        self.date_of_change2 = pd.to_datetime(getattr(LLS, 'date_of_change2', None))
         self.df['date'] = pd.to_datetime(self.df['date'])
 
         self.output_folder = r"Q:\My Drive\COWS\data\plots\net_revenue_plots"
@@ -38,7 +40,7 @@ class PlotNetRevenueModel:
             if weekly[['revenue', 'feedcost', 'net_revenue']].isnull().all().all():
                 continue
 
-            fig, ax1 = plt.subplots(figsize=(14, 7))
+            fig, ax1 = plt.subplots(figsize=(14, 8))
             # Stacked bar for revenue and feedcost
             ax1.bar(weekly['date'], weekly['feedcost'], color='#f7cbe0', label='Feedcost', width=10)
             ax1.bar(weekly['date'], weekly['revenue'], color='#cef0d1', label='Revenue', width=10, bottom=weekly['feedcost'])
@@ -55,9 +57,11 @@ class PlotNetRevenueModel:
             ax1.set_xticklabels([dt.strftime('%m/%d') for dt in week_ticks], rotation=90)
             for tick in week_ticks:
                 ax1.axvline(tick, color='gray', linestyle=':', alpha=0.3, zorder=0)
-            # Day of change vertical line
-            if pd.notna(self.date_of_change):
-                ax1.axvline(self.date_of_change, color='green', linestyle='--', linewidth=2, label='Day of Change')
+            # Day of change vertical lines
+            if pd.notna(self.date_of_change1):
+                ax1.axvline(self.date_of_change1, color='green', linestyle='--', linewidth=2, label='Day of Change 1')
+            if pd.notna(self.date_of_change2):
+                ax1.axvline(self.date_of_change2, color='red', linestyle='--', linewidth=2, label='Day of Change 2')
             ax1.grid(axis='y', linestyle='--', alpha=0.7)
             ax1.set_xlim(self.df['date'].min(), self.df['date'].max())
             # Legends

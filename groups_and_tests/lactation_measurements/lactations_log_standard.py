@@ -21,8 +21,10 @@ class LactationsLogStandard:
             
         self.input_WY_id =None
         self.WY_id = None
-        self.days_on_date_of_change = None
-        self.date_of_change = None
+        self.days_on_date_of_change1 = None
+        self.days_on_date_of_change2 = None
+        self.date_of_change1 = None
+        self.date_of_change2 = None
         self.lastday = None
 
         # Daily data
@@ -80,13 +82,16 @@ class LactationsLogStandard:
         self.LW = get_dependency('weekly_lactations')
         self.WD = get_dependency('wet_dry')
 
-        self.date_of_change = pd.to_datetime('2025-09-27').date()
+        self.date_of_change1 = pd.to_datetime('2025-09-27').date()
+        self.date_of_change2 = pd.to_datetime('2025-11-04').date()
         self.lastday = self.MB.lastday #timestamp
         
         # Methods
 
         self.input_WY_id            = self.create_input_WY_id()
-        self.days_on_date_of_change = self.get_days_milking()
+        days_milking = self.get_days_milking()
+        self.days_on_date_of_change1 = days_milking[0]
+        self.days_on_date_of_change2 = days_milking[1]
 
 
         (self.m1_daily_all, 
@@ -148,14 +153,20 @@ class LactationsLogStandard:
 
 
     def get_days_milking(self):
-        # Ensure wdd index is a DatetimeIndex
+        # Returns days milking for both date_of_change1 and date_of_change2 as a tuple
         if not isinstance(self.WD.wet_days_df.index, pd.DatetimeIndex):
             self.WD.wet_days_df.index = pd.to_datetime(self.WD.wet_days_df.index)
-        # Now you can safely use .date
         self.WD.wet_days_df.index = self.WD.wet_days_df.index.date
-        # Now you can safely grab the row
-        self.days_on_date_of_change = pd.DataFrame(self.WD.wet_days_df.loc[self.date_of_change])
-        return self.days_on_date_of_change
+
+        def get_days_for_date(date):
+            try:
+                return pd.DataFrame(self.WD.wet_days_df.loc[date])
+            except KeyError:
+                return None
+
+        result1 = get_days_for_date(self.date_of_change1)
+        result2 = get_days_for_date(self.date_of_change2)
+        return result1, result2
                  
     def create_daily_all(self):
 
