@@ -15,7 +15,7 @@ class WhiteboardGroups:
 
         print(f"WhiteboardGroups instantiated by: {inspect.stack()[1].filename}")
         
-        self.ods_data = get_data('F:\\COWS\\data\\daily_milk.ods')
+
 
         self.MA = None
         self.MB = None
@@ -40,14 +40,11 @@ class WhiteboardGroups:
         self.specific_date = None
         self.whiteboard_groups_tenday = None
 
-        self.fresh_df = None
-        self.group_a_df = None
-        self.group_b_df = None
-        self.group_c_df = None
+        self.group_sheets = {}
         
 
-    def load_and_process(self):
-
+    def load(self):
+        # Load dependencies and data
         self.MB         = get_dependency('milk_basics')
         self.BD         = self.MB.bd.copy()
         self.MA         = get_dependency('milk_aggregates')
@@ -55,42 +52,31 @@ class WhiteboardGroups:
         self.alive_mask = self.SD.alive_ids_last
         self.fullday    = self.MA.fullday.copy()
         self.fullday_last    = self.MA.fullday.iloc[-1:, :].copy()
-
         self.tenday     = self.MA.tenday
-
-        start_date      ='2025-09-01'
-        stop_date       = self.fullday_last.index[0]  #.index[0] gets the first (and only) value from this Index
+        start_date      = '2025-06-01'
+        stop_date       = self.fullday_last.index[0]
         self.date_range = pd.date_range(start_date, stop_date)
+
+        excel_path = r"F:\COWS\data\milk_data\daily_milk\daily_milk.xlsx"
 
 
         def sheet_to_df(sheet):
-            data = self.ods_data[sheet]
-            df = pd.DataFrame(data)
-            df = df.iloc[2:].reset_index(drop=True)
-            df.columns = df.iloc[0]
-            df = df[1:].reset_index(drop=True)
-            df.set_index(df.columns[0], inplace=True)
+            df = pd.read_excel(excel_path, sheet_name=sheet, header=2, index_col=0)
             df.index = df.index.fillna(0)
             df.index = df.index.astype(int)
             df.columns = pd.to_datetime(df.columns, errors='coerce')
             df = df.iloc[:55, :]
             return df
-            
-        self.fresh_df   = sheet_to_df('fresh')
-        self.group_a_df = sheet_to_df('group_A')
-        self.group_b_df = sheet_to_df('group_B')
-        self.group_c_df = sheet_to_df('group_C')
-        self.sick_df    = sheet_to_df('sick')
 
+        for sheet in ['fresh', 'group_A', 'group_B', 'group_C', 'sick']:
+            self.group_sheets[sheet] = sheet_to_df(sheet)
 
-        
-
-
+    def process(self):
         # Now all self.fresh_df, self.group_a_df, ... have datetime columns
         self.groups_matrix, self.whiteboard_groups_dict = self.create_whiteboard_groups_dict()
         self.groups_by_date_by_cow = self.create_groups_by_date_by_cow()
         self.whiteboard_groups_specific_date, self.specific_date = self.create_whiteboard_groups_specific_date()
-        self.whiteboard_groups_for_dailymilk = self.create_whiteboard_groups_for_dailymilk()
+        # self.whiteboard_groups_for_dailymilk = self.create_whiteboard_groups_for_dailymilk()
         self.whiteboard_groups_tenday = self.create_whiteboard_groups_tenday()
         self.write_to_csv()
 
@@ -122,13 +108,11 @@ class WhiteboardGroups:
                 else:
                     return {'unknown': []}
 
-        whiteboard_groups_dict = {
-            "fresh_ids": get_ids_by_date(self.fresh_df),
-            "group_A_ids": get_ids_by_date(self.group_a_df),
-            "group_B_ids": get_ids_by_date(self.group_b_df),
-            "group_C_ids": get_ids_by_date(self.group_c_df),
-            "sick_ids": get_ids_by_date(self.sick_df)
-        }
+
+        whiteboard_groups_dict = {}
+        for sheet in self.group_sheets:
+            key = f"{sheet}_ids"
+            whiteboard_groups_dict[key] = get_ids_by_date(self.group_sheets[sheet])
         self.whiteboard_groups_dict = whiteboard_groups_dict
 
         # Build the main groups_matrix DataFrame for reuse
@@ -218,8 +202,8 @@ class WhiteboardGroups:
         self.whiteboard_groups_specific_date = group_df 
         return self.whiteboard_groups_specific_date, self.specific_date
 
-    def create_whiteboard_groups_for_dailymilk(self):
-        # Use the most recent date from milk aggregates
+    def create_whiteboard_groups_tenday(self):
+        # This is a single col of the latest vals.  Use the most recent date from milk aggregates
         specific_date = self.MA.fullday_lastdate.index[0]
         specific_date1 = pd.to_datetime(specific_date, format='%Y-%m-%d')
         specific_date2 = specific_date1.strftime('%Y-%m-%d')
@@ -236,73 +220,95 @@ class WhiteboardGroups:
                 group_df = group_df.dropna(subset=[date_col])
                 return group_df
             else:
-                return None
+                # Try to use the last available date if date_col is missing
+                if len(group_df.columns) > 0:
+                    last_col = group_df.columns[-1]
+                    import warnings
+                    warnings.warn(f"Date {date_col} not found in group_df.columns. Using last available date: {last_col}")
+                    group_df = group_df.iloc[:70][last_col].copy().to_frame()
+                    group_df['group'] = group_label
+                    group_df[last_col] = group_df[last_col].replace(r'^\s*$', np.nan, regex=True)
+                    group_df = group_df.dropna(subset=[last_col])
+                    group_df = group_df.rename(columns={last_col: date_col})
+                    return group_df
+                else:
+                    import warnings
+                    warnings.warn(f"No columns available in group_df for group {group_label}.")
+                    return None
 
         #indentation is correct
-        f1 = get_group_df(self.fresh_df, 'F')
-        a1 = get_group_df(self.group_a_df, 'A')
-        b1 = get_group_df(self.group_b_df, 'B')
-        c1 = get_group_df(self.group_c_df, 'C')
-        s1 = get_group_df(self.sick_df, 'sick')
+        f1 = get_group_df(self.group_sheets['fresh'], 'F')
+        a1 = get_group_df(self.group_sheets['group_A'], 'A')
+        b1 = get_group_df(self.group_sheets['group_B'], 'B')
+        c1 = get_group_df(self.group_sheets['group_C'], 'C')
+        s1 = get_group_df(self.group_sheets['sick'], 'sick')
 
         frames = [f1, a1, b1, c1, s1]
+        frames = [f for f in frames if f is not None]
+        if not frames:
+            import warnings
+            warnings.warn("No group data frames available for tenday summary.")
+            self.whiteboard_groups_tenday = pd.DataFrame()
+            return self.whiteboard_groups_tenday
+
         d1 = pd.concat(frames, axis=0)
         d2 = d1.reset_index(drop=True)
-
+        d2 = d2.rename(columns={date_col: 'WY_id'})
         # Convert the date column to integer (ignore errors, drop NaN)
-        d2[date_col] = pd.to_numeric(d2[date_col], errors='coerce').dropna().astype(int)
-
-        self.whiteboard_groups_for_dailymilk = d2
-        return self.whiteboard_groups_for_dailymilk
+        if 'WY_id' in d2.columns:
+            d2['WY_id'] = pd.to_numeric(d2['WY_id'], errors='coerce').dropna().astype(int)
+        self.whiteboard_groups_tenday = d2
+        return self.whiteboard_groups_tenday
 
     # tenday should come from here (whiteboard) not from model_groups
-    def create_whiteboard_groups_tenday(self):
+    # def create_whiteboard_groups_tenday(self):
 
-        td1 = self.tenday.copy()
-        # filters out the bottom row (avg/total) and gets the slice for WY_id and relevant columns
-        td2 = td1.iloc[:-1, [0, 11, 12, 13, 14, 15]].copy()
-        td2.columns.values[0] = 'WY_id'
+    #     td1 = self.tenday.copy()
+    #     # filters out the bottom row (avg/total) and gets the slice for WY_id and relevant columns
+    #     td2 = td1.iloc[:-1, [0, 11, 12, 13, 14, 15]].copy()
+    #     td2.columns.values[0] = 'WY_id'
 
-        def get_group_slice(group_df, group_label):
-            # Get the most recent column (last date)
-            col = group_df.columns[-1]
-            ids = group_df.iloc[:70, -1].copy()
-            # Convert to string WY_ids
-            wy_ids = [str(int(float(x))) for x in pd.to_numeric(ids, errors='coerce') if pd.notna(x)]
-            # Filter td2 for these WY_ids
-            filtered = td2[td2['WY_id'].astype(str).isin(wy_ids)].copy()
-            if not filtered.empty:
-                filtered.loc[:, 'group'] = group_label
-            return filtered
+    #     def get_group_slice(group_df, group_label):
+    #         # Get the most recent column (last date)
+    #         col = group_df.columns[-1]
+    #         ids = group_df.iloc[:70, -1].copy()
+    #         # Convert to string WY_ids
+    #         wy_ids = [str(int(float(x))) for x in pd.to_numeric(ids, errors='coerce') if pd.notna(x)]
+    #         # Filter td2 for these WY_ids
+    #         filtered = td2[td2['WY_id'].astype(str).isin(wy_ids)].copy()
+    #         if not filtered.empty:
+    #             filtered.loc[:, 'group'] = group_label
+    #         return filtered
 
-        f3 = get_group_slice(self.fresh_df, 'F')
-        a3 = get_group_slice(self.group_a_df, 'A')
-        b3 = get_group_slice(self.group_b_df, 'B')
-        c3 = get_group_slice(self.group_c_df, 'C')
-        s1 = get_group_slice(self.sick_df, 'sick')
 
-        # sick group special ฉีดยา group_label)
-        s1 = self.sick_df.iloc[:70, -1].copy()
-        s2 = [str(int(float(x))) for x in pd.to_numeric(s1, errors='coerce') if pd.notna(x)]
-        s3 = td2[td2['WY_id'].astype(str).isin(s2)].copy()
-        if not s3.empty:
-            s3.loc[:, 'group'] = 'ฉีดยา'
+    #     f3 = get_group_slice(self.group_sheets['fresh'], 'F')
+    #     a3 = get_group_slice(self.group_sheets['group_A'], 'A')
+    #     b3 = get_group_slice(self.group_sheets['group_B'], 'B')
+    #     c3 = get_group_slice(self.group_sheets['group_C'], 'C')
+    #     s1 = get_group_slice(self.group_sheets['sick'], 'sick')
 
-        frames = [f3, a3, b3, c3]
-        if not s3.empty:
-            frames.append(s3)
+    #     # sick group special ฉีดยา group_label)
+    #     sick_col = self.group_sheets['sick'].iloc[:70, -1].copy()
+    #     s2 = [str(int(float(x))) for x in pd.to_numeric(sick_col, errors='coerce') if pd.notna(x)]
+    #     s3 = td2[td2['WY_id'].astype(str).isin(s2)].copy()
+    #     if not s3.empty:
+    #         s3.loc[:, 'group'] = 'ฉีดยา'
 
-        d1 = pd.concat(frames, axis=0)
-        d1['avg'] = d1['avg'].astype(float)
-        d2 = d1.sort_values('avg', ascending=False)
-        d3 = d2.reset_index(drop=True)
+    #     frames = [f3, a3, b3, c3]
+    #     if not s3.empty:
+    #         frames.append(s3)
 
-        self.whiteboard_groups_tenday = d3
-        return self.whiteboard_groups_tenday
+    #     d1 = pd.concat(frames, axis=0)
+    #     d1['avg'] = d1['avg'].astype(float)
+    #     d2 = d1.sort_values('avg', ascending=False)
+    #     d3 = d2.reset_index(drop=True)
+
+    #     self.whiteboard_groups_tenday = d3
+        # return self.whiteboard_groups_tenday
 
     def write_to_csv(self):
         self.whiteboard_groups_tenday       .to_csv('F:\\COWS\\data\\groups_and_tests\\whiteboard_groups_tenday.csv')
-        self.whiteboard_groups_for_dailymilk.to_csv('F:\\COWS\\data\\groups_and_tests\\whiteboard_groups_for_dailymilk.csv')
+        # self.whiteboard_groups_for_dailymilk.to_csv('F:\\COWS\\data\\groups_and_tests\\whiteboard_groups_for_dailymilk.csv')
         self.groups_by_date_by_cow          .to_csv('F:\\COWS\\data\\groups_and_tests\\whiteboard_groups_by_date_by_cow.csv')
         self.whiteboard_groups_specific_date.to_csv('F:\\COWS\\data\\groups_and_tests\\whiteboard_groups_specific_date.csv')
 
@@ -313,5 +319,6 @@ class WhiteboardGroups:
     
 
 if __name__ == "__main__":
-    obj=WhiteboardGroups()
-    obj.load_and_process()      
+    obj = WhiteboardGroups()
+    obj.load()
+    obj.process()
