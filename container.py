@@ -310,7 +310,10 @@ class Container:
         
     def _create_whiteboard_groups(self):
         from groups_and_tests.whiteboard_groups import WhiteboardGroups
-        return WhiteboardGroups()
+        wg = WhiteboardGroups()
+        wg.load()
+        wg.process()
+        return wg
     
     def _create_compare_model_whiteboard_groups_last(self):
         from groups_and_tests.compare_model_whiteboard_groups_last import CompareModelWhiteboardGroups_Last
