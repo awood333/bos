@@ -260,51 +260,6 @@ class WhiteboardGroups:
         self.whiteboard_groups_tenday = d2
         return self.whiteboard_groups_tenday
 
-    # tenday should come from here (whiteboard) not from model_groups
-    # def create_whiteboard_groups_tenday(self):
-
-    #     td1 = self.tenday.copy()
-    #     # filters out the bottom row (avg/total) and gets the slice for WY_id and relevant columns
-    #     td2 = td1.iloc[:-1, [0, 11, 12, 13, 14, 15]].copy()
-    #     td2.columns.values[0] = 'WY_id'
-
-    #     def get_group_slice(group_df, group_label):
-    #         # Get the most recent column (last date)
-    #         col = group_df.columns[-1]
-    #         ids = group_df.iloc[:70, -1].copy()
-    #         # Convert to string WY_ids
-    #         wy_ids = [str(int(float(x))) for x in pd.to_numeric(ids, errors='coerce') if pd.notna(x)]
-    #         # Filter td2 for these WY_ids
-    #         filtered = td2[td2['WY_id'].astype(str).isin(wy_ids)].copy()
-    #         if not filtered.empty:
-    #             filtered.loc[:, 'group'] = group_label
-    #         return filtered
-
-
-    #     f3 = get_group_slice(self.group_sheets['fresh'], 'F')
-    #     a3 = get_group_slice(self.group_sheets['group_A'], 'A')
-    #     b3 = get_group_slice(self.group_sheets['group_B'], 'B')
-    #     c3 = get_group_slice(self.group_sheets['group_C'], 'C')
-    #     s1 = get_group_slice(self.group_sheets['sick'], 'sick')
-
-    #     # sick group special ฉีดยา group_label)
-    #     sick_col = self.group_sheets['sick'].iloc[:70, -1].copy()
-    #     s2 = [str(int(float(x))) for x in pd.to_numeric(sick_col, errors='coerce') if pd.notna(x)]
-    #     s3 = td2[td2['WY_id'].astype(str).isin(s2)].copy()
-    #     if not s3.empty:
-    #         s3.loc[:, 'group'] = 'ฉีดยา'
-
-    #     frames = [f3, a3, b3, c3]
-    #     if not s3.empty:
-    #         frames.append(s3)
-
-    #     d1 = pd.concat(frames, axis=0)
-    #     d1['avg'] = d1['avg'].astype(float)
-    #     d2 = d1.sort_values('avg', ascending=False)
-    #     d3 = d2.reset_index(drop=True)
-
-    #     self.whiteboard_groups_tenday = d3
-        # return self.whiteboard_groups_tenday
 
     def write_to_csv(self):
         self.whiteboard_groups_tenday       .to_csv('F:\\COWS\\data\\groups_and_tests\\whiteboard_groups_tenday.csv')
