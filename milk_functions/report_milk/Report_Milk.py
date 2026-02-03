@@ -19,7 +19,6 @@ class ReportMilk:
 
         self.MA = get_dependency('milk_aggregates')
         self.WG = get_dependency('whiteboard_groups')
-        # self.CompareGroups  = get_dependency('compare_model_whiteboard_groups_last')
 
         self.tenday, self.halfday, self.WB_groups = self.createReportMilk()
 
@@ -90,8 +89,14 @@ class ReportMilk:
             tenday_formatted[col] = pd.to_numeric(tenday_formatted.iloc[:, idx], errors='coerce').round(0).astype('Int64').astype(str)
 
         halfday_formatted = format_dataframe(halfday, column_formats)
-        groups_formatted = format_dataframe(WB_groups, column_formats)
-        # CompareGroups_formatted = format_dataframe(CompareGroups, column_formats)
+        groups_formatted1 = format_dataframe(WB_groups, column_formats)
+
+        cols = tenday_formatted.columns
+        tenday_part = tenday_formatted.loc[:, cols[11:18]]
+        groups_formatted2 = pd.concat([groups_formatted1,tenday_part], axis=1)
+        groups_formatted = groups_formatted2.sort_values('avg', ascending=True)
+
+
 
         return tenday_formatted, halfday_formatted, groups_formatted
     
