@@ -89,14 +89,29 @@ class ReportMilk:
             tenday_formatted[col] = pd.to_numeric(tenday_formatted.iloc[:, idx], errors='coerce').round(0).astype('Int64').astype(str)
 
         halfday_formatted = format_dataframe(halfday, column_formats)
+
+        # Format whiteboard groups (no pre-sort; WB_groups may not have 'avg')
         groups_formatted1 = format_dataframe(WB_groups, column_formats)
 
+        # Slice tenday to get WY_id and the dynamic 10-day columns, excluding the last summary row
         cols = tenday_formatted.columns
-        tenday_part = tenday_formatted.loc[:, cols[11:18]]
-        groups_formatted2 = pd.concat([groups_formatted1,tenday_part], axis=1)
-        groups_formatted = groups_formatted2.sort_values('avg', ascending=True)
+        ten_day_cols = list(cols[11:18])
+        tenday_part = tenday_formatted.loc[tenday_formatted.index[:-1], ['WY_id'] + ten_day_cols]
 
+        # Merge on WY_id so that group info lines up with the correct 10-day values
+        groups_merged = pd.merge(groups_formatted1, tenday_part, on='WY_id', how='left', sort=False)
 
+        # Sort numerically by avg if present, then drop helper column
+        if 'avg' in groups_merged.columns:
+            groups_merged['avg_sort'] = pd.to_numeric(groups_merged['avg'], errors='coerce')
+            groups_formatted = (
+                groups_merged
+                .sort_values('avg_sort', ascending=False)
+                .drop(columns=['avg_sort'])
+                .reset_index(drop=True)
+            )
+        else:
+            groups_formatted = groups_merged.reset_index(drop=True)
 
         return tenday_formatted, halfday_formatted, groups_formatted
     
