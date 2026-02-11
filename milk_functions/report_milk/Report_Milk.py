@@ -11,16 +11,16 @@ class ReportMilk:
         self.MA = None
         self.WG = None
         # self.CompareGroups = None
-        self.tenday = None
-        self.halfday = None
-        self.WB_groups = None
+        self.tenday_formatted = None
+        self.halfday_formatted = None
+        self.WB_groups_formatted = None
 
     def load_and_process(self):
 
         self.MA = get_dependency('milk_aggregates')
         self.WG = get_dependency('whiteboard_groups')
 
-        self.tenday, self.halfday, self.WB_groups = self.createReportMilk()
+        self.tenday_formatted, self.halfday_formatted, self.WB_groups_formatted = self.createReportMilk()
 
 
     def createReportMilk(self): 
@@ -63,6 +63,8 @@ class ReportMilk:
 # So, each time you call format_dataframe with a different DataFrame (like tenday, halfday, or WB_groups), 
 # it applies the formatting rules from column_formats to that DataFrame and returns a formatted copy.
         
+
+        #indentation is correct -- nested function
         def format_dataframe(dfx, formats):
             df_formatted = dfx.copy()
             for col in df_formatted.columns:

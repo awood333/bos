@@ -41,10 +41,11 @@ class NetRevenue:
     
     def create_net_revenue(self):
         
-        income1 = self.MI.income_daily
-        income2 = income1.loc[self.startdate:,:]
-        income3 = income2['avg gross'].copy()
-        income3.index = pd.to_datetime(income3.index, errors='coerce')
+        income1 = self.MI.income.copy()
+        income1['datex'] = pd.to_datetime(income1['datex'])
+        income1 = income1.set_index('datex')
+        income2 = income1.loc[self.startdate:]
+        income3 = income2['baht'].copy()
         
         
         feedcost2 = self.feedcost1.loc[self.startdate:,:]
@@ -52,7 +53,7 @@ class NetRevenue:
         feedcost3.index = pd.to_datetime(feedcost3.index, errors='coerce')
         
         netrev1 = pd.concat((income3,feedcost3), axis=1)
-        netrev1['net revenue'] = netrev1['avg gross'] - netrev1['total feedcost']
+        netrev1['net revenue'] = netrev1['baht'] - netrev1['total feedcost']
         
         self.net_revenue_daily = netrev1
         self.net_revenue_daily_last = self.net_revenue_daily.iloc[-5:, :]
