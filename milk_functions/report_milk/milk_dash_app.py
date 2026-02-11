@@ -80,7 +80,7 @@ def get_style_cell_conditional(table_columns):
     ]
 
 
-def get_style_cell_conditional_fortenday(table_columns):
+def get_style_cell_conditional_for_tenday(table_columns):
     """Set width for first column as in COLUMN_WIDTHS, next 9 dynamic cols to 120px, rest use COLUMN_WIDTHS if defined."""
     style = []
     # First column (usually WY_id)
@@ -105,9 +105,9 @@ def run_milk_dash_app():
     plots   = get_dependency('lactation_plots')     #ignore pylint: this is enough to run the mod
     #running 'plots' also calls all the lactation related modules
 
-    tenday_df  = report.tenday
-    halfday_df = report.halfday 
-    groups_df  =  report.WB_groups
+    tenday_df  = report.tenday_formatted
+    halfday_df = report.halfday_formatted 
+    groups_df  =  report.WB_groups_formatted
     # compare_groups_df = report.CompareGroups
 
 
@@ -140,7 +140,7 @@ def run_milk_dash_app():
                             style_header=get_table_header_style(),
                             style_cell=get_table_cell_style(),
                             cell_selectable=True,
-                            style_cell_conditional=get_style_cell_conditional_fortenday(tenday_df.columns),
+                            style_cell_conditional=get_style_cell_conditional_for_tenday(tenday_df.columns),
                             style_data_conditional=[
                                 {
                                     'if': {'column_id': 'WY_id'},
