@@ -20,8 +20,8 @@ class RunInsemStatusIU:
 
         self.next_ultra_check   = NextUltraCheck()
 
-        self.wet_dry        = WetDry()
-        self.status_data    = status_data()
+        self.wet_dry            = WetDry()
+        self.status_data        = status_data()
 
         self.insem_ultra_basics.load_and_process()
         self.insem_ultra_data.load_and_process()

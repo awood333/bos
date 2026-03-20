@@ -29,6 +29,14 @@ class WetDryGroups:
         self.startdate = DR.startdate
         self.fcb_weekly = FCB.feedcost_weekly
 
+        # Debug: print info about feedcost_weekly
+        # print("[DEBUG] feedcost_weekly info:")
+        # print(f"  Type: {type(self.fcb_weekly)}")
+        # print(f"  Shape: {self.fcb_weekly.shape if hasattr(self.fcb_weekly, 'shape') else 'N/A'}")
+        # print(f"  Columns: {self.fcb_weekly.columns if hasattr(self.fcb_weekly, 'columns') else 'N/A'}")
+        # if hasattr(self.fcb_weekly, 'head'):
+        #     print(self.fcb_weekly.head(3))
+
         WDD = WD.wet_dry_weekly.copy()  # NOTE: weekly data - not daily, now uses 'period_week' not 'week'
         # Filter by date if present, otherwise use all
         if 'date' in WDD.columns:
@@ -93,19 +101,23 @@ class WetDryGroups:
 
         def get_feedcost(row):
             group = row['group']
-            # Use the actual date column for week matching
             week_date = row['date'] if 'date' in row else None
+            wy_id = row['WY_id'] if 'WY_id' in row else None
             if pd.isna(group) or pd.isna(week_date):
                 return None
             col = group_to_col.get(group)
             if col is None:
                 return None
-            # Convert date to period start (week) to match fcb['week']
             try:
                 week_dt = pd.to_datetime(week_date).to_period('W').start_time
             except Exception:
                 return None
             match = fcb[fcb['week'] == week_dt]
+            # Debug print for cow #94
+            # if wy_id == 94:
+            #     print("[DEBUG][Cow94] date:", week_date, "group:", group, "week_dt:", week_dt)
+            #     print("[DEBUG][Cow94] fcb row:")
+            #     print(match[["week"] + [c for c in match.columns if c.startswith("totalcost")]] if not match.empty else "No matching week in fcb")
             if not match.empty and col in match.columns:
                 try:
                     return round(float(match.iloc[0][col]), 1)

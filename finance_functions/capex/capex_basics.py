@@ -25,6 +25,7 @@ class CapexBasics:
         self.DR = get_dependency('date_range')
         self.start_date = self.DR.startdate
 
+
         self.bkk = self.load_partition_data()
         self.capex_details, self.non_capex_details = self.create_capex()
         self.capex_pivot = self.group_capex_data()
@@ -95,8 +96,8 @@ class CapexBasics:
               
     def group_non_capex_data(self):
         
-        non_capex1 = self.non_capex_details
-        non_capex2 = non_capex1.loc[self.start_date:,:]
+        non_capex1 = self.non_capex_details  #all rows without the x in capex col
+        non_capex2 = non_capex1[non_capex1.index >= self.start_date]
         
         non_capex_by_month = non_capex2.groupby(['year','month','descr 1']).agg(
             {'debit'    : 'sum'}
@@ -111,7 +112,7 @@ class CapexBasics:
                                     )
         
         non_capex_pivot2 = non_capex_pivot1.drop(columns=(['feed']))
-        non_capex_pivot2['sum'] = non_capex_pivot2.sum(axis=1)
+        non_capex_pivot2['cost sum'] = non_capex_pivot2.sum(axis=1)
         self.non_capex_pivot = non_capex_pivot2
 
         return self.non_capex_pivot

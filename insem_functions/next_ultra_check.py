@@ -1,4 +1,5 @@
 """
+insem_functions\next_ultra_check.py
 Class to create a DataFrame for next ultra check dates.
 Fields: WY_id, i_date, age_insem, next_ultra_check_date
 Logic: If 'age insem' is not null and 'u_date' is null, next_ultra_check_date = i_date + 40 days

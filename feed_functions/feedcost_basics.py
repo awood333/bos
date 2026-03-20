@@ -126,11 +126,21 @@ class Feedcost_basics:
     def create_total_cost_group(self, group_name):
         cost_dict = getattr(self, f'cost_dict_{group_name}')
         feeds_in_group = [feed for feed in self.feed_type if feed in cost_dict]
+        # Debug print: show length and first/last values for each feed
+        # print(f"[DEBUG] create_total_cost_group('{group_name}') cost_dict keys: {list(cost_dict.keys())}")
+        # for feed in feeds_in_group:
+        #     print(f"[DEBUG] Feed '{feed}' - len: {len(cost_dict[feed])}, first: {cost_dict[feed][0]}, last: {cost_dict[feed][-1]}")
         feed_series = {feed: pd.Series(cost_dict[feed]).astype(float) for feed in feeds_in_group}
-        total_cost = sum(feed_series.values())
+        # Debug print: show feed_series info
+        # for feed, series in feed_series.items():
+        #     print(f"[DEBUG] FeedSeries '{feed}' - NaNs: {series.isna().sum()}, first: {series.iloc[0]}, last: {series.iloc[-1]}")
         df = pd.DataFrame(feed_series)
+        df = df.fillna(0)
+        total_cost = df.sum(axis=1)
+        # print(f"[DEBUG] total_cost (after fillna) - NaNs: {total_cost.isna().sum()}, first: {total_cost.iloc[0]}, last: {total_cost.iloc[-1]}")
         df[f'totalcost{group_name}'] = total_cost
         df.index = self.rng_daily
+        # print(f"[DEBUG] DataFrame shape: {df.shape}, totalcost{group_name} NaNs: {df[f'totalcost{group_name}'].isna().sum()}")
         setattr(self, f'totalcost_{group_name}_df', df)
         return df 
 

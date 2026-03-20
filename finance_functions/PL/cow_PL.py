@@ -21,6 +21,7 @@ class CowPL:
         self.alive_ids = None
         self.feed_cost_A = None
         self.feed_cost_B = None
+        self.feed_cost_C = None        
         self.feed_cost_dry = None
         self.alive_mask_str = None
         self.alive_mask_int = None
@@ -69,8 +70,8 @@ class CowPL:
         self.write_to_csv()
         
     def get_days_in_groups(self):
-        
-        wetdays = self.WD.wdd.loc[:,self.alive_mask_int]
+        #get data for all cows - filter later
+        wetdays = self.WD.wdd   #.loc[:,self.alive_mask_int]
         
         daysA_list = []
         daysB_list = []

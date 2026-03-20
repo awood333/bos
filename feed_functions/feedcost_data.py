@@ -2,6 +2,7 @@
 
 import inspect
 import pandas as pd
+import numpy as np
 from container import get_dependency
 
 class FeedcostData:
@@ -28,7 +29,7 @@ class FeedcostData:
         self.dateRange = self.DR.date_range_daily
         self.herd_daily = self.SD.herd_daily
         # Reindex groups_count_daily from weekly to daily using ffill
-        import numpy as np
+
         groups_count = self.MG.groups_count_daily.copy()
         daily_index = pd.date_range(groups_count.index.min(), groups_count.index.max(), freq='D')
         group_cols = ['F', 'A', 'B', 'C', 'D']

@@ -45,28 +45,35 @@ class NetRevenue:
         income1['datex'] = pd.to_datetime(income1['datex'])
         income1 = income1.set_index('datex')
         income2 = income1.loc[self.startdate:]
-        income3 = income2['baht'].copy()
-        
-        
+        # Keep 'baht' and 'avg_liters' columns
+        income3 = income2[['baht', 'avg_liters']].copy()
+        income3 = income3.rename(columns={'avg_liters': 'liters'})
+
         feedcost2 = self.feedcost1.loc[self.startdate:,:]
         feedcost3 = feedcost2['total feedcost'].copy()
         feedcost3.index = pd.to_datetime(feedcost3.index, errors='coerce')
-        
-        netrev1 = pd.concat((income3,feedcost3), axis=1)
+
+        netrev1 = pd.concat((income3, feedcost3), axis=1)
         netrev1['net revenue'] = netrev1['baht'] - netrev1['total feedcost']
-        
+
         self.net_revenue_daily = netrev1
         self.net_revenue_daily_last = self.net_revenue_daily.iloc[-5:, :]
         self.feedcost_daily = feedcost3
-        
+
         return self.net_revenue_daily, self.net_revenue_daily_last, self.feedcost_daily
     
     def create_monthly_net(self):
-        nrm1 = self.net_revenue_daily
+        nrm1 = self.net_revenue_daily.copy()
         nrm1['year'] = nrm1.index.year
         nrm1['month'] = nrm1.index.month
-                 
-        self.net_revenue_monthly = nrm1.groupby(['year','month']).sum()
+        # Aggregate sum for all columns, but mean for avg_liters
+        monthly_sum = nrm1.groupby(['year', 'month']).sum()
+        monthly_mean_liters = nrm1.groupby(['year', 'month'])['liters'].mean()
+        monthly_mean_liters = pd.to_numeric(monthly_mean_liters, errors='coerce')
+        monthly_sum['daily liters'] = monthly_mean_liters.round(0)
+        # Round all columns to 0 decimals
+        monthly_sum = monthly_sum.round(0)
+        self.net_revenue_monthly = monthly_sum
         return self.net_revenue_monthly
 
  
