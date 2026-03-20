@@ -78,47 +78,28 @@ class MilkIncome:
     def calcMilkIncome(self):
 
         income3 = self.income_data
-        
-        income3['baht']       = income3['liters']  * 22  # / income3['day']
-        # income3['avg gross']        = income3['gross_baht'] / income3['day']
-        # income3['avg tax']          = income3['tax']        / income3['day']
-        # income3['avg other cost']   = income3['other']      / income3['day']
-        # income3['avg dtoc']         = income3['avg other cost'] + income3['avg tax'] 
-        
-        # income4 = income3.drop(columns={ 'liters','gross_baht','tax','other' })
+        # Calculate 'avg liters' as just 'liters' for each row (for later aggregation)
+        income3['avg_liters'] = income3['liters']
+        income3['baht'] = income3['liters'] * 22
         self.income = income3
-        
         return self.income
     
     def create_reindexed_daily_monthly(self):
 
-        # rng_daily           = self.DR.date_range_daily
-        
-        # price               = self.income['base']
-        # price_daily         = price.reindex(rng_daily, method='bfill').ffill()
-        # price_daily.index   = pd.to_datetime(price_daily.index, errors='coerce')
-        
-        # sahagon_liters1     = self.sahagon_liters.reindex(rng_daily)
-        # self.sahagon_income_daily = sahagon_liters1 * price_daily
-        
-        # income_daily        = self.income.reindex(rng_daily, method='bfill').ffill()
-        # income_daily.index  = pd.to_datetime(income_daily.index, errors='coerce')
-        # income_daily2       = income_daily
-
-        # self.income_daily   = income_daily2.drop( columns = ['avg tax', 'avg other cost'])
-         
-        
-
-        income_monthly1     = self.income.copy()
-        income_monthly2     = income_monthly1.set_index(income_monthly1['datex'], drop=True)
+        income_monthly1 = self.income.copy()
+        income_monthly2 = income_monthly1.set_index(income_monthly1['datex'], drop=True)
         income_monthly2['year'] = income_monthly2.index.year
         income_monthly2['month'] = income_monthly2.index.month
-        income_monthly2  = income_monthly2.drop(columns=['datex'])
+        income_monthly2 = income_monthly2.drop(columns=['datex'])
 
-        income_monthly3     = income_monthly2.groupby(['year','month']).sum()
-                
+        # Aggregate 'baht' and 'liters' as sum, 'avg_liters' as mean
+        income_monthly3 = income_monthly2.groupby(['year', 'month']).agg({
+            'liters': 'sum',
+            'avg_liters': 'mean',
+            'baht': 'sum'
+        })
+
         self.income_monthly = income_monthly3.loc[2025:,:]
-
         return self.income_monthly
     
     
