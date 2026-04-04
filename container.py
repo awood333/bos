@@ -30,7 +30,7 @@ class Container:
         self._dependency_graph = nx.DiGraph()
 
         if not getattr(self, '_initialized', False):
-            print(f"🚀 Container starting up at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+            print(f"Container starting up at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
             self._singletons: Dict[str, Any] = {}
             self._factories: Dict[str, Callable] = {}
             self._transients: Dict[str, Callable] = {}
@@ -39,7 +39,7 @@ class Container:
             self._lock = threading.RLock()
             self._initialized = True
             self._register_dependencies()
-            print(f"✅ Container initialization complete at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")            
+            print(f"Container initialization complete at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")            
 
 
     def _register_dependencies(self):
@@ -110,10 +110,9 @@ class Container:
         self.register_singleton('capex_projects',       self._create_capex_projects)
         self.register_singleton('income_statement',     self._create_income_statement)        
         self.register_singleton('milk_income',          self._create_milk_income)
-        self.register_singleton('cow_pl',               self._create_cow_pl)
+        # self.register_singleton('cow_pl',               self._create_cow_pl)
         self.register_singleton('depreciation',         self._create_depreciation)        
         self.register_singleton('net_revenue',          self._create_net_revenue)
-        # self.register_singleton('net_revenue_by_cow_by_date', self._create_net_revenue_by_cow_by_date)
         self.register_singleton('sahagon',              self._create_sahagon)
 
         # Report/Dashboard dependencies
@@ -144,7 +143,7 @@ class Container:
                     self._creation_order = []
 
                 if name in self._creating:
-                    print("🚨 CIRCULAR DEPENDENCY DETECTED!")
+                    print("CIRCULAR DEPENDENCY DETECTED!")
                     raise RuntimeError(f"Circular dependency: {' → '.join(self._creation_order)} → {name}")
 
                 self._creating.add(name)
@@ -172,7 +171,7 @@ class Container:
                 finally:
                     self._creating.remove(name)
                     self._creation_order.remove(name)
-                    print(f"🔚 Finished creating: {name}")
+                    print(f"Finished creating: {name}")
 
             # Check if it's a transient
             if name in self._transients:
@@ -213,7 +212,7 @@ class Container:
         """Visualize the dependency graph and save as image  IN CURRENT WORKING DIR"""
         nx.draw(self._dependency_graph, with_labels=True, node_color='lightblue', edge_color='gray')
         plt.savefig("dependency_graph.png", bbox_inches='tight')
-        print("✅ Dependency graph saved as dependency_graph.png")
+        print("Dependency graph saved as dependency_graph.png")
         plt.show()
 
     
@@ -400,14 +399,10 @@ class Container:
         from finance_functions.PL.NetRevenue import NetRevenue
         return NetRevenue()
     
-    def _create_cow_pl(self):
-        from finance_functions.PL.cow_PL import CowPL
-        return CowPL()
+    # def _create_cow_pl(self):
+    #     from finance_functions.PL.cow_PL import CowPL
+    #     return CowPL()
         
-    # def _create_net_revenue_by_cow_by_date(self):
-    #     from finance_functions.net_revenue.net_revenue_by_cow_by_date import NetRevenueByCowByDate
-    #     return NetRevenueByCowByDate()
-    
     def _create_sahagon(self):
         from finance_functions.income.sahagon import sahagon
         return sahagon()    

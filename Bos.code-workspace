@@ -18,6 +18,7 @@
 			"PYTHONPATH": "D:/Git_repos/bos"
 		},
 		"dotnetAcquisitionExtension.sharedExistingDotnetPath": "{ \"dotnetAcquisitionExtension.existingDotnetPath\": \"C:\\\\Program Files\\\\dotnet\\\\dotnet.exe\" }",
-		"dataWrangler.debug": true
+		"dataWrangler.debug": true,
+		"python.terminal.activateEnvironment": false
 	}
 }
