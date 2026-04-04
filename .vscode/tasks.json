@@ -1,57 +1,68 @@
 {
-    "version": "2.0.0",
-    "tasks": [
-        {
-            "label": "Run Bos Container",
-            "type": "shell",
-            "command": "python",
-            "args": [
-                "${workspaceFolder}/container.py"
-            ],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "shared"
-            },
-            
-            "problemMatcher": []
-        },
-
-        {
-            "label": "Start Persistent Container",
-            "type": "shell",
-            "command": "python",
-            "args": [
-                "${workspaceFolder}/persistent_container_service.py",
-                "start"
-            ],
-            "presentation": {
-                "reveal": "always",
-                "panel": "dedicated"
-            },
-            "problemMatcher": []
-        },
-
-
-{
-    "label": "Open External PowerShell and Run Persistent Container",
-    "type": "shell",
-    "command": "start",
-    "args": [
-        "powershell",
-        "-NoExit",
-        "-Command",
-        "\"D:\\Git_repos\\bos\\utilities\\start_persistent_container.bat\""
-    ],
-    "presentation": {
-        "panel": "shared"
-    }
-}
-    ]
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Run Bos Container",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"${workspaceFolder}/container.py"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared"
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "Start Persistent Container",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"${workspaceFolder}/persistent_container_service.py",
+				"start"
+			],
+			"presentation": {
+				"reveal": "always",
+				"panel": "dedicated"
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "Open External PowerShell and Run Persistent Container",
+			"type": "shell",
+			"command": "start",
+			"args": [
+				"powershell",
+				"-NoExit",
+				"-Command",
+				"\"D:\\Git_repos\\bos\\utilities\\start_persistent_container.bat\""
+			],
+			"presentation": {
+				"panel": "shared"
+			}
+		},
+		{
+			"label": "Run BOS FastAPI Server",
+			"type": "shell",
+			"command": "D:\\Git_repos\\bos\\.venv\\Scripts\\python.exe",
+			"args": [
+				"-m",
+				"uvicorn",
+				"server:app",
+				"--host",
+				"127.0.0.1",
+				"--port",
+				"8000"
+			],
+			"isBackground": true,
+			"group": "build"
+		}
+	]
 }

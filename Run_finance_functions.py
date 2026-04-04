@@ -6,8 +6,8 @@ from finance_functions.capex.capex_basics import CapexBasics
 
 from finance_functions.income.milk_income import MilkIncome
 from finance_functions.income.income_statement import IncomeStatement
-from finance_functions.net_revenue.discard.net_rev_this_lactation_WB import NetRevThisLactation_WB
-from finance_functions.net_revenue.discard.net_rev_this_lactation_model import NetRevThisLactation_model
+# from finance_functions.PL import net
+# from finance_functions.PL import NetRevThisLactation_model
 
 from finance_functions.PL.NetRevenue import NetRevenue
 from finance_functions.tax_docs.tax_docs_depreciation import TaxDocs_Depreciation
@@ -26,8 +26,8 @@ class RunFinanceFunctions:
         self.milk_income        = MilkIncome()
         self.income_statement   = IncomeStatement()
         self.net_revenue        = NetRevenue()
-        self.nrtl_WB            = NetRevThisLactation_WB()
-        self.nrtl_model         = NetRevThisLactation_model()
+        # self.nrtl_WB            = NetRevThisLactation_WB()
+        # self.nrtl_model         = NetRevThisLactation_model()
         self.cow_pl             = CowPL()
         
         self.tax_docs_depreciation  = TaxDocs_Depreciation()
@@ -42,8 +42,8 @@ class RunFinanceFunctions:
 
         self.income_statement.load_and_process()
         self.net_revenue.load_and_process()
-        self.nrtl_WB.load_and_process()
-        self.nrtl_model.load_and_process()
+        # self.nrtl_WB.load_and_process()
+        # self.nrtl_model.load_and_process()
         self.cow_pl.load_and_process()
         
         # self.tax_docs_depreciation.load_and_process()   uncomment after revising script

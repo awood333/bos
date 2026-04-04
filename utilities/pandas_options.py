@@ -19,7 +19,7 @@ class PandasOptions:
             'mode.sim_interactive': True,
 
             # IO Options
-            'io.excel.xlsx.writer': 'openpyxl',
+            # 'io.excel.xlsx.writer': 'openpyxl',
             'io.hdf.default_format': 'table'
         }
 
