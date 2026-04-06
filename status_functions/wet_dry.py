@@ -3,7 +3,6 @@ status_functions.wet_dry
 '''
 import inspect
 import pandas as pd
-import json
 from container import get_dependency
 
 today = pd.Timestamp.today()
@@ -30,7 +29,6 @@ class WetDry:
         self.wet_days_df = None
         self.dry_days_df = None
         self.wdd_monthly = None
-        self.wet_dry_dict = None
         self.wet_dry_df = None
         self.wet_dry_weekly = None
 
@@ -52,10 +50,9 @@ class WetDry:
 
         self.dry_days_df = self.create_dry_days()
 
-        self.wet_dry_dict = self.create_wet_dry_dict()
-        self.wet_dry_df   = self.flatten_dict_save_as_df()
+        self.wet_dry_df   = self.create_wet_dry_df()
         self.wet_dry_weekly = self.create_wetdry_weekly()
-        self.write_to_csv_json()
+        self.write_to_csv()
 
 
     def create_wet_days(self):
@@ -230,151 +227,98 @@ class WetDry:
 
         return self.dry_days_df
 
-    def create_wet_dry_dict(self):
-
+    def create_wet_dry_df(self):
+        """
+        Build wet_dry_df directly from wet_days_df, dry_days_df, and milk1.
+        No intermediate dict — pure vectorized pandas operations.
+        """
         wdd = self.wet_days_df
         milk1 = self.milk1
         wy_ids = self.MB.data['WY_ids']
         lact_numbers = list(self.MB.data['stop'].index)
         dry_days_df = self.dry_days_df
-        result = {}
 
-        for wy_id in wy_ids:
-            wy_id_str = str(wy_id)
-            result[wy_id_str] = {}
+        # --- 1. Stack wet_days_df → (date, WY_id, day_num) where day_num > 0 ---
+        wet = wdd.stack().reset_index()
+        wet.columns = ['date', 'WY_id', 'day_num']
+        wet = wet[wet['day_num'] > 0].copy()
 
-            for idx_lact, lact in enumerate(lact_numbers, 1):
-                entries = []
-                start = self.MB.data['start'].at[lact, wy_id] if (lact in self.MB.data['start'].index and wy_id in self.MB.data['start'].columns) else None
-                stop = self.MB.data['stop'].at[lact, wy_id] if (lact in self.MB.data['stop'].index and wy_id in self.MB.data['stop'].columns) else None
+        # --- 2. Stack milk1 → (date, WY_id, liters) and join ---
+        milk_s = milk1.stack().reset_index()
+        milk_s.columns = ['date', 'WY_id_str', 'liters']
+        milk_s['WY_id'] = pd.to_numeric(milk_s['WY_id_str'], errors='coerce')
+        milk_s = milk_s.drop(columns='WY_id_str')
+        wet = wet.merge(milk_s, on=['date', 'WY_id'], how='left')
+        wet['revenue'] = wet['liters'] * 22
+
+        # --- 3. Build period lookup for wet (L_1, L_2, …) ---
+        wet_periods = []
+        for idx_lact, lact in enumerate(lact_numbers, 1):
+            for wy_id in wy_ids:
+                start = self.MB.data['start'].at[lact, wy_id] if (
+                    lact in self.MB.data['start'].index and wy_id in self.MB.data['start'].columns) else None
                 if pd.isna(start):
                     continue
+                stop = self.MB.data['stop'].at[lact, wy_id] if (
+                    lact in self.MB.data['stop'].index and wy_id in self.MB.data['stop'].columns) else None
                 start_date = pd.Timestamp(start)
-                if pd.isna(stop):
-                    stop_date = wdd.index[-1]  #  last available date
-                else:
-                    stop_date = pd.Timestamp(stop)
-                for date in wdd.index:
-                    if not (start_date <= date <= stop_date):
-                        continue
-                    day_num = wdd.at[date, wy_id] if wy_id in wdd.columns else None
-                    liters = milk1.at[date, wy_id_str] if (wy_id_str in milk1.columns and date in milk1.index) else None
-                    if day_num is not None and not pd.isna(day_num) and day_num > 0:
-                        liters_val = float(liters) if liters is not None and not pd.isna(liters) else None
-                        entry = {
-                            'date': str(date.date()) if hasattr(date, 'date') else str(date),
-                            'liters': liters_val,
-                            'revenue': liters_val * 22 if liters_val is not None else None,
-                            'day_num': int(day_num) if not pd.isna(day_num) else None
-                        }
-                        entries.append(entry)
-                if entries:
-                    result[wy_id_str][f"L_{idx_lact}"] = entries
-                    
-            # --- Dry periods ---
-            # Dry periods are between lactations, so up to len(lact_numbers)-1
-            for idx_lact in range(1, len(lact_numbers)):
-                entries = []
-                # dry period after lact idx_lact (so between stop of lact idx_lact and start of lact idx_lact+1)
-                prev_lact = lact_numbers[idx_lact-1]
-                next_lact = lact_numbers[idx_lact]
-                prev_stop = (
-                    self.MB.data['stop'].at[prev_lact, wy_id]
-                    if (
-                        prev_lact in self.MB.data['stop'].index
-                        and wy_id in self.MB.data['stop'].columns
-                    )
-                    else None
-                )
-                next_start = (
-                    self.MB.data['start'].at[next_lact, wy_id]
-                    if (
-                        next_lact in self.MB.data['start'].index
-                        and wy_id in self.MB.data['start'].columns
-                    )
-                    else None
-                )
+                stop_date = wdd.index[-1] if pd.isna(stop) else pd.Timestamp(stop)
+                wet_periods.append({'WY_id': wy_id, 'period': f'L_{idx_lact}',
+                                    'p_start': start_date, 'p_stop': stop_date})
+        wet_plookup = pd.DataFrame(wet_periods)
+
+        # Assign period to each wet row via range-join
+        wet = wet.merge(wet_plookup, on='WY_id', how='inner')
+        wet = wet[(wet['date'] >= wet['p_start']) & (wet['date'] <= wet['p_stop'])].copy()
+        wet = wet.drop(columns=['p_start', 'p_stop'])
+
+        # --- 4. Stack dry_days_df → (date, WY_id, day_num) where day_num > 0 ---
+        dry = dry_days_df.stack().reset_index()
+        dry.columns = ['date', 'WY_id', 'day_num']
+        dry = dry[dry['day_num'] > 0].copy()
+        dry['liters'] = 0
+        dry['revenue'] = 0
+
+        # --- 5. Build period lookup for dry (D_1, D_2, …) ---
+        dry_periods = []
+        for idx_lact in range(1, len(lact_numbers)):
+            prev_lact = lact_numbers[idx_lact - 1]
+            next_lact = lact_numbers[idx_lact]
+            for wy_id in wy_ids:
+                prev_stop = self.MB.data['stop'].at[prev_lact, wy_id] if (
+                    prev_lact in self.MB.data['stop'].index and wy_id in self.MB.data['stop'].columns) else None
+                next_start = self.MB.data['start'].at[next_lact, wy_id] if (
+                    next_lact in self.MB.data['start'].index and wy_id in self.MB.data['start'].columns) else None
                 if pd.isna(prev_stop) or pd.isna(next_start):
                     continue
                 dry_start = pd.Timestamp(prev_stop) + pd.Timedelta(days=1)
-                dry_end = pd.Timestamp(next_start) - pd.Timedelta(days=1)
+                dry_end   = pd.Timestamp(next_start) - pd.Timedelta(days=1)
                 if dry_start > dry_end:
                     continue
+                dry_periods.append({'WY_id': wy_id, 'period': f'D_{idx_lact}',
+                                    'p_start': dry_start, 'p_stop': dry_end})
+        dry_plookup = pd.DataFrame(dry_periods)
 
-                for date in dry_days_df.index:
-                    if not (dry_start <= date <= dry_end):
-                        continue
-                    day_num = (
-                        dry_days_df.at[date, wy_id]
-                        if wy_id in dry_days_df.columns else None
-                    )
-                    if (
-                        day_num is not None and not pd.isna(day_num) and day_num > 0
-                    ):
-                        entry = {
-                            'date': str(date.date()) if hasattr(date, 'date') else str(date),
-                            'liters': 0,
-                            'revenue': 0,
-                            'day_num': int(day_num) if not pd.isna(day_num) else None
-                        }
-                        entries.append(entry)
-                if entries:
-                    result[wy_id_str][f"D_{idx_lact}"] = entries
+        if not dry_plookup.empty and not dry.empty:
+            dry = dry.merge(dry_plookup, on='WY_id', how='inner')
+            dry = dry[(dry['date'] >= dry['p_start']) & (dry['date'] <= dry['p_stop'])].copy()
+            dry = dry.drop(columns=['p_start', 'p_stop'])
+        else:
+            dry = dry.head(0)  # empty with correct columns
+            dry['period'] = None
 
-        self.wet_dry_dict = result
-        return self.wet_dry_dict
+        # --- 6. Concat wet + dry → final DataFrame ---
+        df = pd.concat([wet, dry], ignore_index=True)
+        df['WY_id'] = pd.to_numeric(df['WY_id'], errors='coerce')
+        df['day_num'] = pd.to_numeric(df['day_num'], errors='coerce')
 
+        col_order = ['WY_id', 'date', 'day_num', 'period', 'liters', 'revenue']
+        cols_in_df = [c for c in col_order if c in df.columns]
+        other_cols = [c for c in df.columns if c not in cols_in_df]
+        df = df[cols_in_df + other_cols]
+        df = df.sort_values(['WY_id', 'date']).reset_index(drop=True)
 
-    def flatten_dict_save_as_df(self):
-        """
-        Flatten the in-memory self.wet_dry_dict for all cows and periods into a DataFrame.
-        Ensures correct dtypes and robust sorting.
-        """
-        if self.wet_dry_dict is None:
-            print("wet_dry_dict is not initialized. Run create_wet_dry_dict first.")
-            return
-        rows = []
-        for cow_id, periods in self.wet_dry_dict.items():
-            for period, entries in periods.items():
-                if isinstance(entries, list):
-                    for entry in entries:
-                        row = entry.copy()
-                        row['period'] = period
-                        row['WY_id'] = cow_id
-                        rows.append(row)
-                elif isinstance(entries, dict):
-                    for date, entry in entries.items():
-                        row = entry.copy()
-                        row['period'] = period
-                        row['WY_id'] = cow_id
-                        row['date'] = date
-                        rows.append(row)
-        if not rows:
-            print("No data found in wet_dry_dict.")
-            return
-        df = pd.DataFrame(rows)
-
-        # Ensure correct dtypes
-        if 'date' in df.columns:
-            df['date'] = pd.to_datetime(df['date'], errors='coerce')
-        for col in ['liters', 'revenue', 'day_num', 'WY_id']:
-            if col in df.columns:
-                df[col] = pd.to_numeric(df[col], errors='coerce')
-        if 'period' in df.columns:
-            df['period'] = df['period'].astype(str)
-
-            # Reorder columns as: WY_id, date, day_num, period, liters, revenue
-            sort_order = ['WY_id', 'date', 'day_num', 'period', 'liters', 'revenue']
-            cols_in_df = [col for col in sort_order if col in df.columns]
-            other_cols = [col for col in df.columns if col not in cols_in_df]
-            df = df[cols_in_df + other_cols]
-
-            # Sort by WY_id, date
-            sort_cols = [c for c in ['WY_id', 'date'] if c in df.columns]
-            if sort_cols:
-                df = df.sort_values(sort_cols)
-
-        self.wet_dry_df = df.reset_index(drop=True)
+        self.wet_dry_df = df
         return self.wet_dry_df
 
 
@@ -384,7 +328,7 @@ class WetDry:
         Returns a DataFrame with weekly averages for each WY_id. Drops the 'period' column.
         """
         if self.wet_dry_df is None or self.wet_dry_df.empty:
-            print("wet_dry_df is not initialized or empty. Run flatten_dict_save_as_df first.")
+            print("wet_dry_df is not initialized or empty.")
             return None
         df = self.wet_dry_df.copy()
         if 'date' not in df.columns or 'WY_id' not in df.columns:
@@ -393,44 +337,24 @@ class WetDry:
         # Ensure date is datetime
         df['date'] = pd.to_datetime(df['date'], errors='coerce')
         # Only create 'period_week' column that restarts week numbering for each (WY_id, period)
-        if 'period' in df.columns:
-            df = df.sort_values(['WY_id', 'period', 'date'])
-            week_starts = df['date'].dt.to_period('W').apply(lambda r: r.start_time)
-            df['period_week'] = (
-                df.groupby(['WY_id', 'period'])['date']
-                .transform(lambda x: pd.factorize(x.dt.to_period('W').apply(lambda r: r.start_time))[0] + 1)
-            )
-        else:
-            df = df.sort_values(['WY_id', 'date'])
-            df['period_week'] = (
-                df.groupby(['WY_id'])['date']
-                .transform(lambda x: pd.factorize(x.dt.to_period('W').apply(lambda r: r.start_time))[0] + 1)
-            )
- 
-        agg_dict = {}
-        if 'liters' in df.columns:
-            agg_dict['liters'] = 'mean'
-        if 'revenue' in df.columns:
-            agg_dict['revenue'] = 'mean'
-        if 'period' in df.columns:
-            agg_dict['period'] = 'first'
-        if 'day_num' in df.columns:
-            agg_dict['day_num'] = 'first'
-        if 'date' in df.columns:
-            agg_dict['date'] = 'first'  # Keep the earliest date for each week/cow/period
+        df = df.sort_values(['WY_id', 'period', 'date'])
+        df['period_week'] = (
+            df.groupby(['WY_id', 'period'])['date']
+            .transform(lambda x: pd.factorize(x.dt.to_period('W').apply(lambda r: r.start_time))[0] + 1)
+        )
 
-        group_cols = ['WY_id', 'period', 'period_week'] if 'period' in df.columns else ['WY_id', 'period_week']
-        grouped = df.groupby(group_cols, as_index=False).agg(agg_dict)
-
+        grouped = df.groupby(['WY_id', 'period', 'period_week'], as_index=False).agg(
+            liters=('liters',  'mean'),
+            revenue=('revenue', 'mean'),
+            period=('period',  'first'),
+            day_num=('day_num', 'first'),
+            date=('date',    'first'),
+        )
         self.wet_dry_weekly = grouped
         return self.wet_dry_weekly
         
 
-    def write_to_csv_json(self):
- 
-        with open('F:\\COWS\\data\\wet_dry\\wet_dry_dict.json', 'w', encoding='utf-8') as f:
-            json.dump(self.wet_dry_dict, f, ensure_ascii=False, indent=2)
-
+    def write_to_csv(self):
 
         self.wet_dry_df      .to_csv('F:\\COWS\\data\\wet_dry\\wet_dry_df.csv')       
         self.wsd             .to_csv('F:\\COWS\\data\\wet_dry\\wd_sum.csv')

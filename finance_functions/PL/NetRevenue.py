@@ -34,7 +34,6 @@ class NetRevenue:
          self.net_revenue_daily_last,
          self.feedcost_daily] = self.create_net_revenue()
 
-        # self.test_daily_net = self.create_test_daily_net()
         self.net_revenue_monthly = self.create_monthly_net()
         self.write_to_csv()
         

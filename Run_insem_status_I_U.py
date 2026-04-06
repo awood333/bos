@@ -9,6 +9,8 @@ from insem_functions.next_ultra_check   import NextUltraCheck
 from status_functions.wet_dry           import WetDry
 from status_functions.status_data       import status_data
 
+from groups_and_tests.wet_dry_groups    import WetDryGroups
+
 
 class RunInsemStatusIU:
     def __init__(self):
@@ -22,6 +24,9 @@ class RunInsemStatusIU:
 
         self.wet_dry            = WetDry()
         self.status_data        = status_data()
+        self.wet_dry_groups     = WetDryGroups()
+
+
 
         self.insem_ultra_basics.load_and_process()
         self.insem_ultra_data.load_and_process()
@@ -30,6 +35,8 @@ class RunInsemStatusIU:
         self.next_ultra_check.load_and_process()
         self.wet_dry.load_and_process()
         self.status_data.load_and_process()
+
+        self.wet_dry_groups.load_and_process()
 
 if __name__ == "__main__":
     obj = RunInsemStatusIU()

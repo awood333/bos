@@ -1,7 +1,6 @@
 '''groups_and_tests.wet_dry_groups'''
 import inspect
 import pandas as pd
-# import numpy as py
 from container import get_dependency
 
 #NOTE: the reason for creating a df rather than a dict is that later slicing and manipulation is easier with a csv 
@@ -28,14 +27,6 @@ class WetDryGroups:
 
         self.startdate = DR.startdate
         self.fcb_weekly = FCB.feedcost_weekly
-
-        # Debug: print info about feedcost_weekly
-        # print("[DEBUG] feedcost_weekly info:")
-        # print(f"  Type: {type(self.fcb_weekly)}")
-        # print(f"  Shape: {self.fcb_weekly.shape if hasattr(self.fcb_weekly, 'shape') else 'N/A'}")
-        # print(f"  Columns: {self.fcb_weekly.columns if hasattr(self.fcb_weekly, 'columns') else 'N/A'}")
-        # if hasattr(self.fcb_weekly, 'head'):
-        #     print(self.fcb_weekly.head(3))
 
         WDD = WD.wet_dry_weekly.copy()  # NOTE: weekly data - not daily, now uses 'period_week' not 'week'
         # Filter by date if present, otherwise use all
@@ -151,13 +142,11 @@ class WetDryGroups:
         self.net_revenue_wet_dry_df = net_revenue_df
         return self.net_revenue_wet_dry_df
     
-# NOTE there is no dict created here -- could be, if needed later but downstream only uses DF
-
 
     def write_to_csv_json(self):
 
         self.net_revenue_wet_dry_df.to_csv(r"F:\\COWS\\data\\groups_and_tests\\WDD_flat_with_net_revenue.csv", index=False)
-        self.net_revenue_wet_dry_df.to_json(r"F:\\COWS\\data\\groups_and_tests\\WDD_flat_with_net_revenue.json", orient='records', indent=2, date_format='iso')
+        # self.net_revenue_wet_dry_df.to_json(r"F:\\COWS\\data\\groups_and_tests\\WDD_flat_with_net_revenue.json", orient='records', indent=2, date_format='iso')
 
 
 if __name__ == "__main__":
