@@ -32,18 +32,18 @@ class PlotNetRevenueModel:
             cow_df = self.df[self.df['WY_id'] == cow_id].sort_values('date')
             # Group by week
             weekly = cow_df.groupby('week').agg({
-                'revenue': 'mean',
-                'feedcost': 'mean',
-                'net_revenue': 'mean',
+                'revenue': 'sum',
+                'feedcost': 'sum',
+                'net_revenue': 'sum',
                 'date': 'first'
             }).reset_index()
             if weekly[['revenue', 'feedcost', 'net_revenue']].isnull().all().all():
                 continue
 
             fig, ax1 = plt.subplots(figsize=(14, 8))
-            # Stacked bar for revenue and feedcost
-            ax1.bar(weekly['date'], weekly['feedcost'], color='#f7cbe0', label='Feedcost', width=10)
-            ax1.bar(weekly['date'], weekly['revenue'], color='#cef0d1', label='Revenue', width=10, bottom=weekly['feedcost'])
+            # Area for feedcost and bar for revenue
+            ax1.fill_between(weekly['date'], 0, weekly['feedcost'], color="#C18DA7", alpha=0.5, label='Feedcost')
+            ax1.bar(weekly['date'], weekly['revenue'], color="#265755", label='Revenue', width=4, alpha=0.5)
             ax1.set_ylabel('Weekly Revenue / Feedcost', color='black')
             ax1.tick_params(axis='y', labelcolor='black')
             # Secondary axis for net_revenue

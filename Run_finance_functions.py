@@ -12,8 +12,6 @@ from finance_functions.income.income_statement import IncomeStatement
 from finance_functions.PL.NetRevenue import NetRevenue
 from finance_functions.tax_docs.tax_docs_depreciation import TaxDocs_Depreciation
 from finance_functions.tax_docs.tax_docs_non_capex import TaxDocs_NonCapex
-from finance_functions.PL.cow_PL import CowPL
-
 
 
 class RunFinanceFunctions:
@@ -28,7 +26,7 @@ class RunFinanceFunctions:
         self.net_revenue        = NetRevenue()
         # self.nrtl_WB            = NetRevThisLactation_WB()
         # self.nrtl_model         = NetRevThisLactation_model()
-        self.cow_pl             = CowPL()
+
         
         self.tax_docs_depreciation  = TaxDocs_Depreciation()
         self.tax_docs_noncapex      = TaxDocs_NonCapex()
@@ -44,7 +42,6 @@ class RunFinanceFunctions:
         self.net_revenue.load_and_process()
         # self.nrtl_WB.load_and_process()
         # self.nrtl_model.load_and_process()
-        self.cow_pl.load_and_process()
         
         # self.tax_docs_depreciation.load_and_process()   uncomment after revising script
         # self.tax_docs_noncapex.load_and_process()
