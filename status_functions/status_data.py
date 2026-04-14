@@ -162,15 +162,16 @@ class status_data:
         return self.status_col
 
     def create_write_to_csv(self):
+        pass
         # Per-date (status_data)
-        self.milker_ids_df.to_csv('F:\\COWS\\data\\status\\milker_ids.csv')
-        self.dry_ids_df.to_csv('F:\\COWS\\data\\status\\dry_ids.csv')
-        self.herd_daily.to_csv('F:\\COWS\\data\\status\\herd_daily.csv')
-        self.herd_monthly.to_csv('F:\\COWS\\data\\status\\herd_monthly.csv')
-        # Snapshot (status_data2)
-        pd.DataFrame(self.milkers_ids, columns=['ids']).to_csv('F:\\COWS\\data\\status\\milkers_ids_last.csv')
-        pd.DataFrame(self.dry_ids_last, columns=['ids']).to_csv('F:\\COWS\\data\\status\\dry_ids_last.csv')
-        self.status_col.to_csv('F:\\COWS\\data\\status\\status_col.csv')
+        # self.milker_ids_df.to_csv('F:\\COWS\\data\\status\\milker_ids.csv')
+        # self.dry_ids_df.to_csv('F:\\COWS\\data\\status\\dry_ids.csv')
+        # self.herd_daily.to_csv('F:\\COWS\\data\\status\\herd_daily.csv')
+        # self.herd_monthly.to_csv('F:\\COWS\\data\\status\\herd_monthly.csv')
+        # # Snapshot (status_data2)
+        # pd.DataFrame(self.milkers_ids, columns=['ids']).to_csv('F:\\COWS\\data\\status\\milkers_ids_last.csv')
+        # pd.DataFrame(self.dry_ids_last, columns=['ids']).to_csv('F:\\COWS\\data\\status\\dry_ids_last.csv')
+        # self.status_col.to_csv('F:\\COWS\\data\\status\\status_col.csv')
 
 if __name__ == "__main__":
     obj = status_data()

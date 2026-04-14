@@ -33,8 +33,8 @@ class ThisLactation():
 
     
     def create_write_to_csv(self):
-        self.milking_wkly.to_csv('F:\\COWS\\data\\milk_data\\lactations\\weekly\\this_Lact_weekly.csv')
-        self.milking_daily.to_csv('F:\\COWS\\data\\milk_data\\lactations\\daily\\this_Lact_daily.csv')
+        self.milking_wkly.to_csv(r"G:\My Drive\COWS\milk_data\lactations\weekly\this_Lact_weekly.csv")
+        self.milking_daily.to_csv(r"G:\My Drive\COWS\milk_data\lactations\weekly\this_Lact_daily.csv")
         
 if __name__ == "__main__":
     obj = ThisLactation()

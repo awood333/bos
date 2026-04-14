@@ -35,7 +35,7 @@ class DateRange:
     
     def end_date_daily(self):
         # Get the end date directly from the milk data file instead of through dependency
-        milk_data = pd.read_csv('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv', 
+        milk_data = pd.read_csv('E:\\COWS\\data\\milk_data\\fullday\\fullday.csv', 
                                header=0, index_col='datex')
         milk_data.index = pd.to_datetime(milk_data.index)
         enddate = milk_data.index[-1]

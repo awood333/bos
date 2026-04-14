@@ -79,7 +79,7 @@ class ReportMilkXlsx:
         groups_formatted = format_dataframe(groups, column_formats)
 
         # Save to Excel with separate sheets
-        output_path = "F:\\COWS\\data\\milk_data\\groups\\report_milk.xlsx"
+        output_path = r"G:\My Drive\COWS\milk_data\groups\report_milk.xlsx"
 
         with pd.ExcelWriter(output_path, engine='openpyxl') as writer:
             tenday_formatted.to_excel(writer, sheet_name='TenDay', index=False)

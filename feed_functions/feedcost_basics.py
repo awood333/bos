@@ -38,15 +38,15 @@ class Feedcost_basics:
         self.last_values_all_df = None
         # self.current_feedcost = None
         # self.unit_prices_daily = None
-        self.cost_dict_F = {}
+        self.daily_cost_dict_F = {}
         self.last_cost_details_F_df = None        
-        self.cost_dict_A = {}
+        self.daily_cost_dict_A = {}
         self.last_cost_details_A_df = None
-        self.cost_dict_B = {}
+        self.daily_cost_dict_B = {}
         self.last_cost_details_B_df = None
-        self.cost_dict_C = {}
+        self.daily_cost_dict_C = {}
         self.last_cost_details_C_df = None
-        self.cost_dict_D = {}
+        self.daily_cost_dict_D = {}
         self.last_cost_details_D_df = None
         self.totalcost_A_df = None
         self.totalcost_B_df = None
@@ -67,23 +67,23 @@ class Feedcost_basics:
         self.rng_monthly2 = getattr(self.DR, 'date_range_monthly2', None)
         self.rng_daily    = self.DR.date_range_daily
 
-        self.price_seq_dict, self.daily_amt_dict = self.create_feed_cost_dict()
+        self.price_seq_dict, self.daily_amt_dict = self.create_feed_daily_cost_dict()
         self.feed_series_dict = self.create_separate_feed_series()
-        self.create_cost_group('F', 'fresh_kg')
-        self.create_cost_group('A', 'group_a_kg')
-        self.create_cost_group('B', 'group_b_kg')
-        self.create_cost_group('C', 'group_c_kg')
-        self.create_cost_group('D', 'dry_kg')
-        self.create_total_cost_group('F')
-        self.create_total_cost_group('A')
-        self.create_total_cost_group('B')
-        self.create_total_cost_group('C')
-        self.create_total_cost_group('D')
+        self.daily_cost_dict_F    = self.calc_daily_feed_costs ('fresh_kg')
+        self.daily_cost_dict_A    = self.calc_daily_feed_costs ('group_a_kg')
+        self.daily_cost_dict_B    = self.calc_daily_feed_costs ('group_b_kg')
+        self.daily_cost_dict_C    = self.calc_daily_feed_costs ('group_c_kg')
+        self.daily_cost_dict_D    = self.calc_daily_feed_costs ('dry_kg')
+        self.totalcost_F_df = self.create_total_cost_group(self.daily_cost_dict_F, 'F')
+        self.totalcost_A_df = self.create_total_cost_group(self.daily_cost_dict_A, 'A')
+        self.totalcost_B_df = self.create_total_cost_group(self.daily_cost_dict_B, 'B')
+        self.totalcost_C_df = self.create_total_cost_group(self.daily_cost_dict_C, 'C')
+        self.totalcost_D_df = self.create_total_cost_group(self.daily_cost_dict_D, 'D')
         self.last_values_all_df = self.create_last_values()
         self.feedcost_daily, self.feedcost_monthly, self.feedcost_weekly = self.create_total_feedcostByGroup()
         self.write_to_csv()
 
-    def create_feed_cost_dict(self):
+    def create_feed_daily_cost_dict(self):
         self.price_seq_dict = {}
         self.daily_amt_dict = {}
         
@@ -111,38 +111,28 @@ class Feedcost_basics:
             }
         return self.feed_series_dict
 
-    def create_cost_group(self, group_name, kg_column):
-        cost_dict = {feed: [] for feed in self.feed_type}
+    def calc_daily_feed_costs (self, kg_column):
+        daily_cost_dict = {feed: [] for feed in self.feed_type}
         for i in self.rng_daily:
             for feed in self.feed_type:
                 unit_price = self.price_seq_dict[feed].loc[i, 'unit_price']
                 kg = self.daily_amt_dict[feed].loc[i, kg_column]
                 cost = unit_price * kg
-                cost_dict[feed].append(cost)
-        setattr(self, f'cost_dict_{group_name}', cost_dict)
-        return cost_dict
+                daily_cost_dict[feed].append(cost)
+
+        # returns a dict with the daily cost of each feed type -- price seq * daily amt 
+        return daily_cost_dict
     
     
-    def create_total_cost_group(self, group_name):
-        cost_dict = getattr(self, f'cost_dict_{group_name}')
-        feeds_in_group = [feed for feed in self.feed_type if feed in cost_dict]
-        # Debug print: show length and first/last values for each feed
-        # print(f"[DEBUG] create_total_cost_group('{group_name}') cost_dict keys: {list(cost_dict.keys())}")
-        # for feed in feeds_in_group:
-        #     print(f"[DEBUG] Feed '{feed}' - len: {len(cost_dict[feed])}, first: {cost_dict[feed][0]}, last: {cost_dict[feed][-1]}")
-        feed_series = {feed: pd.Series(cost_dict[feed]).astype(float) for feed in feeds_in_group}
-        # Debug print: show feed_series info
-        # for feed, series in feed_series.items():
-        #     print(f"[DEBUG] FeedSeries '{feed}' - NaNs: {series.isna().sum()}, first: {series.iloc[0]}, last: {series.iloc[-1]}")
+    def create_total_cost_group(self, daily_cost_dict, group_name):
+        feeds_in_group = [feed for feed in self.feed_type if feed in daily_cost_dict]
+        feed_series = {feed: pd.Series(daily_cost_dict[feed]).astype(float) for feed in feeds_in_group}
         df = pd.DataFrame(feed_series)
         df = df.fillna(0)
         total_cost = df.sum(axis=1)
-        # print(f"[DEBUG] total_cost (after fillna) - NaNs: {total_cost.isna().sum()}, first: {total_cost.iloc[0]}, last: {total_cost.iloc[-1]}")
         df[f'totalcost{group_name}'] = total_cost
         df.index = self.rng_daily
-        # print(f"[DEBUG] DataFrame shape: {df.shape}, totalcost{group_name} NaNs: {df[f'totalcost{group_name}'].isna().sum()}")
-        setattr(self, f'totalcost_{group_name}_df', df)
-        return df 
+        return df
 
     
     def create_last_values(self):

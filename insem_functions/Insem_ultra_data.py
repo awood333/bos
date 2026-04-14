@@ -301,12 +301,12 @@ class InsemUltraData:
     
     def create_write_to_csv(self):
               
-        self.allx        .to_csv('F:\\COWS\\data\\insem_data\\allx.csv')
-        self.all_milking .to_csv('F:\\COWS\\data\\insem_data\\all_milking.csv')
-        self.all_dry     .to_csv('F:\\COWS\\data\\insem_data\\all_dry.csv')
-        self.not_preg    .to_csv('F:\\COWS\\data\\insem_data\\not_preg.csv')
-        self.no_insem    .to_csv('F:\\COWS\\data\\insem_data\\no_insem.csv')
-        self.last_valid_ultra  .to_csv('F:\\COWS\\data\\insem_data\\last_valid_ultra.csv')
+        self.allx        .to_csv(r"G:\My Drive\COWS\reports\allx.csv")
+        # self.all_milking .to_csv('F:\\COWS\\data\\insem_data\\all_milking.csv')
+        # self.all_dry     .to_csv('F:\\COWS\\data\\insem_data\\all_dry.csv')
+        # self.not_preg    .to_csv('F:\\COWS\\data\\insem_data\\not_preg.csv')
+        # self.no_insem    .to_csv('F:\\COWS\\data\\insem_data\\no_insem.csv')
+        # self.last_valid_ultra  .to_csv('F:\\COWS\\data\\insem_data\\last_valid_ultra.csv')
 
         date_cols = ['i_date', 'u_date', 'last stop date', 'last calf bdate', 'expected bdate', 'exp drydate']
         for col in date_cols:
@@ -317,15 +317,15 @@ class InsemUltraData:
             if col in self.no_insem.columns:
                 self.no_insem[col] = self.no_insem[col].dt.strftime('%Y-%m-%d') 
     
-        with pd.ExcelWriter('F:\\COWS\\data\\insem_data\\insem_data.xlsx', engine='xlsxwriter') as writer:
-            self.allx.to_excel(writer,      sheet_name='allx', index=False)
-            self.not_preg.to_excel(writer,  sheet_name='not_preg', index=False)
-            self.no_insem.to_excel(writer,  sheet_name='no_insem', index=False)
+        # with pd.ExcelWriter('F:\\COWS\\data\\insem_data\\insem_data.xlsx', engine='xlsxwriter') as writer:
+        #     self.allx.to_excel(writer,      sheet_name='allx', index=False)
+            # self.not_preg.to_excel(writer,  sheet_name='not_preg', index=False)
+            # self.no_insem.to_excel(writer,  sheet_name='no_insem', index=False)
        
-        with pd.ExcelWriter('Q:\\My Drive\\COWS\\data\\insem_data\\insem_data.xlsx', engine='xlsxwriter') as writer:
+        with pd.ExcelWriter(r"G:\My Drive\COWS\reports\insem_data.xlsx", engine='xlsxwriter') as writer:
             self.allx.to_excel(writer,      sheet_name='allx', index=False)
-            self.not_preg.to_excel(writer,  sheet_name='not_preg', index=False)
-            self.no_insem.to_excel(writer,  sheet_name='no_insem', index=False)
+            # self.not_preg.to_excel(writer,  sheet_name='not_preg', index=False)
+            # self.no_insem.to_excel(writer,  sheet_name='no_insem', index=False)
 
 if __name__ == "__main__":
     obj = InsemUltraData()
