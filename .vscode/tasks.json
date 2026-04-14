@@ -51,7 +51,7 @@
 		{
 			"label": "Run BOS FastAPI Server",
 			"type": "shell",
-			"command": "D:\\Git_repos\\bos\\.venv\\Scripts\\python.exe",
+			"command": "python",
 			"args": [
 				"-m",
 				"uvicorn",

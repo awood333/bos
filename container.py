@@ -1,6 +1,6 @@
 # pylint: disable=import-outside-toplevel,redefined-outer-name
 '''Dependency Injection Container for Bos application'''
-import inspect
+
 from typing import Dict, Any, Optional, Callable, TypeVar, Type
 import threading
 from datetime import datetime

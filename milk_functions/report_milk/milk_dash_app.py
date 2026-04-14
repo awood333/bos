@@ -1,14 +1,14 @@
 '''milk_funtions.report_milk.milk_dash_app.py'''
-
+from container import get_dependency
 import threading
 import webbrowser
-
-from dash import Dash, html, dash_table
-import pandas as pd
 import sys
 import os
+from dash import Dash, html, dash_table
+import pandas as pd
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
-from container import get_dependency
+
 
 
 COLUMN_WIDTHS = {

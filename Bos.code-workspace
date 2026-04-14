@@ -5,20 +5,11 @@
 		}
 	],
 	"settings": {
-		"sqltools.useNodeRuntime": true,
-		"sqltools.connections": [
-			{
-				"previewLimit": 50,
-				"driver": "SQLite",
-				"name": "cows",
-				"database": "${workspaceFolder:bos}/cows.db"
-			}
-		],
 		"terminal.integrated.env.windows": {
 			"PYTHONPATH": "D:/Git_repos/bos"
 		},
 		"dotnetAcquisitionExtension.sharedExistingDotnetPath": "{ \"dotnetAcquisitionExtension.existingDotnetPath\": \"C:\\\\Program Files\\\\dotnet\\\\dotnet.exe\" }",
 		"dataWrangler.debug": true,
-		"python.terminal.activateEnvironment": false
+		"python-envs.defaultEnvManager": "ms-python.python:system"
 	}
 }

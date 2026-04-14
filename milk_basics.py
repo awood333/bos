@@ -27,8 +27,8 @@ class MilkBasics:
         
     def dataLoader(self):
          
-        self.startx  = pd.read_csv    ('F:\\COWS\\data\\csv_files\\live_births.csv', index_col=None,     header = 0)
-        self.stopx   = pd.read_csv    ('F:\\COWS\\data\\csv_files\\stop_dates.csv',  index_col=None,     header = 0)
+        self.startx  = pd.read_csv    (r"G:\My Drive\COWS\basic_data\live_births.csv", index_col=None,     header = 0)
+        self.stopx   = pd.read_csv    (r"G:\My Drive\COWS\basic_data\stop_dates.csv",  index_col=None,     header = 0)
         
         # date cols
         self.startx   ['b_date']        = pd.to_datetime(self.startx['b_date'], errors='coerce')    
@@ -37,13 +37,13 @@ class MilkBasics:
         self.startx = self.startx.fillna({'b_date': pd.NaT, 'calf#': pd.NA})
         self.stopx = self.stopx.fillna({'stop': pd.NaT, 'calf#': pd.NA})
          
-        milk1a       = pd.read_csv    ('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv', header = 0, index_col='datex')
+        milk1a       = pd.read_csv    (r"G:\My Drive\COWS\milk_data\fullday\fullday.csv", header = 0, index_col='datex')
         milk1a.index                    = pd.to_datetime(milk1a.index)
         
-        bd1      = pd.read_csv    ('F:\\COWS\\data\\csv_files\\birth_death.csv',     header = 0)
-        self.lb  = pd.read_csv('F:\\COWS\\data\\csv_files\\live_births.csv', index_col=None) 
-        self.u   = pd.read_csv('F:\\COWS\\data\\csv_files\\ultra.csv')
-        self.i   = pd.read_csv('F:\\COWS\\data\\csv_files\\insem.csv') 
+        bd1      = pd.read_csv(r"G:\My Drive\COWS\basic_data\birth_death.csv",     header = 0)
+        self.lb  = pd.read_csv(r"G:\My Drive\COWS\basic_data\live_births.csv", index_col=None) 
+        self.u   = pd.read_csv(r"G:\My Drive\COWS\basic_data\ultra.csv")
+        self.i   = pd.read_csv(r"G:\My Drive\COWS\basic_data\insem.csv") 
         
         bd1['birth_date']      = pd.to_datetime(bd1['birth_date'])
         bd1['death_date']      = pd.to_datetime(bd1['death_date'], errors='coerce')        

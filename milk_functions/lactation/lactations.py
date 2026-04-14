@@ -60,12 +60,12 @@ class Lactations:
         
     def write_to_csv(self):
 
-        self.live_L1.to_csv('F:\\COWS\\data\\milk_data\\lactations\\daily\\lactation_1.csv')
-        self.live_L2.to_csv('F:\\COWS\\data\\milk_data\\lactations\\daily\\lactation_2.csv')
-        self.live_L3.to_csv('F:\\COWS\\data\\milk_data\\lactations\\daily\\lactation_3.csv')
-        self.live_L4.to_csv('F:\\COWS\\data\\milk_data\\lactations\\daily\\lactation_4.csv')
-        self.live_L5.to_csv('F:\\COWS\\data\\milk_data\\lactations\\daily\\lactation_5.csv')
-        self.live_L6.to_csv('F:\\COWS\\data\\milk_data\\lactations\\daily\\lactation_6.csv')
+        self.live_L1.to_csv(r"G:\My Drive\COWS\milk_data\lactations\lactation_1.csv")
+        self.live_L2.to_csv(r"G:\My Drive\COWS\milk_data\lactations\lactation_2.csv")
+        self.live_L3.to_csv(r"G:\My Drive\COWS\milk_data\lactations\lactation_3.csv")
+        self.live_L4.to_csv(r"G:\My Drive\COWS\milk_data\lactations\lactation_4.csv")
+        self.live_L5.to_csv(r"G:\My Drive\COWS\milk_data\lactations\lactation_5.csv")
+        self.live_L6.to_csv(r"G:\My Drive\COWS\milk_data\lactations\lactation_6.csv")
 
 
     

@@ -86,12 +86,12 @@ class MilkAggregates:
 
     def basics(self):       
 
-        self.AM_liters = pd.read_csv('F:\\COWS\\data\\milk_data\\raw\\AM_liters.csv',index_col=0, header=0)
-        self.AM_wy     = pd.read_csv('F:\\COWS\\data\\milk_data\\raw\\AM_wy.csv',index_col=0, header=0)
-        self.PM_liters = pd.read_csv('F:\\COWS\\data\\milk_data\\raw\\PM_liters.csv',index_col=0, header=0)
-        self.PM_wy     = pd.read_csv('F:\\COWS\\data\\milk_data\\raw\\PM_wy.csv',index_col=0, header=0)
+        self.AM_liters = pd.read_csv("G:\\My Drive\\COWS\\milk_data\\raw\\AM_liters.csv"  ,index_col=0, header=0)
+        self.AM_wy     = pd.read_csv("G:\\My Drive\\COWS\\milk_data\\raw\\AM_wy.csv"      ,index_col=0, header=0)
+        self.PM_liters = pd.read_csv("G:\\My Drive\\COWS\\milk_data\\raw\\PM_liters.csv"  ,index_col=0, header=0)
+        self.PM_wy     = pd.read_csv("G:\\My Drive\\COWS\\milk_data\\raw\\PM_wy.csv"      ,index_col=0, header=0)
         
-        self.daily_milk = pd.read_excel("F:\\COWS\\data\\daily_milk.ods")
+        self.daily_milk = pd.read_excel(r"G:\\My Drive\\COWS\\milk_data\\daily_milk\\daily_milk.xlsx")
        
         wy      = self.data['bd']['WY_id']
         alive1  = self.data['bd']['death_date'].isnull()
@@ -319,17 +319,16 @@ class MilkAggregates:
 
     def write_to_csv(self):
         print(">>> write_to_csv called")
-        self.fullday    .to_csv('F:\\COWS\\data\\milk_data\\fullday\\fullday.csv')
-        self.fullday_xl .to_csv('F:\\COWS\\data\\milk_data\\fullday_xl_format\\fullday_xl.csv')
-        self.tenday     .to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\tenday.csv')
-        self.tenday1    .to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\tenday1.csv')
+        self.fullday         .to_csv(r"G:\\My Drive\\COWS\\milk_data\\fullday\\fullday.csv")
+        self.fullday_xl      .to_csv(r"G:\\My Drive\\COWS\\milk_data\\totals\\milk_aggregates\\tenday.csv")
+        self.tenday1         .to_csv(r"G:\\My Drive\\COWS\\milk_data\\totals\\milk_aggregates\\tenday1.csv")
 
-        self.monthly_summary .to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\monthly_summary.csv')
-        self.weekly_summary  .to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\weekly_summary.csv')
-        self.monthly_avg     .to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\monthly_avg.csv')
-        self.weekly_avg      .to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\weekly_avg.csv')
+        self.monthly_summary .to_csv(r"G:\My Drive\COWS\milk_data\totals\milk_aggregates\\monthly_summary.csv")
+        self.weekly_summary  .to_csv(r"G:\My Drive\COWS\milk_data\totals\milk_aggregates\\weekly_summary.csv")
+        self.monthly_avg     .to_csv(r"G:\My Drive\COWS\milk_data\totals\milk_aggregates\\monthly_avg.csv")
+        self.weekly_avg      .to_csv(r"G:\My Drive\COWS\milk_data\totals\milk_aggregates\\weekly_avg.csv")
 
-        self.halfday    .to_csv('F:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\halfday.csv')
+        self.halfday         .to_csv(r"G:\\My Drive\\COWS\\milk_data\\totals\\milk_aggregates\\halfday.csv")
         
       
 if __name__ == '__main__':
