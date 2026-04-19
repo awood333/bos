@@ -25,7 +25,7 @@ class LactationPlots:
         self.avg_zscore_per_row_daily_log = None
         self.avg_zscore_per_row_daily_log_index = None
 
-        self.output_folder = r"G:\My Drive\COWS\plots"
+        self.output_folder = r"Q:\My Drive\COWS\plots"
 
 
     def load_and_process(self, wy_id=None):

@@ -10,6 +10,7 @@ import numpy as np
 import os
 from pyexcel_ods import get_data
 import pandas as pd
+from utilities.gdrive_loader import gdrive_read_csv
 pd.set_option('future.no_silent_downcasting', True)
 
 
@@ -62,13 +63,9 @@ class WhiteboardGroups:
         stop_date       = self.fullday_last.index[0]
         self.date_range = pd.date_range(start_date, stop_date)
 
-        excel_path = r"G:\My Drive\COWS\milk_data\daily_milk\daily_milk.xlsx"
-
-
         def sheet_to_df(sheet):
-            df = pd.read_excel(excel_path, sheet_name=sheet, header=2, index_col=0)
-            df.index = df.index.fillna(0)
-            df.index = df.index.astype(int)
+            df = gdrive_read_csv(f"COWS/wb_groups/{sheet}.csv", header=0, index_col=0)
+            df.index = pd.to_numeric(df.index, errors='coerce').fillna(0).astype(int)
             df.columns = pd.to_datetime(df.columns, errors='coerce')
             df = df.iloc[:55, :]
             return df
@@ -167,7 +164,7 @@ class WhiteboardGroups:
         else:
             return obj
 
-    def save_model_groups_json(self, filepath=r"G:\My Drive\COWS\milk_data\groups\whiteboard_groups.json"):
+    def save_model_groups_json(self, filepath=r"Q:\My Drive\COWS\milk_data\groups\whiteboard_groups.json"):
         # Convert DataFrames to dicts
         dict_to_save = {k: v.to_dict() if hasattr(v, "to_dict") else v for k, v in self.whiteboard_groups_dict.items()}
         # Replace NaN/NA
@@ -267,15 +264,16 @@ class WhiteboardGroups:
 
 
     def write_to_csv(self):
-        self.whiteboard_groups_tenday       .to_csv(r"G:\My Drive\COWS\milk_data\groups\\whiteboard_groups_tenday.csv")
+        pass
+        # self.whiteboard_groups_tenday       .to_csv(r"Q:\My Drive\COWS\milk_data\groups\\whiteboard_groups_tenday.csv")
         # self.whiteboard_groups_for_dailymilk.to_csv('F:\\COWS\\data\\groups_and_tests\\whiteboard_groups_for_dailymilk.csv')
-        self.groups_by_date_by_cow          .to_csv(r"G:\My Drive\COWS\milk_data\groups\\whiteboard_groups_by_date_by_cow.csv")
-        self.whiteboard_groups_specific_date.to_csv(r"G:\My Drive\COWS\milk_data\groups\\whiteboard_groups_specific_date.csv")
+        # self.groups_by_date_by_cow          .to_csv(r"Q:\My Drive\COWS\milk_data\groups\\whiteboard_groups_by_date_by_cow.csv")
+        # self.whiteboard_groups_specific_date.to_csv(r"Q:\My Drive\COWS\milk_data\groups\\whiteboard_groups_specific_date.csv")
 
         # Replace NaN/NA in model_groups_dict before saving as JSON
-        cleaned_dict = self.replace_nan_in_dict(self.whiteboard_groups_dict)
-        with open(r"G:\My Drive\COWS\milk_data\groups\whiteboard_groups_dict.json", 'w', encoding='utf-8') as f:
-            json.dump(cleaned_dict, f, indent=2, default=str)           
+        # cleaned_dict = self.replace_nan_in_dict(self.whiteboard_groups_dict)
+        # with open(r"Q:\My Drive\COWS\milk_data\groups\whiteboard_groups_dict.json", 'w', encoding='utf-8') as f:
+        #     json.dump(cleaned_dict, f, indent=2, default=str)           
     
 
 if __name__ == "__main__":

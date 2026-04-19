@@ -39,11 +39,12 @@ class status_data:
 
     def load_and_process(self):
         self.MB = get_dependency('milk_basics')
+        get_dependency('milk_aggregates_basic')  # populates MB.data['milk'] with fresh fullday
         self.DR = get_dependency('date_range')
         self.startdate = self.DR.startdate
         self.enddate_daily = getattr(self.DR, 'enddate_daily', None)
         f1 = self.MB.data['milk']
-        self.f = f1.loc[self.startdate:, :].copy()
+        self.f = f1.loc[pd.Timestamp(self.startdate):, :].copy()
         self.maxdate = self.f.index.max()
         self.stopdate = self.maxdate
         self.bd1 = self.MB.data['bd']

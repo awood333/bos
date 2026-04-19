@@ -1,6 +1,7 @@
 '''milk_basics.py'''
 import inspect
 import pandas as pd
+from utilities.gdrive_loader import gdrive_read_csv
 
 
 class MilkBasics:
@@ -27,8 +28,8 @@ class MilkBasics:
         
     def dataLoader(self):
          
-        self.startx  = pd.read_csv    (r"G:\My Drive\COWS\basic_data\live_births.csv", index_col=None,     header = 0)
-        self.stopx   = pd.read_csv    (r"G:\My Drive\COWS\basic_data\stop_dates.csv",  index_col=None,     header = 0)
+        self.startx  = gdrive_read_csv("COWS/basic_data/live_births.csv", index_col=None,  header=0)
+        self.stopx   = gdrive_read_csv("COWS/basic_data/stop_dates.csv",  index_col=None,  header=0)
         
         # date cols
         self.startx   ['b_date']        = pd.to_datetime(self.startx['b_date'], errors='coerce')    
@@ -37,13 +38,10 @@ class MilkBasics:
         self.startx = self.startx.fillna({'b_date': pd.NaT, 'calf#': pd.NA})
         self.stopx = self.stopx.fillna({'stop': pd.NaT, 'calf#': pd.NA})
          
-        milk1a       = pd.read_csv    (r"G:\My Drive\COWS\milk_data\fullday\fullday.csv", header = 0, index_col='datex')
-        milk1a.index                    = pd.to_datetime(milk1a.index)
-        
-        bd1      = pd.read_csv(r"G:\My Drive\COWS\basic_data\birth_death.csv",     header = 0)
-        self.lb  = pd.read_csv(r"G:\My Drive\COWS\basic_data\live_births.csv", index_col=None) 
-        self.u   = pd.read_csv(r"G:\My Drive\COWS\basic_data\ultra.csv")
-        self.i   = pd.read_csv(r"G:\My Drive\COWS\basic_data\insem.csv") 
+        bd1      = gdrive_read_csv("COWS/basic_data/birth_death.csv",  header=0)
+        self.lb  = gdrive_read_csv("COWS/basic_data/live_births.csv",  index_col=None)
+        self.u   = gdrive_read_csv("COWS/basic_data/ultra.csv")
+        self.i   = gdrive_read_csv("COWS/basic_data/insem.csv") 
         
         bd1['birth_date']      = pd.to_datetime(bd1['birth_date'])
         bd1['death_date']      = pd.to_datetime(bd1['death_date'], errors='coerce')        
@@ -56,29 +54,26 @@ class MilkBasics:
         
         start1a  = self.startx.pivot_table (index='WY_id', columns='calf#',    values='b_date', fill_value=pd.NaT)
         stop1a   = self.stopx .pivot_table (index='WY_id', columns='lact_num', values='stop',   fill_value=pd.NaT)
-   
-        cutoff1 = None   #'240'
-        cutoff2 = None   #'250'
-        cutoff3 = None   #pd.to_datetime('2024-01-01')
-        
-        self.milk   = milk1a.loc[cutoff3:, cutoff1:cutoff2].copy()
-        self.lastday = self.milk.index[-1]
-        self.datex = self.milk.index
-
-        # NOTE: extended range is renamed ext_rng in 'data'
-        self.extended_date_range_milk = pd.date_range(start='2016-09-01', end= self.milk.index[-1])
-      
-        self.WY_ids = bd1['WY_id'].tolist()
      
         start2a = start1a.reindex(self.WY_ids)
         stop2a  = stop1a  .reindex(self.WY_ids)
-        
-        # # need to increment the index to match the cutoffs in 'milk'
-        start2b = start2a.loc[ cutoff1:cutoff2, : ].copy()    
-        stop2b  = stop2a .loc[ cutoff1:cutoff2, : ].copy()
+                
+        self.milk       = gdrive_read_csv("COWS/milk_data/fullday/fullday.csv", header=0, index_col='datex')
+        self.milk.index = pd.to_datetime(self.milk.index)
 
-        self.start = start2b.T
-        self.stop  = stop2b.T
+        # Derive lastday from AM_wy (live Google Sheet)
+        am_wy_tmp = gdrive_read_csv("COWS/milk_data/raw/AM_wy.csv", index_col=0, header=0)
+        self.lastday = pd.to_datetime(am_wy_tmp.columns[-1], errors='coerce')
+        self.datex = self.milk.index
+
+        # NOTE: extended range is renamed ext_rng in 'data'
+        self.extended_date_range_milk = pd.date_range(start='2016-09-01', end=self.lastday)
+      
+        self.WY_ids = bd1['WY_id'].tolist()
+
+        
+        self.start = start2a.T
+        self.stop  = stop2a.T
         self.bd = bd1
 
         

@@ -14,12 +14,12 @@ class InsemDataBackup:
 
     def read_csv_data(self):
 
-        self.bd = pd.read_csv  (r"G:\My Drive\COWS\basic_data\birth_death.csv")
-        self.heifbd=pd.read_csv(r"G:\My Drive\COWS\basic_data\heifers.csv")
-        self.lb = pd.read_csv  (r"G:\My Drive\COWS\basic_data\live_births.csv")
-        self.i  = pd.read_csv  (r"G:\My Drive\COWS\basic_data\insem.csv")
-        self.sd = pd.read_csv  (r"G:\My Drive\COWS\basic_data\stop_dates.csv")
-        self.u  = pd.read_csv  (r"G:\My Drive\COWS\basic_data\ultra.csv")
+        self.bd = pd.read_csv  (r"Q:\My Drive\COWS\basic_data\birth_death.csv")
+        self.heifbd=pd.read_csv(r"Q:\My Drive\COWS\basic_data\heifers.csv")
+        self.lb = pd.read_csv  (r"Q:\My Drive\COWS\basic_data\live_births.csv")
+        self.i  = pd.read_csv  (r"Q:\My Drive\COWS\basic_data\insem.csv")
+        self.sd = pd.read_csv  (r"Q:\My Drive\COWS\basic_data\stop_dates.csv")
+        self.u  = pd.read_csv  (r"Q:\My Drive\COWS\basic_data\ultra.csv")
         
         return [self.bd, self.lb,
                 self.i, self.sd,

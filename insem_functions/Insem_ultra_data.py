@@ -301,7 +301,7 @@ class InsemUltraData:
     
     def create_write_to_csv(self):
               
-        self.allx        .to_csv(r"G:\My Drive\COWS\reports\allx.csv")
+        self.allx        .to_csv(r"Q:\My Drive\COWS\reports\allx.csv")
         # self.all_milking .to_csv('F:\\COWS\\data\\insem_data\\all_milking.csv')
         # self.all_dry     .to_csv('F:\\COWS\\data\\insem_data\\all_dry.csv')
         # self.not_preg    .to_csv('F:\\COWS\\data\\insem_data\\not_preg.csv')
@@ -322,7 +322,7 @@ class InsemUltraData:
             # self.not_preg.to_excel(writer,  sheet_name='not_preg', index=False)
             # self.no_insem.to_excel(writer,  sheet_name='no_insem', index=False)
        
-        with pd.ExcelWriter(r"G:\My Drive\COWS\reports\insem_data.xlsx", engine='xlsxwriter') as writer:
+        with pd.ExcelWriter(r"Q:\My Drive\COWS\reports\insem_data.xlsx", engine='xlsxwriter') as writer:
             self.allx.to_excel(writer,      sheet_name='allx', index=False)
             # self.not_preg.to_excel(writer,  sheet_name='not_preg', index=False)
             # self.no_insem.to_excel(writer,  sheet_name='no_insem', index=False)

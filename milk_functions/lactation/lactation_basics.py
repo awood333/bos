@@ -14,6 +14,7 @@ class LactationBasics:
 
     def load_and_process(self):
         self.MB = get_dependency('milk_basics')
+        get_dependency('milk_aggregates_basic')  # populates MB.data['milk'] with fresh fullday
         self.lactations_array, self.headers = self.create_lactation_basics()
 
     def create_lactation_basics(self):
@@ -21,6 +22,7 @@ class LactationBasics:
         milkx = self.MB.data['milk']
         ext_range = self.MB.data['ext_rng']
         milk = milkx.reindex(ext_range)
+        milk.columns = milk.columns.astype(str)
         
         lastday = self.MB.data['lastday']
         startx= self.MB.data['start']
@@ -42,7 +44,7 @@ class LactationBasics:
             for j in startx.columns:    #WY_ids
                 
                 start = startx.loc[i,j]
-                stop = stopx.loc[i,j]
+                stop = stopx.loc[i,j] if j in stopx.columns else np.nan
 
 
                 # if start and stop don't exist - continue, in order to hold the place
@@ -95,10 +97,10 @@ class LactationBasics:
                 if lact[i].size == 0:   # for an empty array
                     lact[i] = np.zeros((1000, len(startx.shape[1])))
                 else:
-                    #defines an to ensure it has the shape (1000, startx.shape[1])
-                    padded_lact = np.zeros((1000, startx.shape[1])) #creates a zeros array
-                    # takes the array in lact[i] and places it in the shape[0] ,shape[1] quadrent 
-                    padded_lact[:lact[i].shape[0], :lact[i].shape[1]] = lact[i]
+                    #defines an array to ensure it has the shape (1000, n_cows)
+                    padded_lact = np.zeros((1000, lact[i].shape[1])) #creates a zeros array
+                    # takes the array in lact[i] and places it in the shape[0] rows
+                    padded_lact[:lact[i].shape[0], :] = lact[i]
                     # and then redefines lact[i] as the reshaped array
                     lact[i] = padded_lact
                     
