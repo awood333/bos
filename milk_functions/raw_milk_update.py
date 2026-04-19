@@ -187,45 +187,46 @@ class RawMilkUpdate:
 
 
     def write_to_csv(self):
+        pass
         
 
-        self.amliters   .to_csv(f"D:\\Cows\\data_backup\\milk backup\\rawmilk\\AM_liters\\AM_liters_{self.tdy}.csv")
-        self.amliters   .to_csv(f"E:\\Cows\\data_backup\\milk backup\\rawmilk\\AM_liters\\AM_liters_{self.tdy}.csv")
-        self.amliters   .to_csv('G:\\COWS\\data\\milk_data\\raw\\AM_liters.csv',mode='w',header=True,index=True)
+        # self.amliters   .to_csv(f"D:\\Cows\\data_backup\\milk backup\\rawmilk\\AM_liters\\AM_liters_{self.tdy}.csv")
+        # self.amliters   .to_csv(f"E:\\Cows\\data_backup\\milk backup\\rawmilk\\AM_liters\\AM_liters_{self.tdy}.csv")
+        # self.amliters   .to_csv('Q:\\COWS\\data\\milk_data\\raw\\AM_liters.csv',mode='w',header=True,index=True)
         
-        self.amwy       .to_csv(f"D:\\Cows\\data_backup\\milk backup\\rawmilk\\AM_wy\\AM_wy_{self.tdy}.csv")
-        self.amwy       .to_csv(f"E:\\Cows\\data_backup\\milk backup\\rawmilk\\AM_wy\\AM_wy_{self.tdy}.csv")
-        self.amwy       .to_csv( 'G:\\COWS\\data\\milk_data\\raw\\AM_wy.csv',mode='w',header=True,index=True)
+        # self.amwy       .to_csv(f"D:\\Cows\\data_backup\\milk backup\\rawmilk\\AM_wy\\AM_wy_{self.tdy}.csv")
+        # self.amwy       .to_csv(f"E:\\Cows\\data_backup\\milk backup\\rawmilk\\AM_wy\\AM_wy_{self.tdy}.csv")
+        # self.amwy       .to_csv( 'Q:\\COWS\\data\\milk_data\\raw\\AM_wy.csv',mode='w',header=True,index=True)
         
-        self.pmliters   .to_csv(f"D:\\Cows\\data_backup\\milk backup\\rawmilk\\PM_liters\\PM_liters_{self.tdy}.csv")
-        self.pmliters   .to_csv(f"E:\\Cows\\data_backup\\milk backup\\rawmilk\\PM_liters\\PM_liters_{self.tdy}.csv")
-        self.pmliters   .to_csv( 'G:\\COWS\\data\\milk_data\\raw\\PM_liters.csv',mode='w',header=True,index=True)
+        # self.pmliters   .to_csv(f"D:\\Cows\\data_backup\\milk backup\\rawmilk\\PM_liters\\PM_liters_{self.tdy}.csv")
+        # self.pmliters   .to_csv(f"E:\\Cows\\data_backup\\milk backup\\rawmilk\\PM_liters\\PM_liters_{self.tdy}.csv")
+        # self.pmliters   .to_csv( 'Q:\\COWS\\data\\milk_data\\raw\\PM_liters.csv',mode='w',header=True,index=True)
         
-        self.pmwy       .to_csv(f"D:\\Cows\\data_backup\\milk backup\\rawmilk\\PM_wy\\PM_wy_{self.tdy}.csv")
-        self.pmwy       .to_csv(f"E:\\Cows\\data_backup\\milk backup\\rawmilk\\PM_wy\\PM_wy_{self.tdy}.csv")
-        self.pmwy       .to_csv( 'G:\\COWS\\data\\milk_data\\raw\\PM_wy.csv',mode='w',header=True,index=True)
+        # self.pmwy       .to_csv(f"D:\\Cows\\data_backup\\milk backup\\rawmilk\\PM_wy\\PM_wy_{self.tdy}.csv")
+        # self.pmwy       .to_csv(f"E:\\Cows\\data_backup\\milk backup\\rawmilk\\PM_wy\\PM_wy_{self.tdy}.csv")
+        # self.pmwy       .to_csv( 'Q:\\COWS\\data\\milk_data\\raw\\PM_wy.csv',mode='w',header=True,index=True)
 
 
-        # groups backup
-        self.group_A    .to_csv(f"D:\\Cows\\data_backup\\milk backup\\wb_groups\\group_A\\group_A{self.tdy}.csv")
-        self.group_A    .to_csv(f"E:\\Cows\\data_backup\\milk backup\\wb_groups\\group_A\\group_A{self.tdy}.csv")
-        self.group_A    .to_csv( 'G:\\COWS\\data\\milk_data\\wb_groups\\group_A.csv',mode='w',header=True,index=True)
+        # # groups backup
+        # self.group_A    .to_csv(f"D:\\Cows\\data_backup\\milk backup\\wb_groups\\group_A\\group_A{self.tdy}.csv")
+        # self.group_A    .to_csv(f"E:\\Cows\\data_backup\\milk backup\\wb_groups\\group_A\\group_A{self.tdy}.csv")
+        # self.group_A    .to_csv( 'Q:\\COWS\\data\\milk_data\\wb_groups\\group_A.csv',mode='w',header=True,index=True)
 
-        self.group_B    .to_csv(f"D:\\Cows\\data_backup\\milk backup\\wb_groups\\group_B\\group_B{self.tdy}.csv")
-        self.group_B    .to_csv(f"E:\\Cows\\data_backup\\milk backup\\wb_groups\\group_B\\group_B{self.tdy}.csv")
-        self.group_B    .to_csv( 'G:\\COWS\\data\\milk_data\\wb_groups\\group_B.csv',mode='w',header=True,index=True)
+        # self.group_B    .to_csv(f"D:\\Cows\\data_backup\\milk backup\\wb_groups\\group_B\\group_B{self.tdy}.csv")
+        # self.group_B    .to_csv(f"E:\\Cows\\data_backup\\milk backup\\wb_groups\\group_B\\group_B{self.tdy}.csv")
+        # self.group_B    .to_csv( 'Q:\\COWS\\data\\milk_data\\wb_groups\\group_B.csv',mode='w',header=True,index=True)
 
-        self.group_C    .to_csv(f"D:\\Cows\\data_backup\\milk backup\\wb_groups\\group_C\\group_C{self.tdy}.csv")
-        self.group_C    .to_csv(f"E:\\Cows\\data_backup\\milk backup\\wb_groups\\group_C\\group_C{self.tdy}.csv")
-        self.group_C    .to_csv( 'G:\\COWS\\wb_groups\\group_C.csv',mode='w',header=True,index=True)
+        # self.group_C    .to_csv(f"D:\\Cows\\data_backup\\milk backup\\wb_groups\\group_C\\group_C{self.tdy}.csv")
+        # self.group_C    .to_csv(f"E:\\Cows\\data_backup\\milk backup\\wb_groups\\group_C\\group_C{self.tdy}.csv")
+        # self.group_C    .to_csv( 'Q:\\COWS\\wb_groups\\group_C.csv',mode='w',header=True,index=True)
         
-        self.group_F    .to_csv(f"D:\\Cows\\data_backup\\milk backup\\wb_groups\\group_F\\fresh{self.tdy}.csv")
-        self.group_F    .to_csv(f"E:\\Cows\\data_backup\\milk backup\\wb_groups\\group_F\\fresh{self.tdy}.csv")
-        self.group_F    .to_csv( 'G:\\COWS\\wb_groups\\group_F.csv',mode='w',header=True,index=True)
+        # self.group_F    .to_csv(f"D:\\Cows\\data_backup\\milk backup\\wb_groups\\group_F\\fresh{self.tdy}.csv")
+        # self.group_F    .to_csv(f"E:\\Cows\\data_backup\\milk backup\\wb_groups\\group_F\\fresh{self.tdy}.csv")
+        # self.group_F    .to_csv( 'Q:\\COWS\\wb_groups\\group_F.csv',mode='w',header=True,index=True)
         
-        self.sick       .to_csv(f"D:\\Cows\\data_backup\\milk backup\\wb_groups\\sick\\fresh{self.tdy}.csv")
-        self.sick       .to_csv(f"E:\\Cows\\data_backup\\milk backup\\wb_groups\\sick\\fresh{self.tdy}.csv")
-        self.sick       .to_csv( 'G:\\COWS\\wb_groups\\sick.csv',mode='w',header=True,index=True)
+        # self.sick       .to_csv(f"D:\\Cows\\data_backup\\milk backup\\wb_groups\\sick\\fresh{self.tdy}.csv")
+        # self.sick       .to_csv(f"E:\\Cows\\data_backup\\milk backup\\wb_groups\\sick\\fresh{self.tdy}.csv")
+        # self.sick       .to_csv( 'Q:\\COWS\\wb_groups\\sick.csv',mode='w',header=True,index=True)
 
 if __name__ =="__main__":
     obj=RawMilkUpdate()

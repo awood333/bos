@@ -76,6 +76,7 @@ class Container:
 
       
         # milk_functions
+        self.register_singleton('milk_aggregates_basic', self._create_milk_aggregates_basic)
         self.register_singleton('milk_aggregates',      self._create_milk_aggregates)
         self.register_singleton('raw_milk_update',      self._create_raw_milk_update)
 
@@ -282,7 +283,11 @@ class Container:
     
 
 
-    # Milk functions 
+    # Milk functions
+    def _create_milk_aggregates_basic(self):
+        from milk_functions.milk_aggregates_basic import MilkAggregatesBasic
+        return MilkAggregatesBasic()
+
     def _create_milk_aggregates(self):
         from milk_functions.milk_aggregates import MilkAggregates
         return MilkAggregates()

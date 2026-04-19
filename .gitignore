@@ -1,3 +1,9 @@
+# Ignore environment variable files containing secrets
+.env
+# Ignore Google OAuth token (contains refresh token, do not share)
+utilities/token.pickle
+# Ignore Google OAuth client secret file
+utilities/client_secret_*.json
 *.ipynb
 *.pyc
 .vs/

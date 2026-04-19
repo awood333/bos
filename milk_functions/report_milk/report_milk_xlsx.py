@@ -2,8 +2,6 @@
 
 import inspect
 import pandas as pd
-from openpyxl.styles import Alignment
-from openpyxl import load_workbook
 from container import get_dependency
 
 
@@ -78,39 +76,6 @@ class ReportMilkXlsx:
         halfday_formatted = format_dataframe(halfday, column_formats)
         groups_formatted = format_dataframe(groups, column_formats)
 
-        # Save to Excel with separate sheets
-        output_path = r"G:\My Drive\COWS\milk_data\groups\report_milk.xlsx"
-
-        with pd.ExcelWriter(output_path, engine='openpyxl') as writer:
-            tenday_formatted.to_excel(writer, sheet_name='TenDay', index=False)
-            halfday_formatted.to_excel(writer, sheet_name='HalfDay', index=False)
-            groups_formatted.to_excel(writer, sheet_name='Groups', index=False)
-
-        wb = load_workbook(output_path)
-        for sheet_name in ['TenDay', 'HalfDay', 'Groups']:
-            ws = wb[sheet_name]
-            for row in ws.iter_rows():
-                for cell in row:
-                    cell.alignment = Alignment(horizontal='right')
-
-            # Set column width for date columns
-            for col in ws.columns:
-                col_letter = col[0].column_letter
-                header = col[0].value
-                if header in ['expected bdate', 'bdate (exp)']:
-                    ws.column_dimensions[col_letter].width = 15  # Set width to 15 (adjust as needed)
-
-                    # Set header row height and wrap text
-            header_row = ws[1]
-            for cell in header_row:
-                cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
-            ws.row_dimensions[1].height = 50 
-
-        wb.save(output_path)
-
-
-
-        # Optionally, store for further use
         self.report_milk = {
             'TenDay': tenday_formatted,
             'HalfDay': halfday_formatted,

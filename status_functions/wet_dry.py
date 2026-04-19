@@ -356,10 +356,10 @@ class WetDry:
 
     def write_to_csv(self):
 
-        self.wet_dry_df      .to_csv(r"G:\My Drive\COWS\status\wet_dry\wet_dry_df.csv")       
-        self.wsd             .to_csv(r"G:\My Drive\COWS\status\wet_dry\wd_sum.csv")
-        self.wmd             .to_csv(r"G:\My Drive\COWS\status\wet_dry\wd_max.csv")
-        self.wet_dry_weekly  .to_csv(r"G:\My Drive\COWS\status\wet_dry\wet_dry_weekly.csv")
+        self.wet_dry_df      .to_csv(r"Q:\My Drive\COWS\status\wet_dry\wet_dry_df.csv")       
+        self.wsd             .to_csv(r"Q:\My Drive\COWS\status\wet_dry\wd_sum.csv")
+        self.wmd             .to_csv(r"Q:\My Drive\COWS\status\wet_dry\wd_max.csv")
+        self.wet_dry_weekly  .to_csv(r"Q:\My Drive\COWS\status\wet_dry\wet_dry_weekly.csv")
         
 
 

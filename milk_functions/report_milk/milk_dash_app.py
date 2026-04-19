@@ -1,13 +1,13 @@
 '''milk_funtions.report_milk.milk_dash_app.py'''
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+
 from container import get_dependency
 import threading
 import webbrowser
-import sys
-import os
 from dash import Dash, html, dash_table
 import pandas as pd
-
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
 
 
@@ -295,14 +295,19 @@ def run_milk_dash_app():
 
     def open_browser():
         try:
-            webbrowser.get('firefox').open_new("http://127.0.0.1:8051/")
+            # Use subprocess to avoid blocking DDE calls on Windows
+            import subprocess
+            firefox_paths = [
+                r"C:\Program Files\Mozilla Firefox\firefox.exe",
+                r"C:\Program Files (x86)\Mozilla Firefox\firefox.exe",
+            ]
+            for path in firefox_paths:
+                if os.path.exists(path):
+                    subprocess.Popen([path, "http://127.0.0.1:8051/"])
+                    return
+            webbrowser.open("http://127.0.0.1:8051/")
         except Exception as e:
-            print(f"Could not open Firefox: {e}")
-            # fallback to default browser
-            try:
-                webbrowser.open("http://127.0.0.1:8051/")
-            except Exception as e2:
-                print(f"Could not open default browser: {e2}")
+            print(f"Could not open browser: {e}")
 
     threading.Timer(1.5, open_browser).start()
     app.run(debug=False, port=8051)
