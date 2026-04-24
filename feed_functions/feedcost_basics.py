@@ -61,7 +61,7 @@ class Feedcost_basics:
         self.MB = get_dependency('milk_basics')
         self.DR = get_dependency('date_range')
         self.FS = get_dependency('feedcost_sequences')
-        self.data_loader = DataLoader('F:/COWS/data/feed_data/feed_csv')
+        self.data_loader = DataLoader('E:/COWS/data/feed_data/feed_csv')
 
         self.rng_monthly  = self.DR.date_range_monthly
         self.rng_monthly2 = getattr(self.DR, 'date_range_monthly2', None)
@@ -190,9 +190,9 @@ class Feedcost_basics:
     
     def write_to_csv(self):
         
-        self.feedcost_daily     .to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\feedcostByGroup_daily.csv')
-        self.feedcost_weekly    .to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\feedcostByGroup_weekly.csv')
-        self.feedcost_monthly   .to_csv('F:\\COWS\\data\\feed_data\\feedcost_by_group\\feedcostByGroup_monthly.csv')
+        self.feedcost_daily     .to_csv('E:\\COWS\\data\\feed_data\\feedcost_by_group\\feedcostByGroup_daily.csv')
+        self.feedcost_weekly    .to_csv('E:\\COWS\\data\\feed_data\\feedcost_by_group\\feedcostByGroup_weekly.csv')
+        self.feedcost_monthly   .to_csv('E:\\COWS\\data\\feed_data\\feedcost_by_group\\feedcostByGroup_monthly.csv')
         
 
 if __name__ == "__main__":

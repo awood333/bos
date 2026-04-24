@@ -378,18 +378,18 @@ class LactationsLogStandard:
             
     def write_to_csv(self):
         pass
-        # self.m1_daily_all               .to_csv("F:\\COWS\\data\\milk_data\\lactations\\daily\\m1_daily_all.csv")
-        # self.stddev_liters_daily_all    .to_csv("F:\\COWS\\data\\milk_data\\lactations\\daily\\StDev_liters_per_cow_daily_all.csv")
-        # self.m1_maxdiff_daily_avg_all   .to_csv("F:\\COWS\\data\\milk_data\\lactations\\daily\\m1_maxdiff_daily_avg_all.csv")
-        # self.maxdiff_daily_all          .to_csv("F:\\COWS\\data\\milk_data\\lactations\\daily\\maxdiff_daily_all.csv")
-        # self.max_daily_all              .to_csv("F:\\COWS\\data\\milk_data\\lactations\\daily\\max_daily_all.csv")
+        # self.m1_daily_all               .to_csv("E:\\COWS\\data\\milk_data\\lactations\\daily\\m1_daily_all.csv")
+        # self.stddev_liters_daily_all    .to_csv("E:\\COWS\\data\\milk_data\\lactations\\daily\\StDev_liters_per_cow_daily_all.csv")
+        # self.m1_maxdiff_daily_avg_all   .to_csv("E:\\COWS\\data\\milk_data\\lactations\\daily\\m1_maxdiff_daily_avg_all.csv")
+        # self.maxdiff_daily_all          .to_csv("E:\\COWS\\data\\milk_data\\lactations\\daily\\maxdiff_daily_all.csv")
+        # self.max_daily_all              .to_csv("E:\\COWS\\data\\milk_data\\lactations\\daily\\max_daily_all.csv")
 
-        # self.m1_weekly                  .to_csv("F:\\COWS\\data\\milk_data\\lactations\\weekly\\m1_weekly.csv")
-        # self.start_peak_ratio_all       .to_csv("F:\\COWS\\data\\milk_data\\lactations\\weekly\\start_peak_ratio_all.csv")
-        # self.idx_max_weekly_all         .to_csv("F:\\COWS\\data\\milk_data\\lactations\\weekly\\idx_max_weekly_all.csv")
-        # self.stddev_liters_weekly_all   .to_csv("F:\\COWS\\data\\milk_data\\lactations\\weekly\\StDev_liters_per_cow_wkly_all.csv")
-        # self.maxdiff_weekly_avg_all  .to_csv("F:\\COWS\\data\\milk_data\\lactations\\weekly\\maxdiff_weekly_avg_all.csv")
-        # self.max_weekly_all             .to_csv("F:\\COWS\\data\\milk_data\\lactations\\weekly\\max_weekly_all.csv")
+        # self.m1_weekly                  .to_csv("E:\\COWS\\data\\milk_data\\lactations\\weekly\\m1_weekly.csv")
+        # self.start_peak_ratio_all       .to_csv("E:\\COWS\\data\\milk_data\\lactations\\weekly\\start_peak_ratio_all.csv")
+        # self.idx_max_weekly_all         .to_csv("E:\\COWS\\data\\milk_data\\lactations\\weekly\\idx_max_weekly_all.csv")
+        # self.stddev_liters_weekly_all   .to_csv("E:\\COWS\\data\\milk_data\\lactations\\weekly\\StDev_liters_per_cow_wkly_all.csv")
+        # self.maxdiff_weekly_avg_all  .to_csv("E:\\COWS\\data\\milk_data\\lactations\\weekly\\maxdiff_weekly_avg_all.csv")
+        # self.max_weekly_all             .to_csv("E:\\COWS\\data\\milk_data\\lactations\\weekly\\max_weekly_all.csv")
 
 
 if __name__ == "__main__":

@@ -53,7 +53,7 @@ class I_U_merge:
         return self.iu
         
     def create_write_to_csv(self):
-        self.iu.to_csv('F:\\COWS\\data\\insem_data\\IU_merge\\IU_merge.csv', index=False)
+        self.iu.to_csv('E:\\COWS\\data\\insem_data\\IU_merge\\IU_merge.csv', index=False)
         
 if __name__ == '__main__':
     obj = I_U_merge()

@@ -35,12 +35,12 @@ class CapexBasics:
         
     
     def load_partition_data(self):
-        bkk1 = pd.read_csv('F:\\COWS\\data\\finance\\BKKbank\\BKKbankFarmAccount.csv')
+        bkk1 = pd.read_csv('E:\\COWS\\data\\finance\\BKKbank\\BKKbankFarmAccount.csv')
         bkk1['datex'] = pd.to_datetime(bkk1['datex'])
         bkk1.set_index('datex', inplace=True)
         
         # backup the original
-        bkk1    .to_csv(f"F:\\COWS\\data\\finance\\BKKbank\\backup\\BKKbank_{timestamp}.csv")
+        bkk1    .to_csv(f"E:\\COWS\\data\\finance\\BKKbank\\backup\\BKKbank_{timestamp}.csv")
         bkk1    .to_csv(f"E:\\Cows\\data_backup\\finance_backup\\farm_account\\BKKbank_{timestamp}.csv")
 
         bkk1a = bkk1.iloc[:,:12].copy()
@@ -120,11 +120,11 @@ class CapexBasics:
 
     def write_to_csv(self):
         
-        self.capex_details      .to_csv("F:\\COWS\\data\\finance\\capex\\capex_details.csv")
-        self.non_capex_details  .to_csv("F:\\COWS\\data\\finance\\capex\\non_capex_details.csv")
+        self.capex_details      .to_csv("E:\\COWS\\data\\finance\\capex\\capex_details.csv")
+        self.non_capex_details  .to_csv("E:\\COWS\\data\\finance\\capex\\non_capex_details.csv")
 
-        self.capex_pivot    .to_csv("F:\\COWS\\data\\finance\\capex\\capex_pivot.csv")
-        self.non_capex_pivot.to_csv("F:\\COWS\\data\\finance\\capex\\non_capex_pivot.csv") 
+        self.capex_pivot    .to_csv("E:\\COWS\\data\\finance\\capex\\capex_pivot.csv")
+        self.non_capex_pivot.to_csv("E:\\COWS\\data\\finance\\capex\\non_capex_pivot.csv") 
  
     
 if __name__ == "__main__":

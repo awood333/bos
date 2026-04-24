@@ -58,8 +58,8 @@ class FeedcostData:
         for feed in self.feed_types:
             try:
                 # Load invoice and price sequence CSVs
-                invoice_path = f"F:/COWS/data/feed_data/feed_invoice_data/{feed}_invoice_detail.csv"
-                price_seq_path = f"F:/COWS/data/feed_data/feed_csv/{feed}_price_seq.csv"
+                invoice_path = f"E:/COWS/data/feed_data/feed_invoice_data/{feed}_invoice_detail.csv"
+                price_seq_path = f"E:/COWS/data/feed_data/feed_csv/{feed}_price_seq.csv"
                 bid = pd.read_csv(invoice_path)
                 price_seq1 = pd.read_csv(price_seq_path)
                 price_seq = price_seq1.loc[:, ['datex', 'unit_price']].set_index('datex')
@@ -88,8 +88,8 @@ class FeedcostData:
                 dcs['daily cost'] = dcs['unit_price'] * dcs['total_amt']
 
                 # Write to CSV
-                dcs.to_csv(f'F:/COWS/data/feed_data/feed_consumption/cost_sequence_{feed}.csv')
-                daily_amt.to_csv(f'F:/COWS/data/feed_data/feed_consumption/daily_amt_{feed}.csv')
+                dcs.to_csv(f'E:/COWS/data/feed_data/feed_consumption/cost_sequence_{feed}.csv')
+                daily_amt.to_csv(f'E:/COWS/data/feed_data/feed_consumption/daily_amt_{feed}.csv')
 
                 self.results[feed] = {
                     'cost_sequence': dcs,

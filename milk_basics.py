@@ -52,6 +52,8 @@ class MilkBasics:
         self.u ['ultra_date']     = pd.to_datetime (self.u     ['ultra_date'], errors='coerce')
         self.i ['insem_date']     = pd.to_datetime (self.i     ['insem_date'], errors='coerce')
         
+        self.WY_ids = bd1['WY_id'].tolist()
+
         start1a  = self.startx.pivot_table (index='WY_id', columns='calf#',    values='b_date', fill_value=pd.NaT)
         stop1a   = self.stopx .pivot_table (index='WY_id', columns='lact_num', values='stop',   fill_value=pd.NaT)
      
@@ -69,9 +71,6 @@ class MilkBasics:
         # NOTE: extended range is renamed ext_rng in 'data'
         self.extended_date_range_milk = pd.date_range(start='2016-09-01', end=self.lastday)
       
-        self.WY_ids = bd1['WY_id'].tolist()
-
-        
         self.start = start2a.T
         self.stop  = stop2a.T
         self.bd = bd1

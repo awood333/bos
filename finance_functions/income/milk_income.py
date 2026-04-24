@@ -36,7 +36,7 @@ class MilkIncome:
         
     def DataLoader(self):  
 
-        old_liters1 = pd.read_csv(r"F:\COWS\data\milk_data\fullday\fullday.csv")
+        old_liters1 = pd.read_csv(r"E:\COWS\data\milk_data\fullday\fullday.csv")
 
         old_liters1['datex'] = pd.to_datetime(old_liters1['datex'] )
         old_liters1.set_index('datex', inplace=True)
@@ -52,7 +52,7 @@ class MilkIncome:
             start_date_str = str(self.startdate)
         old_liters_pre_cutoff = old_total_liters2.loc[start_date_str:sahagon_cutoff_date]
 
-        new_liters1 = pd.read_excel(r"F:\COWS\data\milk_data\daily_milk\daily_milk.xlsx", sheet_name='stats', header=0)
+        new_liters1 = pd.read_excel(r"E:\COWS\data\milk_data\daily_milk\daily_milk.xlsx", sheet_name='stats', header=0)
         new_litersT = new_liters1.T.reset_index()
         # If the first row is not a date, drop it (e.g., contains 'sale total', 'heldback AM', etc.)
         try:
@@ -105,12 +105,12 @@ class MilkIncome:
     
     # BACKUP
     def write_to_csv(self):
-        self.income     .to_csv('F:\\COWS\\data\\PL_data\\milk_income\\output\\milk_income_.csv')
+        self.income     .to_csv('E:\\COWS\\data\\PL_data\\milk_income\\output\\milk_income_.csv')
         self.income     .to_csv('E:\\COWS\\data_backup\\milk_income_backup\\milk_income_'+tdy+'.csv')
 
-        self.income     .to_csv('F:\\COWS\\data\\PL_data\\milk_income\\output\\milk_income_daily.csv')
-        # self.income_daily_last  .to_csv('F:\\COWS\\data\\PL_data\\milk_income\\output\\milk_income_daily_last.csv')
-        self.income_monthly     .to_csv('F:\\COWS\\data\\PL_data\\milk_income\\output\\milk_income_monthly.csv')
+        self.income     .to_csv('E:\\COWS\\data\\PL_data\\milk_income\\output\\milk_income_daily.csv')
+        # self.income_daily_last  .to_csv('E:\\COWS\\data\\PL_data\\milk_income\\output\\milk_income_daily_last.csv')
+        self.income_monthly     .to_csv('E:\\COWS\\data\\PL_data\\milk_income\\output\\milk_income_monthly.csv')
         
 
 if __name__ == '__main__':

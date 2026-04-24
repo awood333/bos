@@ -17,7 +17,7 @@ class FinanceBasics:
         self.feedcost_pivot = None
 
     def load_and_process(self):
-        bkk = pd.read_csv('F:\\COWS\\data\\finance\\BKKbank\\BKKBankFarmAccount.csv', index_col='datex')
+        bkk = pd.read_csv('E:\\COWS\\data\\finance\\BKKbank\\BKKBankFarmAccount.csv', index_col='datex')
         bkk.index = pd.to_datetime(bkk.index, format="%Y-%m-%d")
         self.bkk1 = bkk.iloc[:, :12]
 
@@ -126,8 +126,8 @@ class FinanceBasics:
     
     def create_write_to_csv(self):
         
-        self.feedcost_pivot     .to_csv('F:\\COWS\\data\\finance\\BKKbank\\feedcost_pivot.csv')
-        self.cost_xfeed_pivot   .to_csv('F:\\COWS\\data\\finance\\BKKbank\\cost_xfeed_pivot.csv')
+        self.feedcost_pivot     .to_csv('E:\\COWS\\data\\finance\\BKKbank\\feedcost_pivot.csv')
+        self.cost_xfeed_pivot   .to_csv('E:\\COWS\\data\\finance\\BKKbank\\cost_xfeed_pivot.csv')
         
     
 if __name__ == "__main__":

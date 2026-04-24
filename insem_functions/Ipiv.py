@@ -91,7 +91,7 @@ class Ipiv:
         return self.ipiv_milkers
     
     def write_to_csv(self):
-        self.ipiv_milkers.to_csv('F:\\COWS\\data\\insem_data\\ipiv_milkers.csv')   
+        self.ipiv_milkers.to_csv('E:\\COWS\\data\\insem_data\\ipiv_milkers.csv')   
     
     
 if __name__ == "__main__":

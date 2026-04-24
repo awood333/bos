@@ -5,7 +5,6 @@ and injects MB.data['milk'] with the freshly computed fullday.
 No insem dependency — safe to load before status_data.
 '''
 
-from datetime import datetime
 import sys
 import os
 import inspect
@@ -36,7 +35,6 @@ class MilkAggregatesBasic:
         self.am = None
         self.pm = None
         self.fullday = None
-        self.fullday_xl = None
         self.fullday_lastdate = None
         self.AM_liters = None
         self.AM_wy = None
@@ -53,7 +51,7 @@ class MilkAggregatesBasic:
          self.liters_am_np, self.liters_pm_np] = self.basics()
 
         [self.am, self.pm, self.fullday,
-         self.fullday_xl, self.fullday_lastdate] = self.fullday_calc()
+         self.fullday_lastdate] = self.fullday_calc()
 
         # Inject fresh fullday so all downstream consumers see current data
         self.MB.data['milk'] = self.fullday
@@ -135,18 +133,15 @@ class MilkAggregatesBasic:
         fullday2.set_index('datex', inplace=True)
 
         self.fullday = fullday2
-        self.fullday.index = pd.to_datetime(self.fullday.index, errors='coerce', format="%m/%d/%Y").date
+        self.fullday.index = pd.to_datetime(self.fullday.index, errors='coerce', format="%m/%d/%Y")
         self.fullday.replace(0, np.nan, inplace=True)
         self.fullday.drop(self.fullday.iloc[:, 0:1], axis=1, inplace=True)
         self.fullday.index.name = 'datex'
 
-        self.fullday_xl = self.fullday.copy()
-        self.fullday_xl.index = self.fullday_xl.index.map(
-            lambda x: (x - datetime(1899, 12, 30).date()).days)
         self.fullday_lastdate = pd.DataFrame(
             index=[self.fullday.index[-1]], columns=['last_date'])
 
-        return [self.am, self.pm, self.fullday, self.fullday_xl, self.fullday_lastdate]
+        return [self.am, self.pm, self.fullday, self.fullday_lastdate]
 
 
 if __name__ == '__main__':

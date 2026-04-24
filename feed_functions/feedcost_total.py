@@ -199,15 +199,15 @@ class Feedcost_total:
 
 
     def write_to_csv(self):
-        self.feedcost                   .to_csv(r'F:\COWS\data\feed_data\feedcost_by_group\feedcost.csv')
-        self.total_feedcost_details_last.to_csv(r'F:\COWS\data\feed_data\feedcost_by_group\total_feedcost_details_last.csv')
-        self.total_feedcost_monthly     .to_csv(r'F:\COWS\data\feed_data\feedcost_by_group\total_feedcost_monthly.csv')
-        self.total_feedcost_weekly      .to_csv(r'F:\COWS\data\feed_data\feedcost_by_group\total_feedcost_weekly.csv')
+        self.feedcost                   .to_csv(r'E:\COWS\data\feed_data\feedcost_by_group\feedcost.csv')
+        self.total_feedcost_details_last.to_csv(r'E:\COWS\data\feed_data\feedcost_by_group\total_feedcost_details_last.csv')
+        self.total_feedcost_monthly     .to_csv(r'E:\COWS\data\feed_data\feedcost_by_group\total_feedcost_monthly.csv')
+        self.total_feedcost_weekly      .to_csv(r'E:\COWS\data\feed_data\feedcost_by_group\total_feedcost_weekly.csv')
         # Write the DataFrame-based monthly result for comparison
 
 
-        self.total_feedcost_monthly_from_df.to_csv(r'F:\COWS\data\feed_data\feedcost_by_group\total_feedcost_monthly_from_df.csv')
-        self.feedcost_from_df_details   .to_csv(r'F:\COWS\data\feed_data\feedcost_by_group\total_feedcost_monthly_from_df.csv')
+        self.total_feedcost_monthly_from_df.to_csv(r'E:\COWS\data\feed_data\feedcost_by_group\total_feedcost_monthly_from_df.csv')
+        self.feedcost_from_df_details   .to_csv(r'E:\COWS\data\feed_data\feedcost_by_group\total_feedcost_monthly_from_df.csv')
 
 
 

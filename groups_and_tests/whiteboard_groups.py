@@ -266,7 +266,7 @@ class WhiteboardGroups:
     def write_to_csv(self):
         pass
         # self.whiteboard_groups_tenday       .to_csv(r"Q:\My Drive\COWS\milk_data\groups\\whiteboard_groups_tenday.csv")
-        # self.whiteboard_groups_for_dailymilk.to_csv('F:\\COWS\\data\\groups_and_tests\\whiteboard_groups_for_dailymilk.csv')
+        # self.whiteboard_groups_for_dailymilk.to_csv('E:\\COWS\\data\\groups_and_tests\\whiteboard_groups_for_dailymilk.csv')
         # self.groups_by_date_by_cow          .to_csv(r"Q:\My Drive\COWS\milk_data\groups\\whiteboard_groups_by_date_by_cow.csv")
         # self.whiteboard_groups_specific_date.to_csv(r"Q:\My Drive\COWS\milk_data\groups\\whiteboard_groups_specific_date.csv")
 

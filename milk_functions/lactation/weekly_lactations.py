@@ -141,11 +141,11 @@ class WeeklyLactations():
         self.live_lact_wk_4.to_csv(r"Q:\My Drive\COWS\milk_data\lactations\weekly\live_lact_wk_4.csv")
         self.live_lact_wk_5.to_csv(r"Q:\My Drive\COWS\milk_data\lactations\weekly\live_lact_wk_5.csv")
         
-        # self.lactation_wk_1.to_csv('F:\\COWS\\data\\milk_data\\lactations\\weekly\\lactation_wk_1.csv')
-        # self.lactation_wk_2.to_csv('F:\\COWS\\data\\milk_data\\lactations\\weekly\\lactation_wk_2.csv')
-        # self.lactation_wk_3.to_csv('F:\\COWS\\data\\milk_data\\lactations\\weekly\\lactation_wk_3.csv')
-        # self.lactation_wk_4.to_csv('F:\\COWS\\data\\milk_data\\lactations\\weekly\\lactation_wk_4.csv')
-        # self.lactation_wk_5.to_csv('F:\\COWS\\data\\milk_data\\lactations\\weekly\\lactation_wk_5.csv')
+        # self.lactation_wk_1.to_csv('E:\\COWS\\data\\milk_data\\lactations\\weekly\\lactation_wk_1.csv')
+        # self.lactation_wk_2.to_csv('E:\\COWS\\data\\milk_data\\lactations\\weekly\\lactation_wk_2.csv')
+        # self.lactation_wk_3.to_csv('E:\\COWS\\data\\milk_data\\lactations\\weekly\\lactation_wk_3.csv')
+        # self.lactation_wk_4.to_csv('E:\\COWS\\data\\milk_data\\lactations\\weekly\\lactation_wk_4.csv')
+        # self.lactation_wk_5.to_csv('E:\\COWS\\data\\milk_data\\lactations\\weekly\\lactation_wk_5.csv')
         
         
 

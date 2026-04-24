@@ -83,7 +83,7 @@ class ReportMilkXlsx:
         }
         return self.report_milk
 
-    # gets written to output_path = "F:\\COWS\\data\\milk_data\\groups\\report_milk.xlsx"
+    # gets written to output_path = "E:\\COWS\\data\\milk_data\\groups\\report_milk.xlsx"
 
 if __name__ == "__main__":
     obj = ReportMilkXlsx()

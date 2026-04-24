@@ -78,10 +78,10 @@ class NetRevenue:
  
     def write_to_csv(self):
         
-        # self.test_daily_net         .to_csv('F:\\COWS\\data\\PL_data\\test_daily_net.csv')
-        self.net_revenue_daily_last .to_csv('F:\\COWS\\data\\PL_data\\net_revenue_daily_last.csv')
-        self.net_revenue_daily      .to_csv('F:\\COWS\\data\\PL_data\\net_revenue_daily.csv')
-        self.net_revenue_monthly    .to_csv('F:\\COWS\\data\\PL_data\\net_revenue_monthly.csv')
+        # self.test_daily_net         .to_csv('E:\\COWS\\data\\PL_data\\test_daily_net.csv')
+        self.net_revenue_daily_last .to_csv('E:\\COWS\\data\\PL_data\\net_revenue_daily_last.csv')
+        self.net_revenue_daily      .to_csv('E:\\COWS\\data\\PL_data\\net_revenue_daily.csv')
+        self.net_revenue_monthly    .to_csv('E:\\COWS\\data\\PL_data\\net_revenue_monthly.csv')
         
         
         

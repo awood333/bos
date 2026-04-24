@@ -54,7 +54,7 @@ class CompareModelWhiteboardGroups_Last:
 
         return merged
 
-    def write_to_csv(self, path="F:\\COWS\\data\\milk_data\\groups\\compare_model_whiteboard_groups.csv"):
+    def write_to_csv(self, path="E:\\COWS\\data\\milk_data\\groups\\compare_model_whiteboard_groups.csv"):
         if self.comparison is not None:
             self.comparison.to_csv(path, index=False)
 

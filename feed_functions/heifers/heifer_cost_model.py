@@ -68,7 +68,7 @@ class HeiferCostModel:
     
     # this makes a timeseries - but amount still adds up to 1kg
     def create_heifer_feedcost(self):
-        diet1 = pd.read_csv('F:\\COWS\\data\\feed_data\\feed_csv\\heifer_daily_amt.csv')
+        diet1 = pd.read_csv('E:\\COWS\\data\\feed_data\\feed_csv\\heifer_daily_amt.csv')
         diet1['datex'] = pd.to_datetime(diet1['datex'], errors='coerce')
         diet1 = diet1.set_index('datex')
         diet2a = diet1.reindex(self.rng1).ffill()
@@ -94,7 +94,7 @@ class HeiferCostModel:
         
     def create_feeding_ranges(self):
         
-        bd1 = pd.read_csv('F:\\COWS\\data\\csv_files\\heifers.csv')
+        bd1 = pd.read_csv('E:\\COWS\\data\\csv_files\\heifers.csv')
         bd1['b_date']           = pd.to_datetime(bd1['b_date'], errors='coerce')
         bd1['adj_bdate']        = pd.to_datetime(bd1['adj_bdate'], errors='coerce')
         bd1['ultra_conf_date']  = pd.to_datetime(bd1['ultra_conf_date'], errors='coerce')        
@@ -286,8 +286,8 @@ class HeiferCostModel:
     
     def write_to_csv(self):
         
-        # self.heifer_feedcost_daily  .to_csv("F:\\COWS\\data\\feed_data\\heifers\\heifer_cost_daily.csv")
-        # self.heifer_feedcost_monthly.to_csv("F:\\COWS\\data\\feed_data\\heifers\\heifer_cost_monthly.csv")
+        # self.heifer_feedcost_daily  .to_csv("E:\\COWS\\data\\feed_data\\heifers\\heifer_cost_daily.csv")
+        # self.heifer_feedcost_monthly.to_csv("E:\\COWS\\data\\feed_data\\heifers\\heifer_cost_monthly.csv")
         return
             
             

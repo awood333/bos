@@ -31,10 +31,10 @@ import os
 import pandas as pd
 import numpy as np
 
-# Resolve repo root (3 levels up from milk_functions/report_milk/)
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..')))
+# Resolve repo root (2 levels up from milk_functions/report_milk/)
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 from dotenv import load_dotenv
-load_dotenv(os.path.join(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..')), '.env'))
+load_dotenv(os.path.join(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')), '.env'))
 from utilities.gdrive_loader import gdrive_read_sheet_tab, gdrive_write_sheet_tab, gdrive_write_excel
 
 # ---------------------------------------------------------------------------
@@ -271,7 +271,8 @@ def main():
     # 5. Also save as daily_milk.xlsx in GDrive
     # -----------------------------------------------------------------------
     print("\n[5] Writing daily_milk.xlsx to GDrive...", flush=True)
-    excel_bytes = build_excel(all_tabs)
+    excel_tabs = {**all_tabs, 'stats': stats_df.iloc[:, -10:]}
+    excel_bytes = build_excel(excel_tabs)
     gdrive_write_excel('COWS/milk_data/daily_milk/daily_milk.xlsx', excel_bytes)
     print("Done. daily_milk.xlsx updated in Google Drive.", flush=True)
 

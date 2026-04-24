@@ -66,8 +66,8 @@ class IncomeStatement:
         return self.net_income, self.net_income_details
 
     def write_to_csv(self):
-        self.net_income.to_csv('F:\\COWS\\data\\PL_data\\net_income.csv')
-        self.net_income_details.to_csv('F:\\COWS\\data\\PL_data\\net_income_details.csv')                
+        self.net_income.to_csv('E:\\COWS\\data\\PL_data\\net_income.csv')
+        self.net_income_details.to_csv('E:\\COWS\\data\\PL_data\\net_income_details.csv')                
         
 if __name__ == "__main__":
     obj=IncomeStatement()

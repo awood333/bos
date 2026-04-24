@@ -74,7 +74,7 @@ class status_data:
         for date in datex:
             alive_mask = []
             for i in self.f.columns:
-                alive1 = date > bd.loc[i] and (date < dd.loc[i] or pd.isna(dd.loc[i]))
+                alive1 = date > bd.loc[str(i)] and (date < dd.loc[str(i)] or pd.isna(dd.loc[str(i)]))
                 alive_mask.append(alive1)
             alive_series = self.f.loc[date, alive_mask].copy()
             milking_mask = alive_series > 0
@@ -165,14 +165,14 @@ class status_data:
     def create_write_to_csv(self):
         pass
         # Per-date (status_data)
-        # self.milker_ids_df.to_csv('F:\\COWS\\data\\status\\milker_ids.csv')
-        # self.dry_ids_df.to_csv('F:\\COWS\\data\\status\\dry_ids.csv')
-        # self.herd_daily.to_csv('F:\\COWS\\data\\status\\herd_daily.csv')
-        # self.herd_monthly.to_csv('F:\\COWS\\data\\status\\herd_monthly.csv')
+        # self.milker_ids_df.to_csv('E:\\COWS\\data\\status\\milker_ids.csv')
+        # self.dry_ids_df.to_csv('E:\\COWS\\data\\status\\dry_ids.csv')
+        # self.herd_daily.to_csv('E:\\COWS\\data\\status\\herd_daily.csv')
+        # self.herd_monthly.to_csv('E:\\COWS\\data\\status\\herd_monthly.csv')
         # # Snapshot (status_data2)
-        # pd.DataFrame(self.milkers_ids, columns=['ids']).to_csv('F:\\COWS\\data\\status\\milkers_ids_last.csv')
-        # pd.DataFrame(self.dry_ids_last, columns=['ids']).to_csv('F:\\COWS\\data\\status\\dry_ids_last.csv')
-        # self.status_col.to_csv('F:\\COWS\\data\\status\\status_col.csv')
+        # pd.DataFrame(self.milkers_ids, columns=['ids']).to_csv('E:\\COWS\\data\\status\\milkers_ids_last.csv')
+        # pd.DataFrame(self.dry_ids_last, columns=['ids']).to_csv('E:\\COWS\\data\\status\\dry_ids_last.csv')
+        # self.status_col.to_csv('E:\\COWS\\data\\status\\status_col.csv')
 
 if __name__ == "__main__":
     obj = status_data()

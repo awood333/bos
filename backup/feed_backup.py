@@ -7,7 +7,7 @@ tdy = pd.Timestamp('now').strftime('%Y-%m-%d_%H-%M-%S')
 
 class FeedDataBackup:
     def __init__(self):
-        self.source_folder = 'F:\\COWS\\data\\feed_data'
+        self.source_folder = 'E:\\COWS\\data\\feed_data'
         self.backup_folder = f'E:\\Cows\\data_backup\\feed_backup\\feed_backup_{tdy}'
         self.copy_folder_with_timestamp()
 

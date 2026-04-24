@@ -69,8 +69,8 @@ class DepreciationCalc:
     
     def write_to_csv(self):
         
-        self.available_depr_details.to_csv('F:\\COWS\\data\\finance\\capex\\depreciation\\available_depr_details.csv')
-        self.available_depr_summary.to_csv('F:\\COWS\\data\\finance\\capex\\depreciation\\available_depr_summary.csv')
+        self.available_depr_details.to_csv('E:\\COWS\\data\\finance\\capex\\depreciation\\available_depr_details.csv')
+        self.available_depr_summary.to_csv('E:\\COWS\\data\\finance\\capex\\depreciation\\available_depr_summary.csv')
     
     
 if __name__ == "__main__":
