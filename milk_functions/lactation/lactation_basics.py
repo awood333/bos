@@ -108,7 +108,7 @@ class LactationBasics:
                 # print(f'lact {i} shape: {lact[i].shape}')
                 lactations.append(lact[i])
                 
-            # milk3.to_csv('F:\\COWS\\data\\milk_data\\lactations\\milk3.csv') 
+            # milk3.to_csv('E:\\COWS\\data\\milk_data\\lactations\\milk3.csv') 
             
             #    reinitialize milk3
             milk3 = pd.DataFrame(index=range(1,1000)).fillna(0).infer_objects(copy=False)

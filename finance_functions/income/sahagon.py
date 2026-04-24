@@ -18,7 +18,7 @@ class sahagon:
     
     def get_data(self):
                 
-        dm1 = pd.read_excel("F:\\COWS\\data\\daily_milk.ods", sheet_name='stats')
+        dm1 = pd.read_excel("E:\\COWS\\data\\daily_milk.ods", sheet_name='stats')
         dm2 = dm1.iloc[1,:].copy()
         dm2.index   = pd.to_datetime( dm2.index, format='ISO8601', errors='coerce')
 
@@ -47,8 +47,8 @@ class sahagon:
     
     def write_to_csv(self):
         today_str = self.today.strftime('%Y-%m-%d')
-        self.dm_daily         .to_csv(f'F:\\COWS\\data\\milk_data\\totals\\sahagon\\sahagon_daily_{today_str}.csv')
-        self.dm_monthly.to_csv('F:\\COWS\\data\\PL_data\\sahagon_monthly.csv')
+        self.dm_daily         .to_csv(f'E:\\COWS\\data\\milk_data\\totals\\sahagon\\sahagon_daily_{today_str}.csv')
+        self.dm_monthly.to_csv('E:\\COWS\\data\\PL_data\\sahagon_monthly.csv')
     
     
 if __name__ == '__main__':

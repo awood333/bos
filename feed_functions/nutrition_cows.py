@@ -23,21 +23,21 @@ class NutritionCows:
     
   def data_loader(self):
       
-    self.comp1  = pd.read_csv    ('F:\\COWS\\data\\feed_data\\nutrition_data\\feedipedia_comp.csv',index_col=0)
-    self.kg1    = pd.read_csv    ('F:\\COWS\\data\\feed_data\\nutrition_data\\kg.csv',         index_col=0)
-    self.price1 = pd.read_csv    ('F:\\COWS\\data\\feed_data\\nutrition_data\\price.csv',      index_col=0)
-    self.comp   = pd.read_csv    ('F:\\COWS\\data\\feed_data\\nutrition_data\\composition_of_feed_WY.csv')
+    self.comp1  = pd.read_csv    ('E:\\COWS\\data\\feed_data\\nutrition_data\\feedipedia_comp.csv',index_col=0)
+    self.kg1    = pd.read_csv    ('E:\\COWS\\data\\feed_data\\nutrition_data\\kg.csv',         index_col=0)
+    self.price1 = pd.read_csv    ('E:\\COWS\\data\\feed_data\\nutrition_data\\price.csv',      index_col=0)
+    self.comp   = pd.read_csv    ('E:\\COWS\\data\\feed_data\\nutrition_data\\composition_of_feed_WY.csv')
     
-    self.beans_amt1     = pd.read_csv   ('F:\\COWS\\data\\feed_data\\feed_csv\\beans_daily_amt.csv')
-    self.cassava_amt1   = pd.read_csv   ('F:\\COWS\\data\\feed_data\\feed_csv\\cassava_daily_amt.csv')
-    self.corn_amt1      = pd.read_csv   ('F:\\COWS\\data\\feed_data\\feed_csv\\corn_daily_amt.csv')
-    self.straw_amt1     = pd.read_csv   ('F:\\COWS\\data\\feed_data\\feed_csv\\straw_daily_amt.csv')
+    self.beans_amt1     = pd.read_csv   ('E:\\COWS\\data\\feed_data\\feed_csv\\beans_daily_amt.csv')
+    self.cassava_amt1   = pd.read_csv   ('E:\\COWS\\data\\feed_data\\feed_csv\\cassava_daily_amt.csv')
+    self.corn_amt1      = pd.read_csv   ('E:\\COWS\\data\\feed_data\\feed_csv\\corn_daily_amt.csv')
+    self.straw_amt1     = pd.read_csv   ('E:\\COWS\\data\\feed_data\\feed_csv\\straw_daily_amt.csv')
 
 
-    self.beans_price1     = pd.read_csv   ('F:\\COWS\\data\\feed_data\\feed_csv\\beans_price_seq.csv')
-    self.cassava_price1   = pd.read_csv   ('F:\\COWS\\data\\feed_data\\feed_csv\\cassava_price_seq.csv')
-    self.corn_price1      = pd.read_csv   ('F:\\COWS\\data\\feed_data\\feed_csv\\corn_price_seq.csv')
-    self.straw_price1     = pd.read_csv   ('F:\\COWS\\data\\feed_data\\feed_csv\\straw_price_seq.csv')
+    self.beans_price1     = pd.read_csv   ('E:\\COWS\\data\\feed_data\\feed_csv\\beans_price_seq.csv')
+    self.cassava_price1   = pd.read_csv   ('E:\\COWS\\data\\feed_data\\feed_csv\\cassava_price_seq.csv')
+    self.corn_price1      = pd.read_csv   ('E:\\COWS\\data\\feed_data\\feed_csv\\corn_price_seq.csv')
+    self.straw_price1     = pd.read_csv   ('E:\\COWS\\data\\feed_data\\feed_csv\\straw_price_seq.csv')
 
 
     return [self.comp1, self.kg1, 
@@ -165,18 +165,18 @@ if __name__ == "__main__":
 
 
 # # write to csv
-# rations     .to_csv('F:\\COWS\\data\\nutrition_data\\output\\rations.csv')
-# bodywtpcts  .to_csv('F:\\COWS\\data\\nutrition_data\\output\\bodywtpcts.csv')                    
-# bagdryt     .to_csv('F:\\COWS\\data\\nutrition_data\\output\\CPFood_DM.csv')
-# bagmilkt    .to_csv('F:\\COWS\\data\\nutrition_data\\output\\premix.csv')
-# cassavat    .to_csv('F:\\COWS\\data\\nutrition_data\\output\\cassava.csv')
-# cornt       .to_csv('F:\\COWS\\data\\nutrition_data\\output\\corn.csv')
-# molassest   .to_csv('F:\\COWS\\data\\nutrition_data\\output\\molasses.csv')
-# ricestrawt  .to_csv('F:\\COWS\\data\\nutrition_data\\output\\ricestraw.csv')
-# soybeant    .to_csv('F:\\COWS\\data\\nutrition_data\\output\\soybean.csv')
+# rations     .to_csv('E:\\COWS\\data\\nutrition_data\\output\\rations.csv')
+# bodywtpcts  .to_csv('E:\\COWS\\data\\nutrition_data\\output\\bodywtpcts.csv')                    
+# bagdryt     .to_csv('E:\\COWS\\data\\nutrition_data\\output\\CPFood_DM.csv')
+# bagmilkt    .to_csv('E:\\COWS\\data\\nutrition_data\\output\\premix.csv')
+# cassavat    .to_csv('E:\\COWS\\data\\nutrition_data\\output\\cassava.csv')
+# cornt       .to_csv('E:\\COWS\\data\\nutrition_data\\output\\corn.csv')
+# molassest   .to_csv('E:\\COWS\\data\\nutrition_data\\output\\molasses.csv')
+# ricestrawt  .to_csv('E:\\COWS\\data\\nutrition_data\\output\\ricestraw.csv')
+# soybeant    .to_csv('E:\\COWS\\data\\nutrition_data\\output\\soybean.csv')
 # #
-# feedkg      .to_csv('F:\\COWS\\data\\nutrition_data\\output\\feedkg.csv')
-# x           .to_csv('F:\\COWS\\data\\nutrition_data\\output\\cost_kg.csv')
-# rationsDM   .to_csv('F:\\COWS\\data\\nutrition_data\\output\\rationsDM.csv')
-# .to_csv('F:\\COWS\\data\\nutrition_data\\output\\.csv')
+# feedkg      .to_csv('E:\\COWS\\data\\nutrition_data\\output\\feedkg.csv')
+# x           .to_csv('E:\\COWS\\data\\nutrition_data\\output\\cost_kg.csv')
+# rationsDM   .to_csv('E:\\COWS\\data\\nutrition_data\\output\\rationsDM.csv')
+# .to_csv('E:\\COWS\\data\\nutrition_data\\output\\.csv')
 

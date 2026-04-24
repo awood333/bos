@@ -33,7 +33,7 @@ class IncomeStatement:
 
     def write_to_csv(self):
         
-        self.net_income.to_csv('F:\\COWS\\data\\PL_data\\net_income.csv')
+        self.net_income.to_csv('E:\\COWS\\data\\PL_data\\net_income.csv')
         
         
 if __name__ == "__main__":

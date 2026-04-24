@@ -124,11 +124,11 @@ class SplineLactationPredictor_weekly:
         ]
         params_df = params_df[[c for c in cols_order if c in params_df.columns]]
         
-        extended_weekly.to_csv("F:\\COWS\\data\\milk_data\\tests\\spline_extended.csv")
+        extended_weekly.to_csv("E:\\COWS\\data\\milk_data\\tests\\spline_extended.csv")
         return extended_weekly, params_df
 
 
 if __name__ == '__main__':
     predictor = SplineLactationPredictor_weekly()
     predictor.load_and_process(future_periods=5)
-    predictor.predictions_liters.to_csv("F:\\COWS\\data\\milk_data\\tests\\spline_test_weekly.csv")
+    predictor.predictions_liters.to_csv("E:\\COWS\\data\\milk_data\\tests\\spline_test_weekly.csv")

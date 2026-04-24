@@ -30,10 +30,10 @@ class CapexProjects:
         self.CB = get_dependency('capex_basics')
 
         self.capex          = self.CB.capex_details
-        self.old_capex      = pd.read_csv("F:\\COWS\\data\\finance\\capex\\old capex\\old_capex_list.csv", index_col='datex')
+        self.old_capex      = pd.read_csv("E:\\COWS\\data\\finance\\capex\\old capex\\old_capex_list.csv", index_col='datex')
         self.old_capex.index = pd.to_datetime(self.old_capex.index).date
         
-        self.project_completion_dates = pd.read_csv("F:\\COWS\\data\\finance\\capex\\projects\\project_completion_dates\\project_completion_dates.csv")
+        self.project_completion_dates = pd.read_csv("E:\\COWS\\data\\finance\\capex\\projects\\project_completion_dates\\project_completion_dates.csv")
         self.project_completion_dates['completion_date'] = pd.to_datetime(self.project_completion_dates['completion_date']).dt.date
         self.ptoc = self.create_project_details_value()
 
@@ -97,10 +97,10 @@ class CapexProjects:
 
             setattr(self, f"{project_name}_initial_project_details", initial_project_details)
 
-            getattr(self, f"{project_name}_initial_project_details")    .to_csv(f"F:\\COWS\\data\\finance\\capex\\projects\\project_details\\{project_name}_initial_project_details.csv")
+            getattr(self, f"{project_name}_initial_project_details")    .to_csv(f"E:\\COWS\\data\\finance\\capex\\projects\\project_details\\{project_name}_initial_project_details.csv")
  
         self.ptoc = project_totals_old_capex
-        project_totals_old_capex.to_csv("F:\\COWS\\data\\finance\\capex\\projects\\project_details\\project_totals_old_capex.csv", index=False)
+        project_totals_old_capex.to_csv("E:\\COWS\\data\\finance\\capex\\projects\\project_details\\project_totals_old_capex.csv", index=False)
         
         return self.ptoc
        

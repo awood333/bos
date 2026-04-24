@@ -33,7 +33,6 @@ class MilkAggregates:
         self.am = None
         self.pm = None
         self.fullday = None
-        self.fullday_xl = None
         self.fullday_lastdate = None
         self.datex = None
         self.AM_liters = None
@@ -62,7 +61,6 @@ class MilkAggregates:
         self.am               = self.MAB.am
         self.pm               = self.MAB.pm
         self.fullday          = self.MAB.fullday
-        self.fullday_xl       = self.MAB.fullday_xl
         self.fullday_lastdate = self.MAB.fullday_lastdate
         self.datex            = self.MAB.datex
         self.AM_liters        = self.MAB.AM_liters
@@ -191,7 +189,6 @@ class MilkAggregates:
     def write_to_csv(self):
         print(">>> write_to_csv called")
         self.fullday         .to_csv(r"Q:\\My Drive\\COWS\\milk_data\\fullday\\fullday.csv")
-        self.fullday_xl      .to_csv(r"Q:\\My Drive\\COWS\\milk_data\\totals\\milk_aggregates\\tenday.csv")
         self.tenday1         .to_csv(r"Q:\\My Drive\\COWS\\milk_data\\totals\\milk_aggregates\\tenday1.csv")
 
         self.monthly_summary .to_csv(r"Q:\My Drive\COWS\milk_data\totals\milk_aggregates\\monthly_summary.csv")

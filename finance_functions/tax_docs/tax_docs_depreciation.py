@@ -8,7 +8,7 @@ class TaxDocs_Depreciation:
         
         print(f"TaxDocs_Depreciation instantiated by: {inspect.stack()[1].filename}")
         
-        bkk1a = pd.read_csv("F:\\COWS\\data\\finance\\BKKbank\\BKKBankFarmAccount.csv")
+        bkk1a = pd.read_csv("E:\\COWS\\data\\finance\\BKKbank\\BKKBankFarmAccount.csv")
         bkk1a['datex'] = pd.to_datetime(bkk1a['datex'], errors='coerce')
         bkk1a.set_index(['datex', 'year', 'month'], inplace=True)
 
@@ -60,8 +60,8 @@ class TaxDocs_Depreciation:
         self.depreciationPivot_monthly = bkk8_monthly        
         self.depreciationPivot_annual  = bkk8_annual
  
-        self.depreciationPivot_monthly  .to_csv('F:\\COWS\\data\\finance\\tax_docs\\depreciation_pivot_monthly.csv')
-        self.depreciationPivot_annual   .to_csv('F:\\COWS\\data\\finance\\tax_docs\\depreciation_pivot_annual.csv')
+        self.depreciationPivot_monthly  .to_csv('E:\\COWS\\data\\finance\\tax_docs\\depreciation_pivot_monthly.csv')
+        self.depreciationPivot_annual   .to_csv('E:\\COWS\\data\\finance\\tax_docs\\depreciation_pivot_annual.csv')
         
         return self.depreciationPivot_monthly, self.depreciationPivot_annual
     

@@ -101,8 +101,8 @@ class ModelGroups:
         return self.groups_count_daily
     
     def write_to_csv (self):
-        self.wet     .to_csv("F:\\COWS\\data\\groups_and_tests\\wet.csv")
-        self.groups_count_daily.to_csv("F:\\COWS\\data\\groups_and_tests\\groups_count_daily.csv")
+        self.wet     .to_csv("E:\\COWS\\data\\groups_and_tests\\wet.csv")
+        self.groups_count_daily.to_csv("E:\\COWS\\data\\groups_and_tests\\groups_count_daily.csv")
     
 if __name__ == "__main__":
     model_groups = ModelGroups()

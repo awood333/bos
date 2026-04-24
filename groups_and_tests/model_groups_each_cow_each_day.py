@@ -11,7 +11,7 @@ class ModelGroupsEachCowEachDay:
 	def __init__(self):
 		self.DateRange   = get_dependency('date_range')
 		self.MB          = get_dependency('milk_basics')
-		self.json_path   = r"F:\\COWS\\data\\status\\model_groups_ids_dict.json"
+		self.json_path   = r"E:\\COWS\\data\\status\\model_groups_ids_dict.json"
 		self.model_groups_dict = None
 		self.df = None
 
@@ -67,7 +67,7 @@ class ModelGroupsEachCowEachDay:
 		return self.df
 
 	def save_to_csv(self):
-		self.df.to_csv("F:\\COWS\\data\\status\\model_groups_each_cow_each_day.csv")
+		self.df.to_csv("E:\\COWS\\data\\status\\model_groups_each_cow_each_day.csv")
 
 
 # Example usage

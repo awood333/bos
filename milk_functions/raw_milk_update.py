@@ -80,7 +80,7 @@ class RawMilkUpdate:
 
     def load_data(self):
         # Load xlsx data
-        self.file_path = r"F:\COWS\data\milk_data\daily_milk\daily_milk.xlsx"
+        self.file_path = r"E:\COWS\data\milk_data\daily_milk\daily_milk.xlsx"
         attr_map = {
             'AM_liters': 'AM_liters',
             'AM_wy': 'AM_wy',
@@ -109,10 +109,10 @@ class RawMilkUpdate:
         
         # Load  the csv files as df
         csv_files = {
-            'AM_liters_csv': r'F:\COWS\data\milk_data\raw\AM_liters.csv',
-            'AM_wy_csv':     r'F:\COWS\data\milk_data\raw\AM_wy.csv',
-            'PM_liters_csv': r'F:\COWS\data\milk_data\raw\PM_liters.csv',
-            'PM_wy_csv':     r'F:\COWS\data\milk_data\raw\PM_wy.csv',
+            'AM_liters_csv': r'E:\COWS\data\milk_data\raw\AM_liters.csv',
+            'AM_wy_csv':     r'E:\COWS\data\milk_data\raw\AM_wy.csv',
+            'PM_liters_csv': r'E:\COWS\data\milk_data\raw\PM_liters.csv',
+            'PM_wy_csv':     r'E:\COWS\data\milk_data\raw\PM_wy.csv',
         }
         for attr, path in csv_files.items():
             df = pd.read_csv(path, index_col=0, header=0)

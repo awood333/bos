@@ -10,7 +10,7 @@ import numpy as np
 class RunLactationPlot:
     def __init__(self,
                  output_folder1=r"Q:\My Drive\COWS\data\plots\lactation_plots",
-                 output_folder2=r"F:\COWS\data\milk_data\lactations\plots\weekly\latest_plots"):
+                 output_folder2=r"E:\COWS\data\milk_data\lactations\plots\weekly\latest_plots"):
         self.output_folder1 = output_folder1
         self.output_folder2 = output_folder2
         os.makedirs(self.output_folder1, exist_ok=True)

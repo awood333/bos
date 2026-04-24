@@ -4,7 +4,7 @@ import pandas as pd
 class TaxDocs_NonCapex:
     def __init__(self):
         
-        bkk1a = pd.read_csv("F:\\COWS\\data\\finance\\BKKbank\\BKKBankFarmAccount.csv")
+        bkk1a = pd.read_csv("E:\\COWS\\data\\finance\\BKKbank\\BKKBankFarmAccount.csv")
         bkk1a['datex'] = pd.to_datetime(bkk1a['datex'], errors='coerce')
         bkk1a.set_index(['datex', 'year', 'month'], inplace=True)
 
@@ -30,9 +30,9 @@ class TaxDocs_NonCapex:
         tapioca = feed.loc[(feed['descr 2'] == 'tapioca')]
         yellow_beans = feed.loc[(feed['descr 2'] == 'yellow beans')]
         
-        corn.to_csv('F:\\COWS\\data\\finance\\tax_docs\\corn.csv')
-        tapioca.to_csv('F:\\COWS\\data\\finance\\tax_docs\\tapioca.csv')
-        yellow_beans.to_csv('F:\\COWS\\data\\finance\\tax_docs\\yellow_beans.csv')
+        corn.to_csv('E:\\COWS\\data\\finance\\tax_docs\\corn.csv')
+        tapioca.to_csv('E:\\COWS\\data\\finance\\tax_docs\\tapioca.csv')
+        yellow_beans.to_csv('E:\\COWS\\data\\finance\\tax_docs\\yellow_beans.csv')
 
         return
     
@@ -51,7 +51,7 @@ class TaxDocs_NonCapex:
                               aggfunc = 'sum'
                               )
                                  
-        self.energy_pivot_monthly.to_csv('F:\\COWS\\data\\finance\\tax_docs\\energy_pivot_monthly.csv')
+        self.energy_pivot_monthly.to_csv('E:\\COWS\\data\\finance\\tax_docs\\energy_pivot_monthly.csv')
         
         return  self.energy_pivot_monthly
         
@@ -74,7 +74,7 @@ class TaxDocs_NonCapex:
                               aggfunc = 'sum'
                               )
                                  
-        self.labor_pivot_monthly.to_csv('F:\\COWS\\data\\finance\\tax_docs\\labor_pivot_monthly.csv')
+        self.labor_pivot_monthly.to_csv('E:\\COWS\\data\\finance\\tax_docs\\labor_pivot_monthly.csv')
         
         return  self.labor_pivot_monthly
     
@@ -100,7 +100,7 @@ class TaxDocs_NonCapex:
         self.medical_pivot_monthly.loc[('total', ""), :] = col_sum
 
 
-        self.medical_pivot_monthly.to_csv('F:\\COWS\\data\\finance\\tax_docs\\medical_pivot_monthly.csv')
+        self.medical_pivot_monthly.to_csv('E:\\COWS\\data\\finance\\tax_docs\\medical_pivot_monthly.csv')
         
         return  self.medical_pivot_monthly
              
@@ -126,7 +126,7 @@ class TaxDocs_NonCapex:
         col_sum = self.maintenance_pivot_monthly.sum(axis=0)
         self.maintenance_pivot_monthly.loc[('total', ""), :] = col_sum
                                  
-        self.maintenance_pivot_monthly.to_csv('F:\\COWS\\data\\finance\\tax_docs\\maintenance_pivot_monthly.csv')
+        self.maintenance_pivot_monthly.to_csv('E:\\COWS\\data\\finance\\tax_docs\\maintenance_pivot_monthly.csv')
         
         return  self.maintenance_pivot_monthly
     

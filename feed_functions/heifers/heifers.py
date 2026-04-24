@@ -60,7 +60,7 @@ class Heifers:
     
     def create_heifer_df(self):
         
-        heifers1 = pd.read_csv("F:\\COWS\\data\\csv_files\\heifers.csv", 
+        heifers1 = pd.read_csv("E:\\COWS\\data\\csv_files\\heifers.csv", 
             header=0, index_col=None)
         heifers1['b_date'] = pd.to_datetime(heifers1['b_date'])
         heifers1['first_calf_bdate'] = pd.to_datetime(heifers1['calf_bdate'])
