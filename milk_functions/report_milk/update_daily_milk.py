@@ -21,8 +21,8 @@ Stats sheet logic:
 Usage:
     python update_daily_milk.py
 
-First run after changing gdrive_auth.py scope: delete utilities/token.pickle so
-Google re-prompts for permission with the new (write) scope.
+Authentication uses a service account key (utilities/service_account.json).
+No login prompts or token expiry — runs headlessly.
 """
 
 import io
