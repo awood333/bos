@@ -18,6 +18,8 @@ class FinanceBasics:
 
     def load_and_process(self):
         bkk = pd.read_csv('E:\\COWS\\data\\finance\\BKKbank\\BKKBankFarmAccount.csv', index_col='datex')
+            from config_path import LOCAL_BKKBANK
+            bkk = pd.read_csv(LOCAL_BKKBANK / "BKKBankFarmAccount.csv", index_col='datex')
         bkk.index = pd.to_datetime(bkk.index, format="%Y-%m-%d")
         self.bkk1 = bkk.iloc[:, :12]
 

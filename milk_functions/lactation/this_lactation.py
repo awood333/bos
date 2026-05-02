@@ -2,6 +2,7 @@
 
 import inspect
 from container import get_dependency
+from config_path import LOCAL_THIS_LACT_DIR
 
 class ThisLactation():
     def __init__(self):
@@ -33,8 +34,10 @@ class ThisLactation():
 
     
     def create_write_to_csv(self):
-        self.milking_wkly.to_csv(r"Q:\My Drive\COWS\milk_data\lactations\weekly\this_Lact_weekly.csv")
-        self.milking_daily.to_csv(r"Q:\My Drive\COWS\milk_data\lactations\weekly\this_Lact_daily.csv")
+        
+        LOCAL_THIS_LACT_DIR.mkdir(parents=True, exist_ok=True)
+        self.milking_wkly.to_csv(LOCAL_THIS_LACT_DIR / "this_Lact_weekly.csv")
+        self.milking_daily.to_csv(LOCAL_THIS_LACT_DIR / "this_Lact_daily.csv")
         
 if __name__ == "__main__":
     obj = ThisLactation()

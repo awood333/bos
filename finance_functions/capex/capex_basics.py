@@ -35,7 +35,8 @@ class CapexBasics:
         
     
     def load_partition_data(self):
-        bkk1 = pd.read_csv('E:\\COWS\\data\\finance\\BKKbank\\BKKbankFarmAccount.csv')
+           from config_path import LOCAL_BKKBANK
+           bkk1 = pd.read_csv(LOCAL_BKKBANK / "BKKBankFarmAccount.csv")
         bkk1['datex'] = pd.to_datetime(bkk1['datex'])
         bkk1.set_index('datex', inplace=True)
         

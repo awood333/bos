@@ -1,4 +1,4 @@
-# utilities/logging_setup.py
+'''utilities/logging_setup.py'''
 
 import logging
 import functools

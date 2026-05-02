@@ -5,6 +5,7 @@ import  inspect
 import  pandas  as pd
 
 from container import get_dependency
+from config_path import LOCAL_REPORTS_DIR
 
 class InsemUltraData:
     def __init__(self):
@@ -322,7 +323,8 @@ class InsemUltraData:
             # self.not_preg.to_excel(writer,  sheet_name='not_preg', index=False)
             # self.no_insem.to_excel(writer,  sheet_name='no_insem', index=False)
        
-        with pd.ExcelWriter(r"Q:\My Drive\COWS\reports\insem_data.xlsx", engine='xlsxwriter') as writer:
+        LOCAL_REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+        with pd.ExcelWriter(LOCAL_REPORTS_DIR / "insem_data.xlsx", engine='xlsxwriter') as writer:
             self.allx.to_excel(writer,      sheet_name='allx', index=False)
             # self.not_preg.to_excel(writer,  sheet_name='not_preg', index=False)
             # self.no_insem.to_excel(writer,  sheet_name='no_insem', index=False)

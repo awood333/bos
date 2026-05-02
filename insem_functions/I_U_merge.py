@@ -1,6 +1,7 @@
 import inspect
 import pandas as pd
 from container import get_dependency
+from config_path import LOCAL_IU_MERGE_DIR
 
 class I_U_merge:
     def __init__(self):
@@ -53,7 +54,8 @@ class I_U_merge:
         return self.iu
         
     def create_write_to_csv(self):
-        self.iu.to_csv('E:\\COWS\\data\\insem_data\\IU_merge\\IU_merge.csv', index=False)
+        LOCAL_IU_MERGE_DIR.mkdir(parents=True, exist_ok=True)
+        self.iu.to_csv(LOCAL_IU_MERGE_DIR / "IU_merge.csv", index=False)
         
 if __name__ == '__main__':
     obj = I_U_merge()

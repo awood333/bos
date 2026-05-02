@@ -102,7 +102,7 @@ def run_milk_dash_app():
   
     report  = get_dependency('report_milk')         #this calls MA WG MG and CompareGroups
     xl      = get_dependency('report_milk_xlsx')    #ignore pylint: this is enough to run the mod
-    plots   = get_dependency('lactation_plots')     #ignore pylint: this is enough to run the mod
+    # plots   = get_dependency('lactation_plots')   # TODO: fix lactation_basics NoneType error
     #running 'plots' also calls all the lactation related modules
 
     tenday_df  = report.tenday_formatted
