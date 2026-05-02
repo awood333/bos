@@ -2,6 +2,7 @@
 
 from datetime import datetime, timedelta
 import pandas as pd
+from container import get_dependency
 
 class DateRange:
     def __init__(self):
@@ -34,12 +35,9 @@ class DateRange:
         return  self.enddate_monthly
     
     def end_date_daily(self):
-        # Get the end date directly from the milk data file instead of through dependency
-        milk_data = pd.read_csv('E:\\COWS\\data\\milk_data\\fullday\\fullday.csv', 
-                               header=0, index_col='datex')
-        milk_data.index = pd.to_datetime(milk_data.index)
-        enddate = milk_data.index[-1]
-        self.enddate_daily = pd.to_datetime(enddate)
+        # Get end date from milk_basics lastday (derived from live AM_wy sheet)
+        MB = get_dependency('milk_basics')
+        self.enddate_daily = MB.data['lastday']
         return self.enddate_daily
         
         

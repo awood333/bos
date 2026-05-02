@@ -11,6 +11,7 @@ import os
 from pyexcel_ods import get_data
 import pandas as pd
 from utilities.gdrive_loader import gdrive_read_csv
+from config_path import GROUP_DATA_DIR, gdrive_rel
 pd.set_option('future.no_silent_downcasting', True)
 
 
@@ -64,7 +65,7 @@ class WhiteboardGroups:
         self.date_range = pd.date_range(start_date, stop_date)
 
         def sheet_to_df(sheet):
-            df = gdrive_read_csv(f"COWS/wb_groups/{sheet}.csv", header=0, index_col=0)
+            df = gdrive_read_csv(gdrive_rel(GROUP_DATA_DIR / f"{sheet}.csv"), header=0, index_col=0)
             df.index = pd.to_numeric(df.index, errors='coerce').fillna(0).astype(int)
             df.columns = pd.to_datetime(df.columns, errors='coerce')
             df = df.iloc[:55, :]
@@ -112,9 +113,9 @@ class WhiteboardGroups:
 
 
         whiteboard_groups_dict = {}
-        for sheet in self.group_sheets:
+        for sheet, sheet_df in self.group_sheets.items():
             key = f"{sheet}_ids"
-            whiteboard_groups_dict[key] = get_ids_by_date(self.group_sheets[sheet])
+            whiteboard_groups_dict[key] = get_ids_by_date(sheet_df)
         self.whiteboard_groups_dict = whiteboard_groups_dict
 
         # Build the main groups_matrix DataFrame for reuse
@@ -164,14 +165,14 @@ class WhiteboardGroups:
         else:
             return obj
 
-    def save_model_groups_json(self, filepath=r"Q:\My Drive\COWS\milk_data\groups\whiteboard_groups.json"):
-        # Convert DataFrames to dicts
-        dict_to_save = {k: v.to_dict() if hasattr(v, "to_dict") else v for k, v in self.whiteboard_groups_dict.items()}
-        # Replace NaN/NA
-        cleaned_dict = self.replace_nan_in_dict(dict_to_save)
-        # Save as JSON
-        with open(filepath, "w", encoding="utf-8") as f:
-            json.dump(cleaned_dict, f, indent=2, default=str)
+    # def save_model_groups_json(self, filepath=r"Q:\My Drive\COWS\milk_data\groups\whiteboard_groups.json"):
+    #     # Convert DataFrames to dicts
+    #     dict_to_save = {k: v.to_dict() if hasattr(v, "to_dict") else v for k, v in self.whiteboard_groups_dict.items()}
+    #     # Replace NaN/NA
+    #     cleaned_dict = self.replace_nan_in_dict(dict_to_save)
+    #     # Save as JSON
+    #     with open(filepath, "w", encoding="utf-8") as f:
+    #         json.dump(cleaned_dict, f, indent=2, default=str)
 
           
 
@@ -225,7 +226,7 @@ class WhiteboardGroups:
                 # Try to use the last available date if date_col is missing
                 if len(group_df.columns) > 0:
                     last_col = group_df.columns[-1]
-                    import warnings
+
                     warnings.warn(f"Date {date_col} not found in group_df.columns. Using last available date: {last_col}")
                     group_df = group_df.iloc[:70][last_col].copy().to_frame()
                     group_df['group'] = group_label
@@ -234,7 +235,6 @@ class WhiteboardGroups:
                     group_df = group_df.rename(columns={last_col: date_col})
                     return group_df
                 else:
-                    import warnings
                     warnings.warn(f"No columns available in group_df for group {group_label}.")
                     return None
 

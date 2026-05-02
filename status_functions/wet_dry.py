@@ -4,6 +4,7 @@ status_functions.wet_dry
 import inspect
 import pandas as pd
 from container import get_dependency
+from config_path import  LOCAL_WET_DRY
 
 today = pd.Timestamp.today()
 
@@ -37,7 +38,12 @@ class WetDry:
         self.data = self.MB.data
         self.death_date = self.MB.bd[['WY_id','death_date']]
         self.ext_rng = self.MB.data['ext_rng']
-        self.milk1 = self.MB.data['milk']
+        # Get fullday DataFrame from MilkAggregatesBasic and reindex to extended date range
+        # Columns are integer indices from numpy; convert to strings to match str(WY_id) lookups
+        milk_aggbasics = get_dependency('milk_aggregates_basic')
+        fullday = milk_aggbasics.fullday.copy()
+        fullday.columns = fullday.columns.astype(str)
+        self.milk1 = fullday.reindex(self.MB.data['ext_rng'])
         self.datex = self.MB.data['datex']
         self.WY_ids = self.MB.data['start'].columns
         DR = get_dependency('date_range')
@@ -356,10 +362,10 @@ class WetDry:
 
     def write_to_csv(self):
 
-        self.wet_dry_df      .to_csv(r"Q:\My Drive\COWS\status\wet_dry\wet_dry_df.csv")       
-        self.wsd             .to_csv(r"Q:\My Drive\COWS\status\wet_dry\wd_sum.csv")
-        self.wmd             .to_csv(r"Q:\My Drive\COWS\status\wet_dry\wd_max.csv")
-        self.wet_dry_weekly  .to_csv(r"Q:\My Drive\COWS\status\wet_dry\wet_dry_weekly.csv")
+        self.wet_dry_df    .to_csv(LOCAL_WET_DRY / "wet_dry_df.csv")
+        self.wsd           .to_csv(LOCAL_WET_DRY / "wd_sum.csv")
+        self.wmd           .to_csv(LOCAL_WET_DRY / "wd_max.csv")
+        self.wet_dry_weekly.to_csv(LOCAL_WET_DRY / "wet_dry_weekly.csv")
         
 
 

@@ -142,10 +142,12 @@ def _resolve_folder_id(path_parts, parent_id='root'):
     """
     Recursively resolve a list of folder name parts to the final folder's Drive ID.
     e.g. ['COWS', 'basic_data'] starting from 'root'.
+    Falls back to searching 'Shared with me' when a top-level folder is not found
+    under root (service accounts receive shared folders this way).
     """
     service = _get_service()
     current_parent = parent_id
-    for folder_name in path_parts:
+    for i, folder_name in enumerate(path_parts):
         print(f"  [gdrive] Resolving folder: '{folder_name}'...", flush=True)
         query = (
             f"name='{folder_name}' and "
@@ -154,6 +156,14 @@ def _resolve_folder_id(path_parts, parent_id='root'):
         )
         results = service.files().list(q=query, fields="files(id, name)").execute()
         items = results.get('files', [])
+        # Service accounts don't use 'root' for shared folders — search globally as fallback
+        if not items:
+            global_query = (
+                f"name='{folder_name}' and "
+                f"mimeType='application/vnd.google-apps.folder' and trashed=false"
+            )
+            results = service.files().list(q=global_query, fields="files(id, name)").execute()
+            items = results.get('files', [])
         if not items:
             raise FileNotFoundError(f"Google Drive folder not found: '{folder_name}' under parent '{current_parent}'")
         current_parent = items[0]['id']

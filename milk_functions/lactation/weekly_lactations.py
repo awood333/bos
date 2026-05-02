@@ -2,6 +2,7 @@
 import inspect
 import pandas as pd
 from container import get_dependency
+from config_path import LOCAL_THIS_LACT_DIR
 
 
 class WeeklyLactations():
@@ -134,12 +135,12 @@ class WeeklyLactations():
               
 
     def write_to_csv(self):
-
-        self.live_lact_wk_1.to_csv(r"Q:\My Drive\COWS\milk_data\lactations\weekly\live_lact_wk_1.csv")
-        self.live_lact_wk_2.to_csv(r"Q:\My Drive\COWS\milk_data\lactations\weekly\live_lact_wk_2.csv")
-        self.live_lact_wk_3.to_csv(r"Q:\My Drive\COWS\milk_data\lactations\weekly\live_lact_wk_3.csv")
-        self.live_lact_wk_4.to_csv(r"Q:\My Drive\COWS\milk_data\lactations\weekly\live_lact_wk_4.csv")
-        self.live_lact_wk_5.to_csv(r"Q:\My Drive\COWS\milk_data\lactations\weekly\live_lact_wk_5.csv")
+        LOCAL_THIS_LACT_DIR.mkdir(parents=True, exist_ok=True)
+        self.live_lact_wk_1.to_csv(LOCAL_THIS_LACT_DIR / "live_lact_wk_1.csv")
+        self.live_lact_wk_2.to_csv(LOCAL_THIS_LACT_DIR / "live_lact_wk_2.csv")
+        self.live_lact_wk_3.to_csv(LOCAL_THIS_LACT_DIR / "live_lact_wk_3.csv")
+        self.live_lact_wk_4.to_csv(LOCAL_THIS_LACT_DIR / "live_lact_wk_4.csv")
+        self.live_lact_wk_5.to_csv(LOCAL_THIS_LACT_DIR / "live_lact_wk_5.csv")
         
         # self.lactation_wk_1.to_csv('E:\\COWS\\data\\milk_data\\lactations\\weekly\\lactation_wk_1.csv')
         # self.lactation_wk_2.to_csv('E:\\COWS\\data\\milk_data\\lactations\\weekly\\lactation_wk_2.csv')
