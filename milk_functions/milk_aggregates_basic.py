@@ -13,6 +13,8 @@ import numpy as np
 
 from container import get_dependency
 from utilities.gdrive_loader import gdrive_read_csv
+from config_path import gdrive_rel, RAW_DIR
+
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -57,10 +59,10 @@ class MilkAggregatesBasic:
         self.MB.data['milk'] = self.fullday
 
     def basics(self):
-        self.AM_liters = gdrive_read_csv("COWS/milk_data/raw/AM_liters.csv", index_col=0, header=0)
-        self.AM_wy     = gdrive_read_csv("COWS/milk_data/raw/AM_wy.csv",     index_col=0, header=0)
-        self.PM_liters = gdrive_read_csv("COWS/milk_data/raw/PM_liters.csv", index_col=0, header=0)
-        self.PM_wy     = gdrive_read_csv("COWS/milk_data/raw/PM_wy.csv",     index_col=0, header=0)
+        self.AM_liters = gdrive_read_csv(gdrive_rel(RAW_DIR / "AM_liters.csv"), index_col=0, header=0)
+        self.AM_wy     = gdrive_read_csv(gdrive_rel(RAW_DIR / "AM_wy.csv"),     index_col=0, header=0)
+        self.PM_liters = gdrive_read_csv(gdrive_rel(RAW_DIR / "PM_liters.csv"), index_col=0, header=0)
+        self.PM_wy     = gdrive_read_csv(gdrive_rel(RAW_DIR / "PM_wy.csv"),     index_col=0, header=0)
 
         liters_am = self.AM_liters
         wy_am     = self.AM_wy

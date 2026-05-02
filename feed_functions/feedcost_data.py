@@ -4,6 +4,7 @@ import inspect
 import pandas as pd
 import numpy as np
 from container import get_dependency
+from config_path import LOCAL_FEED_CONSUMPTION, LOCAL_FEED_INVOICE_DATA, LOCAL_FEED_CSV
 
 class FeedcostData:
     def __init__(self):
@@ -22,12 +23,12 @@ class FeedcostData:
     def load_and_process(self):
         self.MB = get_dependency('milk_basics')
         self.DR = get_dependency('date_range')
-        self.FCB = get_dependency('feedcost_basics')
+        self.FCB= get_dependency('feedcost_basics')
         self.MG = get_dependency('model_groups')
         self.SD = get_dependency('status_data')
 
         self.dateRange = self.DR.date_range_daily
-        self.herd_daily = self.SD.herd_daily
+        self.herd_daily= self.SD.herd_daily
         # Reindex groups_count_daily from weekly to daily using ffill
 
         groups_count = self.MG.groups_count_daily.copy()
@@ -58,11 +59,11 @@ class FeedcostData:
         for feed in self.feed_types:
             try:
                 # Load invoice and price sequence CSVs
-                invoice_path = f"E:/COWS/data/feed_data/feed_invoice_data/{feed}_invoice_detail.csv"
-                price_seq_path = f"E:/COWS/data/feed_data/feed_csv/{feed}_price_seq.csv"
-                bid = pd.read_csv(invoice_path)
-                price_seq1 = pd.read_csv(price_seq_path)
-                price_seq = price_seq1.loc[:, ['datex', 'unit_price']].set_index('datex')
+                invoice_path    = (LOCAL_FEED_INVOICE_DATA / f"{feed}_invoice_detail.csv")
+                price_seq_path  = (LOCAL_FEED_CSV / f"{feed}_price_seq.csv")
+                bid             = pd.read_csv(invoice_path)
+                price_seq1      = pd.read_csv(price_seq_path)
+                price_seq       = price_seq1.loc[:, ['datex', 'unit_price']].set_index('datex')
                 price_seq.index = pd.to_datetime(price_seq.index)
 
                 # Get daily amount
@@ -87,9 +88,11 @@ class FeedcostData:
                 dcs = pd.concat((daily_amt, daily_price_seq), axis=1)
                 dcs['daily cost'] = dcs['unit_price'] * dcs['total_amt']
 
-                # Write to CSV
-                dcs.to_csv(f'E:/COWS/data/feed_data/feed_consumption/cost_sequence_{feed}.csv')
-                daily_amt.to_csv(f'E:/COWS/data/feed_data/feed_consumption/daily_amt_{feed}.csv')
+
+                # write cost seq and daily amt dfs
+                LOCAL_FEED_CONSUMPTION.mkdir(parents=True, exist_ok=True)
+                dcs.to_csv(LOCAL_FEED_CONSUMPTION / f"cost_sequence_{feed}.csv")
+                daily_amt.to_csv(LOCAL_FEED_CONSUMPTION / f"daily_amt_{feed}.csv")
 
                 self.results[feed] = {
                     'cost_sequence': dcs,

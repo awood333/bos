@@ -112,7 +112,8 @@ class InsemUltraBasics:
         return self.last_stop
     
     def write_to_csv(self):
-        self.lbpiv.to_csv(r"E:\COWS\reports\\livebirths_piv.csv")
+        pass
+        # self.lbpiv.to_csv(r"E:\COWS\reports\\livebirths_piv.csv")
 
 
 if __name__ == "__main__":

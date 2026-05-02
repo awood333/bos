@@ -36,10 +36,8 @@ class MilkIncome:
         
     def DataLoader(self):  
 
-        old_liters1 = pd.read_csv(r"E:\COWS\data\milk_data\fullday\fullday.csv")
-
-        old_liters1['datex'] = pd.to_datetime(old_liters1['datex'] )
-        old_liters1.set_index('datex', inplace=True)
+        MAB = get_dependency('milk_aggregates_basic')
+        old_liters1 = MAB.fullday.copy()
 
         #create merged series of milk liters from pre-CP
         #take the sum of all liters (ignore heldback - should ~make up from milkers biased readings)

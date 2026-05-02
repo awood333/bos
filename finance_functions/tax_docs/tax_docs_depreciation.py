@@ -8,7 +8,8 @@ class TaxDocs_Depreciation:
         
         print(f"TaxDocs_Depreciation instantiated by: {inspect.stack()[1].filename}")
         
-        bkk1a = pd.read_csv("E:\\COWS\\data\\finance\\BKKbank\\BKKBankFarmAccount.csv")
+        from config_path import LOCAL_BKKBANK
+        bkk1a = pd.read_csv(LOCAL_BKKBANK / "BKKBankFarmAccount.csv")
         bkk1a['datex'] = pd.to_datetime(bkk1a['datex'], errors='coerce')
         bkk1a.set_index(['datex', 'year', 'month'], inplace=True)
 

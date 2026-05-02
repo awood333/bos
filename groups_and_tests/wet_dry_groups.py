@@ -144,8 +144,9 @@ class WetDryGroups:
     
 
     def write_to_csv_json(self):
+        pass
 
-        self.net_revenue_wet_dry_df.to_csv(r"E:\\COWS\\data\\groups_and_tests\\WDD_flat_with_net_revenue.csv", index=False)
+        # self.net_revenue_wet_dry_df.to_csv(r"E:\\COWS\\data\\groups_and_tests\\WDD_flat_with_net_revenue.csv", index=False)
         # self.net_revenue_wet_dry_df.to_json(r"E:\\COWS\\data\\groups_and_tests\\WDD_flat_with_net_revenue.json", orient='records', indent=2, date_format='iso')
 
 

@@ -4,7 +4,8 @@ import pandas as pd
 class TaxDocs_NonCapex:
     def __init__(self):
         
-        bkk1a = pd.read_csv("E:\\COWS\\data\\finance\\BKKbank\\BKKBankFarmAccount.csv")
+        from config_path import LOCAL_BKKBANK
+        bkk1a = pd.read_csv(LOCAL_BKKBANK / "BKKBankFarmAccount.csv")
         bkk1a['datex'] = pd.to_datetime(bkk1a['datex'], errors='coerce')
         bkk1a.set_index(['datex', 'year', 'month'], inplace=True)
 

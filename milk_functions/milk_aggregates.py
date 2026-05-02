@@ -9,12 +9,11 @@ import sys
 import os
 import inspect
 import pandas as pd
-# import numpy as np
 
 from container import get_dependency
+from config_path import LOCAL_FULLDAY_DIR, LOCAL_TOTALS_DIR
 
-# from utilities.logging_setup import  setup_debug_logging, debug_method
-# import logging
+
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -74,6 +73,7 @@ class MilkAggregates:
          self.monthly_avg, self.weekly_avg] = self.create_monthly_weekly()
 
         self.write_to_csv()
+
         
         
     def halfday_AM_PM(self):
@@ -152,7 +152,7 @@ class MilkAggregates:
     def create_monthly_weekly(self):
         
         def format_num(num):
-            return '{:,.0f}'.format(num)
+            return f"{num:,.0f}"
 
         milk1 = self.fullday.copy()
         milk1.index = pd.to_datetime(milk1.index)
@@ -188,15 +188,15 @@ class MilkAggregates:
 
     def write_to_csv(self):
         print(">>> write_to_csv called")
-        self.fullday         .to_csv(r"Q:\\My Drive\\COWS\\milk_data\\fullday\\fullday.csv")
-        self.tenday1         .to_csv(r"Q:\\My Drive\\COWS\\milk_data\\totals\\milk_aggregates\\tenday1.csv")
+        LOCAL_FULLDAY_DIR.mkdir(parents=True, exist_ok=True)
+        LOCAL_TOTALS_DIR.mkdir(parents=True, exist_ok=True)
 
-        self.monthly_summary .to_csv(r"Q:\My Drive\COWS\milk_data\totals\milk_aggregates\\monthly_summary.csv")
-        self.weekly_summary  .to_csv(r"Q:\My Drive\COWS\milk_data\totals\milk_aggregates\\weekly_summary.csv")
-        self.monthly_avg     .to_csv(r"Q:\My Drive\COWS\milk_data\totals\milk_aggregates\\monthly_avg.csv")
-        self.weekly_avg      .to_csv(r"Q:\My Drive\COWS\milk_data\totals\milk_aggregates\\weekly_avg.csv")
-
-        self.halfday         .to_csv(r"Q:\\My Drive\\COWS\\milk_data\\totals\\milk_aggregates\\halfday.csv")
+        self.fullday        .to_csv(LOCAL_FULLDAY_DIR / "fullday.csv")
+        self.monthly_summary.to_csv(LOCAL_TOTALS_DIR  / "monthly_summary.csv")
+        self.weekly_summary .to_csv(LOCAL_TOTALS_DIR  / "weekly_summary.csv")
+        self.monthly_avg    .to_csv(LOCAL_TOTALS_DIR  / "monthly_avg.csv")
+        self.weekly_avg     .to_csv(LOCAL_TOTALS_DIR  / "weekly_avg.csv")
+        self.halfday        .to_csv(LOCAL_TOTALS_DIR  / "halfday.csv")
         
       
 if __name__ == '__main__':

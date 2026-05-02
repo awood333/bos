@@ -7,6 +7,7 @@ import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 from container import get_dependency
+from config_path import LOCAL_PLOTS_DIR
 
 class LactationPlots:
     def __init__(self):
@@ -25,7 +26,7 @@ class LactationPlots:
         self.avg_zscore_per_row_daily_log = None
         self.avg_zscore_per_row_daily_log_index = None
 
-        self.output_folder = r"Q:\My Drive\COWS\plots"
+        self.output_folder = LOCAL_PLOTS_DIR
 
 
     def load_and_process(self, wy_id=None):
@@ -179,7 +180,8 @@ class LactationPlots:
 
         plt.title('Weekly / Daily MaxDiff avg')
         plt.tight_layout()
-        output_path = f"{self.output_folder}\\maxdiff_avg.png"
+        output_path = self.output_folder / "maxdiff_avg.png"
+        self.output_folder.mkdir(parents=True, exist_ok=True)
         plt.savefig(output_path)
         plt.close(fig)
         print(f"maxdiff_avg.png updated at {output_path}")

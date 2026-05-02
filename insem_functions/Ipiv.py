@@ -1,6 +1,7 @@
 import inspect
 import pandas as pd
 from container import get_dependency
+from config_path import LOCAL_INSEM_DATA
 
 class Ipiv:
     def __init__(self):
@@ -52,7 +53,7 @@ class Ipiv:
 
         this_calf2 = this_calf1.drop(columns=['calf_num','typex', 'readex'])
         
-        this_calf2['try_num'] = this_calf2['try_num'].fillna(1).astype(int)
+        this_calf2['try_num'] = pd.to_numeric(this_calf2['try_num'], errors='coerce').fillna(1).astype(int)
         this_calf2['insem_date'] = pd.to_datetime(this_calf2['insem_date'], errors='coerce') #
         
         ipiv_milking1 = pd.pivot_table(this_calf2,
@@ -91,7 +92,8 @@ class Ipiv:
         return self.ipiv_milkers
     
     def write_to_csv(self):
-        self.ipiv_milkers.to_csv('E:\\COWS\\data\\insem_data\\ipiv_milkers.csv')   
+        LOCAL_INSEM_DATA.mkdir(parents=True, exist_ok=True)
+        self.ipiv_milkers.to_csv(LOCAL_INSEM_DATA / "ipiv_milkers.csv")   
     
     
 if __name__ == "__main__":
