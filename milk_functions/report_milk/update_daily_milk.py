@@ -16,13 +16,11 @@ import sys
 import os
 import pandas as pd
 import numpy as np
-
-# Resolve repo root (2 levels up from milk_functions/report_milk/)
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
-from dotenv import load_dotenv
-load_dotenv(os.path.join(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')), '.env'))
-from utilities.gdrive_loader import gdrive_read_sheet_tab, gdrive_write_sheet_tab, gdrive_write_excel, gdrive_read_csv
+from googleapiclient.discovery import build
+from utilities.gdrive_auth import authenticate_gdrive
+from utilities.gdrive_loader import gdrive_read_sheet_tab, gdrive_write_sheet_tab, gdrive_write_excel, gdrive_read_csv, _resolve_folder_id
 from config_path import RAW_DIR, GROUP_DATA_DIR, gdrive_rel
+from googleapiclient.http import MediaIoBaseUpload
 
 # ---------------------------------------------------------------------------
 # GDrive IDs  (set in .env or override here)
@@ -65,7 +63,6 @@ class DailyMilkUpdater:
 
 
     def load_data(self):
-        import pandas as pd
         # Load manual_entries as before (still from Google Sheets)
         try:
             self.manual_df = gdrive_read_sheet_tab(DAILY_MILK_SHEET_ID, MANUAL_ENTRIES_TAB)
@@ -117,6 +114,10 @@ class DailyMilkUpdater:
 
         def get_manual(label):
             s = manual.get(label.lower(), pd.Series(dtype=float))
+            if not s.empty:
+                missing = [d for d in dates if d not in s.index]
+                if missing:
+                    print(f"  [warn] manual '{label}' missing dates: {missing[:3]}... (manual cols sample: {list(s.index[:3])})", flush=True)
             s = pd.to_numeric(s, errors='coerce').fillna(0)
             return s.reindex(dates, fill_value=0).astype(float)
 
@@ -166,12 +167,66 @@ class DailyMilkUpdater:
         self.stats_out = stats_out
 
     def save_outputs(self):
-        print("[5] Writing only 'stats' tab to daily_milk Sheet (last 10 days)...", flush=True)
+        # Write raw tabs (last 10 dates) to daily_milk sheet
+        print("[5] Writing raw tabs to daily_milk Sheet (last 10 days)...", flush=True)
+        for tab in RAW_TABS:
+            try:
+                gdrive_write_sheet_tab(DAILY_MILK_SHEET_ID, tab, self.raw[tab])
+                print(f"    wrote '{tab}'", flush=True)
+            except Exception as e:
+                print(f"[ERROR] Could not write '{tab}' tab: {e}", flush=True)
+
+        # Write group tabs
+        print("[6] Writing group tabs to daily_milk Sheet (last 10 days)...", flush=True)
+        for tab in GROUP_TABS:
+            try:
+                gdrive_write_sheet_tab(DAILY_MILK_SHEET_ID, tab, self.groups[tab])
+                print(f"    wrote '{tab}'", flush=True)
+            except Exception as e:
+                print(f"[ERROR] Could not write '{tab}' tab: {e}", flush=True)
+
+        # Write stats tab
+        print("[7] Writing 'stats' tab to daily_milk Sheet...", flush=True)
         try:
             gdrive_write_sheet_tab(DAILY_MILK_SHEET_ID, 'stats', self.stats_out)
         except Exception as e:
             print(f"[ERROR] Could not write 'stats' tab: {e}", flush=True)
-        print("[6] Done. Only 'stats' tab updated in Google Drive.", flush=True)
+        print("[8] Done.", flush=True)
+
+    def export_sheet_as_xlsx(self, out_gdrive_path):
+        """
+        Export the daily_milk Google Sheet as XLSX and upload to Google Drive at out_gdrive_path.
+        """
+        # Import _resolve_folder_id from gdrive_loader
+        from utilities.gdrive_loader import _resolve_folder_id
+        service = build('drive', 'v3', credentials=authenticate_gdrive())
+        print(f"[9] Exporting daily_milk Sheet as XLSX to {out_gdrive_path} ...", flush=True)
+        # Export as XLSX
+        request = service.files().export_media(
+            fileId=DAILY_MILK_SHEET_ID,
+            mimeType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        data = request.execute()
+        # Find parent folder and file name
+        folder_parts = out_gdrive_path.replace('\\', '/').split('/')
+        file_name = folder_parts[-1]
+        folder_id = None
+        if len(folder_parts) > 1:
+            # Resolve folder
+            folder_id = _resolve_folder_id(folder_parts[:-1])
+        # Find existing file and UPDATE it — service accounts cannot create new files (no storage quota)
+        from googleapiclient.http import MediaIoBaseUpload
+        XLSX_MIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        media = MediaIoBaseUpload(io.BytesIO(data), mimetype=XLSX_MIME)
+        query = f"name='{file_name}' and '{folder_id}' in parents and trashed=false"
+        results = service.files().list(q=query, fields="files(id, name)").execute()
+        items = results.get('files', [])
+        if items:
+            file_id = items[0]['id']
+            service.files().update(fileId=file_id, media_body=media).execute()
+            print(f"[10] XLSX updated in Drive (file ID: {file_id})", flush=True)
+        else:
+            print(f"[ERROR] '{file_name}' not found in Drive folder. Cannot create via service account. Please create it manually once.", flush=True)
 
     def load_and_process(self):
         self.load_data()
@@ -182,6 +237,8 @@ class DailyMilkUpdater:
 if __name__ == "__main__":
     updater = DailyMilkUpdater()
     updater.load_and_process()
+    # Export to GDrive as XLSX (path relative to My Drive)
+    updater.export_sheet_as_xlsx('COWS/milk_data/daily_milk/daily_milk.xlsx')
 
 
 
