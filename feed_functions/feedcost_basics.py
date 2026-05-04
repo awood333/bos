@@ -3,9 +3,10 @@ import inspect
 import os       #don't erase
 import pandas as pd
 from container import get_dependency
+from config_path import GDRIVE_FEED_INVOICE_DATA, GDRIVE_FEED_DAILY_AMT_DATA, LOCAL_FEEDCOST_BY_GROUP
 
 class DataLoader:
-    def __init__(self,base_path):
+    def __init__(self,base_path):  #see load and process data_loader for actual address
 
         self.base_path = base_path
 
@@ -16,6 +17,16 @@ class DataLoader:
         data = data.set_index(data['datex']).drop(columns=['datex'])
         data = data.sort_index()
         return data
+
+    def load_invoice_csv(self, feed):
+        path = os.path.join(self.base_path, f'{feed}_invoice_detail.csv')
+        data = pd.read_csv(path, header=0).dropna(how='all')
+        data.columns = data.columns.str.strip()
+        data['Invoice date'] = pd.to_datetime(data['Invoice date'], errors='coerce')
+        data = data.dropna(subset=['Invoice date'])
+        data = data.set_index('Invoice date')[['price/kg']].rename(columns={'price/kg': 'unit_price'})
+        data = data[~data.index.duplicated(keep='last')]
+        return data.sort_index()
         
 
 class Feedcost_basics:
@@ -24,8 +35,9 @@ class Feedcost_basics:
         print(f"Feedcost_basics instantiated by: {inspect.stack()[1].filename}")
         self.MB = None
         self.DR = None
-        self.FS = None
         self.data_loader = None
+        self.price_loader = None
+        self.amt_loader   = None
         self.feed_type = ['corn','cassava','beans','straw', 'bypass_fat',  'NaHCO3', 
                           'CP_005_21P', 'CP_005_DSW', 'CP_970_Plus', 'CP_973GM','CP_milk2', 'CP_power_starch' ]
         self.rng_monthly = None
@@ -60,8 +72,9 @@ class Feedcost_basics:
     def load_and_process(self):
         self.MB = get_dependency('milk_basics')
         self.DR = get_dependency('date_range')
-        self.FS = get_dependency('feedcost_sequences')
-        self.data_loader = DataLoader('E:/COWS/data/feed_data/feed_csv')
+        
+        self.price_loader = DataLoader(GDRIVE_FEED_INVOICE_DATA)
+        self.amt_loader   = DataLoader(GDRIVE_FEED_DAILY_AMT_DATA)
 
         self.rng_monthly  = self.DR.date_range_monthly
         self.rng_monthly2 = getattr(self.DR, 'date_range_monthly2', None)
@@ -88,8 +101,8 @@ class Feedcost_basics:
         self.daily_amt_dict = {}
         
         for feed in self.feed_type:
-            price_seq = self.data_loader.load_csv(f'{feed}_price_seq.csv')
-            daily_amt = self.data_loader.load_csv(f'{feed}_daily_amt.csv')
+            price_seq = self.price_loader.load_invoice_csv(feed)
+            daily_amt = self.amt_loader.load_csv(f'{feed}_daily_amt.csv')
             
             price_seq = price_seq.reindex(self.rng_daily, method='ffill')
             daily_amt = daily_amt.reindex(self.rng_daily, method='ffill')
@@ -190,9 +203,9 @@ class Feedcost_basics:
     
     def write_to_csv(self):
         
-        self.feedcost_daily     .to_csv('E:\\COWS\\data\\feed_data\\feedcost_by_group\\feedcostByGroup_daily.csv')
-        self.feedcost_weekly    .to_csv('E:\\COWS\\data\\feed_data\\feedcost_by_group\\feedcostByGroup_weekly.csv')
-        self.feedcost_monthly   .to_csv('E:\\COWS\\data\\feed_data\\feedcost_by_group\\feedcostByGroup_monthly.csv')
+        self.feedcost_daily     .to_csv(LOCAL_FEEDCOST_BY_GROUP  / "feedcostByGroup_daily.csv")
+        self.feedcost_weekly    .to_csv(LOCAL_FEEDCOST_BY_GROUP  / "feedcostByGroup_weekly.csv")
+        self.feedcost_monthly   .to_csv(LOCAL_FEEDCOST_BY_GROUP  / "feedcostByGroup_monthly.csv")
         
 
 if __name__ == "__main__":
