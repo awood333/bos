@@ -59,6 +59,10 @@ FEED_DATA_DIR   = DATA_ROOT / "feed_data"
 MILK_DATA_DIR   = DATA_ROOT / "milk_data"
 GROUP_DATA_DIR  = DATA_ROOT / "wb_groups"
 
+GDRIVE_FEED_INVOICE_DATA  = FEED_DATA_DIR / "feed_invoice_data"
+GDRIVE_FEED_DAILY_AMT_DATA = FEED_DATA_DIR / "feed_daily_amt_data"
+GDRIVE_FEED_CSV           = FEED_DATA_DIR / "feed_csv"
+
 RAW_DIR         = MILK_DATA_DIR / "raw"
 TOTALS_DIR      = MILK_DATA_DIR / "totals" / "milk_aggregates"
 
@@ -93,16 +97,17 @@ ULTRA_DIR               = LOCAL_BASIC_DATA / "ultra"
 
 
 LOCAL_MILK_DIR = LOCAL_DATA_ROOT / "milk_data"
-LOCAL_FULLDAY_DIR   = LOCAL_MILK_DIR  / "fullday"
-LOCAL_TOTALS_DIR    = LOCAL_MILK_DIR  / "totals" / "milk_aggregates"
-LOCAL_LACTS_DIR = LOCAL_MILK_DIR / "lactations" / "daily"
-LOCAL_THIS_LACT_DIR = LOCAL_MILK_DIR / "lactations" / "weekly"
+LOCAL_FULLDAY_DIR       = LOCAL_MILK_DIR  / "fullday"
+LOCAL_TOTALS_DIR        = LOCAL_MILK_DIR  / "totals" / "milk_aggregates"
+LOCAL_LACTS_DIR         = LOCAL_MILK_DIR / "lactations" / "daily"
+LOCAL_THIS_LACT_DIR     = LOCAL_MILK_DIR / "lactations" / "weekly"
 
 LOCAL_FEED_DATA = LOCAL_DATA_ROOT / "feed_data"
 LOCAL_FEED_COMPOSITION      = LOCAL_FEED_DATA / "composition_of_feed"
 LOCAL_FEED_CONSUMPTION      = LOCAL_FEED_DATA / "feed_consumption"
 LOCAL_FEED_CSV              = LOCAL_FEED_DATA / "feed_csv"
 LOCAL_FEED_INVOICE_DATA     = LOCAL_FEED_DATA / "feed_invoice_data"
+LOCAL_FEED_DAILY_AMT_DATA   = LOCAL_FEED_DATA / "feed_daily_amt_data"
 LOCAL_FEED_RATIONS_ASG_CP   = LOCAL_FEED_DATA / "feed_rations_from_ASG_CP"
 LOCAL_FEEDCOST_BY_GROUP     = LOCAL_FEED_DATA / "feedcost_by_group"
 LOCAL_HEIFERS               = LOCAL_FEED_DATA / "heifers"

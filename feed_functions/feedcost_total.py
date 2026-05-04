@@ -3,11 +3,10 @@
 import inspect
 import pandas as pd
 from container import get_dependency
+from config_path import LOCAL_FEEDCOST_BY_GROUP
 
 
 class Feedcost_total:
-
-
 
     def __init__(self):
         print(f"Feedcost_total instantiated by: {inspect.stack()[1].filename}")
@@ -199,15 +198,13 @@ class Feedcost_total:
 
 
     def write_to_csv(self):
-        self.feedcost                   .to_csv(r'E:\COWS\data\feed_data\feedcost_by_group\feedcost.csv')
-        self.total_feedcost_details_last.to_csv(r'E:\COWS\data\feed_data\feedcost_by_group\total_feedcost_details_last.csv')
-        self.total_feedcost_monthly     .to_csv(r'E:\COWS\data\feed_data\feedcost_by_group\total_feedcost_monthly.csv')
-        self.total_feedcost_weekly      .to_csv(r'E:\COWS\data\feed_data\feedcost_by_group\total_feedcost_weekly.csv')
-        # Write the DataFrame-based monthly result for comparison
-
-
-        self.total_feedcost_monthly_from_df.to_csv(r'E:\COWS\data\feed_data\feedcost_by_group\total_feedcost_monthly_from_df.csv')
-        self.feedcost_from_df_details   .to_csv(r'E:\COWS\data\feed_data\feedcost_by_group\total_feedcost_monthly_from_df.csv')
+        LOCAL_FEEDCOST_BY_GROUP.mkdir(parents=True, exist_ok=True)
+        self.feedcost                   .to_csv(LOCAL_FEEDCOST_BY_GROUP / 'feedcost.csv')
+        self.total_feedcost_details_last.to_csv(LOCAL_FEEDCOST_BY_GROUP / 'total_feedcost_details_last.csv')
+        self.total_feedcost_monthly     .to_csv(LOCAL_FEEDCOST_BY_GROUP / 'total_feedcost_monthly.csv')
+        self.total_feedcost_weekly      .to_csv(LOCAL_FEEDCOST_BY_GROUP / 'total_feedcost_weekly.csv')
+        self.total_feedcost_monthly_from_df.to_csv(LOCAL_FEEDCOST_BY_GROUP / 'total_feedcost_monthly_from_df.csv')
+        self.feedcost_from_df_details   .to_csv(LOCAL_FEEDCOST_BY_GROUP / 'feedcost_from_df_details.csv')
 
 
 

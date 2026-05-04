@@ -4,7 +4,7 @@ import inspect
 import pandas as pd
 import numpy as np
 from container import get_dependency
-from config_path import LOCAL_FEED_CONSUMPTION, LOCAL_FEED_INVOICE_DATA, LOCAL_FEED_CSV
+from config_path import LOCAL_FEED_CONSUMPTION
 
 class FeedcostData:
     def __init__(self):
@@ -58,13 +58,8 @@ class FeedcostData:
 
         for feed in self.feed_types:
             try:
-                # Load invoice and price sequence CSVs
-                invoice_path    = (LOCAL_FEED_INVOICE_DATA / f"{feed}_invoice_detail.csv")
-                price_seq_path  = (LOCAL_FEED_CSV / f"{feed}_price_seq.csv")
-                bid             = pd.read_csv(invoice_path)
-                price_seq1      = pd.read_csv(price_seq_path)
-                price_seq       = price_seq1.loc[:, ['datex', 'unit_price']].set_index('datex')
-                price_seq.index = pd.to_datetime(price_seq.index)
+                # Get price sequence from FCB (already loaded from invoice data)
+                price_seq = self.FCB.price_seq_dict[feed]
 
                 # Get daily amount
                 daily_amt = self.FCB.feed_series_dict[feed]['dad']
@@ -81,11 +76,8 @@ class FeedcostData:
 
                 daily_amt['total_amt'] = daily_amt[['fresh_amt','group_a_amt','group_b_amt','dry_amt']].sum(axis=1)
 
-                # Daily price sequence
-                daily_price_seq = price_seq.reindex(self.dateRange).ffill()
-
                 # Cost sequence
-                dcs = pd.concat((daily_amt, daily_price_seq), axis=1)
+                dcs = pd.concat((daily_amt, price_seq), axis=1)
                 dcs['daily cost'] = dcs['unit_price'] * dcs['total_amt']
 
 

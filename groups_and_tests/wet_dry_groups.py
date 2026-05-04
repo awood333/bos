@@ -12,7 +12,7 @@ class WetDryGroups:
         print(f"WetDryGroups instantiated by: {inspect.stack()[1].filename}")
 
         self.startdate  = None
-        self.fcb_weekly  = None        
+        self.fcb_weekly = None        
         self.WDDict     = None
         self.WDDf       = None
 
