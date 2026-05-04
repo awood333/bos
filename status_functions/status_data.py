@@ -5,8 +5,7 @@ import inspect
 import pandas as pd
 from container import get_dependency
 from config_path import LOCAL_STATUS
-# import math
-# import json
+
 
 class status_data:
     def __init__(self):
@@ -166,6 +165,7 @@ class status_data:
         return self.status_col
 
     def create_write_to_csv(self):
+        # STATUS refers to the status_stuff here --- correct in config_path
         LOCAL_STATUS.mkdir(parents=True, exist_ok=True)
         self.milker_ids_df .to_csv(LOCAL_STATUS / "milker_ids.csv")
         self.dry_ids_df    .to_csv(LOCAL_STATUS / "dry_ids.csv")
