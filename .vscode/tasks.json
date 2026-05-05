@@ -4,8 +4,10 @@
 		{
 			"label": "Run Bos Container",
 			"type": "shell",
-			"command": "python",
+			"command": "uv",
 			"args": [
+				"run",
+				"python",
 				"${workspaceFolder}/container.py"
 			],
 			"group": {
@@ -23,8 +25,10 @@
 		{
 			"label": "Start Persistent Container",
 			"type": "shell",
-			"command": "python",
+			"command": "uv",
 			"args": [
+				"run",
+				"python",
 				"${workspaceFolder}/persistent_container_service.py",
 				"start"
 			],
@@ -51,8 +55,10 @@
 		{
 			"label": "Run BOS FastAPI Server",
 			"type": "shell",
-			"command": "python",
+			"command": "uv",
 			"args": [
+				"run",
+				"python",
 				"-m",
 				"uvicorn",
 				"server:app",
