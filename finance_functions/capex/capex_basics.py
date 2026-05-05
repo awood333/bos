@@ -32,11 +32,9 @@ class CapexBasics:
         self.non_capex_pivot = self.group_non_capex_data()
         self.write_to_csv()
 
-        
-    
     def load_partition_data(self):
-           from config_path import LOCAL_BKKBANK
-           bkk1 = pd.read_csv(LOCAL_BKKBANK / "BKKBankFarmAccount.csv")
+        from config_path import LOCAL_BKKBANK
+        bkk1 = pd.read_csv(LOCAL_BKKBANK / "BKKBankFarmAccount.csv")
         bkk1['datex'] = pd.to_datetime(bkk1['datex'])
         bkk1.set_index('datex', inplace=True)
         
