@@ -16,6 +16,10 @@ import sys
 import os
 import pandas as pd
 import numpy as np
+
+# Add project root to Python path for cross-platform module imports
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
 from googleapiclient.discovery import build
 from utilities.gdrive_auth import authenticate_gdrive
 from utilities.gdrive_loader import gdrive_read_sheet_tab, gdrive_write_sheet_tab, gdrive_write_excel, gdrive_read_csv, _resolve_folder_id

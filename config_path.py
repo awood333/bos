@@ -33,8 +33,8 @@ DEBUG      = os.getenv("DEBUG", "false").lower() == "true"
 if IS_WINDOWS:
     DATA_ROOT = Path(r"Q:/My Drive/COWS")
 else:
-    # rclone mount point on Ubuntu — adjust if yours differs
-    DATA_ROOT = Path("/mnt/gdrive/COWS")
+    # rclone mount point on Ubuntu
+    DATA_ROOT = Path.home() / "gdrive_mount" / "COWS"
 
 # ── GDrive-relative path helper (for gdrive_read_csv which expects "COWS/...") ──
 # On Windows: Q:/My Drive/COWS  →  relative to "My Drive" = "COWS"
@@ -208,7 +208,7 @@ if __name__ == "__main__":
     print(f"\nPlatform   : {platform.system()}")
     print(f"DEBUG      : {DEBUG}")
     print(f"DATA_ROOT  : {DATA_ROOT}  (exists: {DATA_ROOT.exists()})")
-    print(f"PLOTS_DIR  : {NET_REV_PLOTS}  (exists: {NET_REV_PLOTS.exists()})")
+    print(f"LOCAL_PLOTS: {LOCAL_PLOTS_DIR}  (exists: {LOCAL_PLOTS_DIR.exists()})")
     print(f"DATABASE   : {'SET' if DATABASE_URL else '*** MISSING ***'}")
     print(f"S3_BUCKET  : {'SET' if S3_BUCKET else '*** MISSING ***'}")
     print(f"GOOGLE_SA  : {'SET' if GOOGLE_SA_JSON else '*** MISSING ***'}")

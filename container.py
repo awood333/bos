@@ -100,7 +100,7 @@ class Container:
 
         # Report Milk
         self.register_singleton('create_report_milk',      self._create_report_milk)
-        self.register_singleton('create_report_milk_xlsx', self._create_report_milk_xlsx)        
+        # self.register_singleton('create_report_milk_xlsx', self._create_report_milk_xlsx)        
         self.register_singleton('run_milk_dash_app',       self._create_run_milk_dash_app)        
 
 
@@ -117,7 +117,7 @@ class Container:
 
         # Report/Dashboard dependencies
         self.register_singleton('report_milk',          self._create_report_milk)
-        self.register_singleton('report_milk_xlsx',     self._create_report_milk_xlsx)
+        # self.register_singleton('report_milk_xlsx',     self._create_report_milk_xlsx)
 
     def register_singleton(self, name: str, factory: Callable[[], Any]):
         """Register a singleton dependency"""
@@ -240,7 +240,7 @@ class Container:
         return InsemUltraBasics()
             
     def _create_insem_ultra_data(self):
-        from insem_functions.insem_ultra_data import InsemUltraData
+        from insem_functions.Insem_ultra_data import InsemUltraData
         return InsemUltraData()
         
     def _create_check_last_stop(self):
@@ -252,7 +252,7 @@ class Container:
         return I_U_merge()
     
     def _create_ipiv(self):
-        from insem_functions.ipiv import Ipiv
+        from insem_functions.Ipiv import Ipiv
         return Ipiv()
     
     def _create_next_ultra_check(self):
@@ -358,12 +358,12 @@ class Container:
 
     #Report_Milk
     def _create_report_milk(self):
-        from milk_functions.report_milk.report_milk import ReportMilk
+        from milk_functions.report_milk.Report_Milk import ReportMilk
         return ReportMilk()
 
-    def _create_report_milk_xlsx(self):
-        from milk_functions.report_milk.report_milk_xlsx import ReportMilkXlsx
-        return ReportMilkXlsx()          
+    # def _create_report_milk_xlsx(self):
+    #     from milk_functions.report_milk.report_milk_xlsx import ReportMilkXlsx
+    #     return ReportMilkXlsx()          
 
     def _create_run_milk_dash_app(self):
         from milk_functions.report_milk.milk_dash_app import run_milk_dash_app

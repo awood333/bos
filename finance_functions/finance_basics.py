@@ -3,6 +3,7 @@ import inspect
 import pandas as pd
 
 from feed_functions.feedcost_basics import Feedcost_basics
+from config_path import GDRIVE_BKKBANK_ACCOUNT, GDRIVE_BKKBANK_DIR
 
 class FinanceBasics:
     def __init__(self, feedcost_basics=None):
@@ -17,9 +18,7 @@ class FinanceBasics:
         self.feedcost_pivot = None
 
     def load_and_process(self):
-        bkk = pd.read_csv('E:\\COWS\\data\\finance\\BKKbank\\BKKBankFarmAccount.csv', index_col='datex')
-            from config_path import LOCAL_BKKBANK
-            bkk = pd.read_csv(LOCAL_BKKBANK / "BKKBankFarmAccount.csv", index_col='datex')
+        bkk = pd.read_csv(GDRIVE_BKKBANK_ACCOUNT, index_col='datex')
         bkk.index = pd.to_datetime(bkk.index, format="%Y-%m-%d")
         self.bkk1 = bkk.iloc[:, :12]
 
@@ -127,9 +126,9 @@ class FinanceBasics:
         return self.feedcost_pivot
     
     def create_write_to_csv(self):
-        
-        self.feedcost_pivot     .to_csv('E:\\COWS\\data\\finance\\BKKbank\\feedcost_pivot.csv')
-        self.cost_xfeed_pivot   .to_csv('E:\\COWS\\data\\finance\\BKKbank\\cost_xfeed_pivot.csv')
+        pass
+        # self.feedcost_pivot     .to_csv(GDRIVE_BKKBANK_DIR / "feedcost_pivot.csv")
+        # self.cost_xfeed_pivot   .to_csv(GDRIVE_BKKBANK_DIR / "cost_xfeed_pivot.csv")
         
     
 if __name__ == "__main__":
