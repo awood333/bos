@@ -2,6 +2,7 @@
 
 import pandas as pd
 from container import get_dependency
+from config_path import LOCAL_PL_DATA
 
 
 class IncomeStatement:
@@ -32,8 +33,8 @@ class IncomeStatement:
 
 
     def write_to_csv(self):
-        
-        self.net_income.to_csv('E:\\COWS\\data\\PL_data\\net_income.csv')
+        LOCAL_PL_DATA.mkdir(parents=True, exist_ok=True)
+        self.net_income.to_csv(LOCAL_PL_DATA / 'net_income.csv')
         
         
 if __name__ == "__main__":

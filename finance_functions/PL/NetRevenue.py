@@ -2,6 +2,7 @@
 import inspect
 import pandas as pd
 from container import get_dependency
+from config_path import LOCAL_PL_DATA
 # from date_range import DateRange
 
 
@@ -77,11 +78,10 @@ class NetRevenue:
 
  
     def write_to_csv(self):
-        
-        # self.test_daily_net         .to_csv('E:\\COWS\\data\\PL_data\\test_daily_net.csv')
-        self.net_revenue_daily_last .to_csv('E:\\COWS\\data\\PL_data\\net_revenue_daily_last.csv')
-        self.net_revenue_daily      .to_csv('E:\\COWS\\data\\PL_data\\net_revenue_daily.csv')
-        self.net_revenue_monthly    .to_csv('E:\\COWS\\data\\PL_data\\net_revenue_monthly.csv')
+        LOCAL_PL_DATA.mkdir(parents=True, exist_ok=True)
+        self.net_revenue_daily_last .to_csv(LOCAL_PL_DATA / 'net_revenue_daily_last.csv')
+        self.net_revenue_daily      .to_csv(LOCAL_PL_DATA / 'net_revenue_daily.csv')
+        self.net_revenue_monthly    .to_csv(LOCAL_PL_DATA / 'net_revenue_monthly.csv')
         
         
         

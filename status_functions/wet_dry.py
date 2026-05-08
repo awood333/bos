@@ -361,6 +361,8 @@ class WetDry:
         
 
     def write_to_csv(self):
+        # Ensure the output directory exists
+        LOCAL_WET_DRY.mkdir(parents=True, exist_ok=True)
 
         self.wet_dry_df    .to_csv(LOCAL_WET_DRY / "wet_dry_df.csv")
         self.wsd           .to_csv(LOCAL_WET_DRY / "wd_sum.csv")

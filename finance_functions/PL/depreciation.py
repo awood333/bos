@@ -3,6 +3,7 @@ import inspect
 from datetime import datetime as dt
 import pandas as pd
 from container import get_dependency
+from config_path import LOCAL_DEPRECIATION
 
 class DepreciationCalc:
     def __init__(self):
@@ -68,9 +69,9 @@ class DepreciationCalc:
         return self.available_depr_summary
     
     def write_to_csv(self):
-        
-        self.available_depr_details.to_csv('E:\\COWS\\data\\finance\\capex\\depreciation\\available_depr_details.csv')
-        self.available_depr_summary.to_csv('E:\\COWS\\data\\finance\\capex\\depreciation\\available_depr_summary.csv')
+        LOCAL_DEPRECIATION.mkdir(parents=True, exist_ok=True)
+        self.available_depr_details.to_csv(LOCAL_DEPRECIATION / 'available_depr_details.csv')
+        self.available_depr_summary.to_csv(LOCAL_DEPRECIATION / 'available_depr_summary.csv')
     
     
 if __name__ == "__main__":

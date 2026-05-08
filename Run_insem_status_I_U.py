@@ -1,7 +1,7 @@
 '''Run_insem_status_IU.py'''
 
-from insem_functions.insem_ultra_basics import InsemUltraBasics
-from insem_functions.insem_ultra_data   import InsemUltraData
+from insem_functions.Insem_ultra_basics import InsemUltraBasics
+from insem_functions.Insem_ultra_data   import InsemUltraData
 from insem_functions.check_laststop     import CheckLastStop
 from insem_functions.I_U_merge          import I_U_merge
 from insem_functions.next_ultra_check   import NextUltraCheck
@@ -15,7 +15,7 @@ from groups_and_tests.wet_dry_groups    import WetDryGroups
 class RunInsemStatusIU:
     def __init__(self):
 
-        self.insem_ultra_basics = InsemUltraBasics()
+        self.Insem_ultra_basics = InsemUltraBasics()
         self.insem_ultra_data   = InsemUltraData()
         self.check_last_stop    = CheckLastStop()
         self.i_u_merge          = I_U_merge()
@@ -28,7 +28,7 @@ class RunInsemStatusIU:
 
 
 
-        self.insem_ultra_basics.load_and_process()
+        self.Insem_ultra_basics.load_and_process()
         self.insem_ultra_data.load_and_process()
         self.check_last_stop.load_and_process()
         self.i_u_merge.load_and_process()

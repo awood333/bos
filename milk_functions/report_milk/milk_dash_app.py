@@ -294,23 +294,46 @@ def run_milk_dash_app():
 
 
     def open_browser():
+        url = "http://127.0.0.1:8051/"
         try:
-            # Use subprocess to avoid blocking DDE calls on Windows
             import subprocess
-            firefox_paths = [
+            candidates = [
+                # Linux
+                "firefox",
+                "google-chrome",
+                "chromium-browser",
+                "xdg-open",
+                # Windows
                 r"C:\Program Files\Mozilla Firefox\firefox.exe",
                 r"C:\Program Files (x86)\Mozilla Firefox\firefox.exe",
             ]
-            for path in firefox_paths:
-                if os.path.exists(path):
-                    subprocess.Popen([path, "http://127.0.0.1:8051/"])
+            for browser in candidates:
+                # Absolute Windows paths: check existence; bare commands: let Popen find them
+                if os.sep == '\\' and browser.startswith('C:\\'):
+                    if not os.path.exists(browser):
+                        continue
+                try:
+                    subprocess.Popen([browser, url],
+                                     stdout=subprocess.DEVNULL,
+                                     stderr=subprocess.DEVNULL)
                     return
-            webbrowser.open("http://127.0.0.1:8051/")
+                except (FileNotFoundError, OSError):
+                    continue
+            # Last resort — non-blocking on most platforms
+            webbrowser.open_new_tab(url)
         except Exception as e:
             print(f"Could not open browser: {e}")
 
+    def serve():
+        app.run(debug=False, port=8051, use_reloader=False)
+
+    server_thread = threading.Thread(target=serve, daemon=True)
+    server_thread.start()
     threading.Timer(1.5, open_browser).start()
-    app.run(debug=False, port=8051)
+
+    if __name__ == "__main__":
+        # Block the main thread so the daemon server stays alive when run directly
+        server_thread.join()
 
 if __name__ == "__main__":
-    run_milk_dash_app()    
+    run_milk_dash_app()

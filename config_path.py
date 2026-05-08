@@ -63,6 +63,15 @@ GDRIVE_FEED_INVOICE_DATA  = FEED_DATA_DIR / "feed_invoice_data"
 GDRIVE_FEED_DAILY_AMT_DATA = FEED_DATA_DIR / "feed_daily_amt_data"
 GDRIVE_FEED_CSV           = FEED_DATA_DIR / "feed_csv"
 
+# ── Google Sheet IDs (used via API for all GDrive data — Linux and Windows) ──
+MASTER_FEED_INVOICE_SHEET_ID    = os.getenv('MASTER_FEED_INVOICE_SHEET_ID',    '1uLuKSNkfyqPSyIHPpaYGuJhaNmnjwp2nmwuO_eT7yg4')
+MASTER_BASIC_DATA_SHEET_ID      = os.getenv('MASTER_BASIC_DATA_SHEET_ID',      '1Ss28ImTOwJmCEfXnvjn6HfKHlxvAX8PqkZVhvDhnuLY')
+MASTER_FEED_DAILY_AMT_SHEET_ID  = os.getenv('MASTER_FEED_DAILY_AMT_SHEET_ID',  '1165euk9UhKGTNa5fW-iVsIM1XZS-EgiC-Km2Rbtix78')
+MASTER_FINANCE_SHEET_ID         = os.getenv('MASTER_FINANCE_SHEET_ID',         '1UjDt0xH_TPsQ2tOhwf1iDZ9KGCyBOExdFrLdM5n9acA')
+RAW_MILK_MASTER_SHEET_ID        = os.getenv('RAW_MILK_MASTER_SHEET_ID',        '1mCgtSbT_2OVbA469Wg6n0ne4EHu20RXbPZ6gKD9JTuw')
+DAILY_MILK_SHEET_ID             = os.getenv('DAILY_MILK_SHEET_ID',             '1ouQoDXxKjmIZ1XFH0_Ga4oISNXoKi60MmuKyHNYlONk')
+MASTER_GROUPS_SHEET_ID          = os.getenv('MASTER_GROUPS_SHEET_ID',          '1TkNebQXkY_TXOYikCbLjqKJfEFDawPEFbgCGDNhe2u4')
+
 RAW_DIR         = MILK_DATA_DIR / "raw"
 TOTALS_DIR      = MILK_DATA_DIR / "totals" / "milk_aggregates"
 
@@ -117,8 +126,10 @@ LOCAL_NUTRITION_DATA        = LOCAL_FEED_DATA / "nutrition_data"
 LOCAL_FINANCE_DATA  = LOCAL_DATA_ROOT / "finance_data"
 LOCAL_BKKBANK       = LOCAL_FINANCE_DATA / "BKKbank"
 LOCAL_CAPEX         = LOCAL_FINANCE_DATA / "capex"
+LOCAL_DEPRECIATION  = LOCAL_CAPEX / "depreciation"
 LOCAL_PROJECTS      = LOCAL_FINANCE_DATA / "projects"
 LOCAL_ASG_MILK_INCOME=LOCAL_FINANCE_DATA / "ASG_milk_income"
+LOCAL_PL_DATA       = LOCAL_FINANCE_DATA / "PL_data"
 
 LOCAL_STATUS        = LOCAL_DATA_ROOT / "status"
 LOCAL_WET_DRY       = LOCAL_STATUS / "wet_dry"
