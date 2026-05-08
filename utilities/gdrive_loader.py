@@ -11,7 +11,8 @@ Usage:
     df = gdrive_read_excel("COWS/milk_data/daily_milk/daily_milk.xlsx")
 
 The path is relative to 'My Drive' (e.g., "COWS/basic_data/live_births.csv").
-Google Drive authentication uses credentials in .env (see gdrive_auth.py).
+Google Drive authentication is handled by gdrive_auth.py, which first tries
+the system keyring and then falls back to a local service_account.json file.
 """
 
 import io

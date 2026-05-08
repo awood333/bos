@@ -4,6 +4,7 @@ import inspect
 from datetime import datetime
 import pandas as pd
 from container import get_dependency
+from config_path import LOCAL_CAPEX
 
 
 tdy = datetime.now()
@@ -33,14 +34,15 @@ class CapexBasics:
         self.write_to_csv()
 
     def load_partition_data(self):
-        from config_path import LOCAL_BKKBANK
-        bkk1 = pd.read_csv(LOCAL_BKKBANK / "BKKBankFarmAccount.csv")
-        bkk1['datex'] = pd.to_datetime(bkk1['datex'])
+        from config_path import MASTER_FINANCE_SHEET_ID
+        from utilities.gdrive_loader import gdrive_read_sheet_tab
+        bkk1 = gdrive_read_sheet_tab(MASTER_FINANCE_SHEET_ID, 'BKKBankFarmAccount')
+        bkk1 = bkk1.reset_index()
+        bkk1.columns = bkk1.columns.str.strip()
+        bkk1['datex'] = pd.to_datetime(bkk1['datex'], errors='coerce')
+        bkk1['year']  = pd.to_numeric(bkk1['year'],  errors='coerce')
+        bkk1['month'] = pd.to_numeric(bkk1['month'], errors='coerce')
         bkk1.set_index('datex', inplace=True)
-        
-        # backup the original
-        bkk1    .to_csv(f"E:\\COWS\\data\\finance\\BKKbank\\backup\\BKKbank_{timestamp}.csv")
-        bkk1    .to_csv(f"E:\\Cows\\data_backup\\finance_backup\\farm_account\\BKKbank_{timestamp}.csv")
 
         bkk1a = bkk1.iloc[:,:12].copy()
         bkk1b = bkk1a.loc[(
@@ -56,8 +58,7 @@ class CapexBasics:
             & (bkk1b['descr 1'] != '?')
             ].copy()
         
-        bkk2['debit'] = bkk2['debit'].fillna(0)
-        bkk2['debit'] = bkk2['debit'].astype(float)
+        bkk2['debit'] = pd.to_numeric(bkk2['debit'], errors='coerce').fillna(0)
         
         bkk3 = bkk2[['year','month','day','transaction'
                      ,'debit','descr 1','descr 2'
@@ -110,7 +111,7 @@ class CapexBasics:
                                     aggfunc = 'sum'
                                     )
         
-        non_capex_pivot2 = non_capex_pivot1.drop(columns=(['feed']))
+        non_capex_pivot2 = non_capex_pivot1.drop(columns=['feed'], errors='ignore')
         non_capex_pivot2['cost sum'] = non_capex_pivot2.sum(axis=1)
         self.non_capex_pivot = non_capex_pivot2
 
@@ -118,12 +119,11 @@ class CapexBasics:
         
 
     def write_to_csv(self):
-        
-        self.capex_details      .to_csv("E:\\COWS\\data\\finance\\capex\\capex_details.csv")
-        self.non_capex_details  .to_csv("E:\\COWS\\data\\finance\\capex\\non_capex_details.csv")
-
-        self.capex_pivot    .to_csv("E:\\COWS\\data\\finance\\capex\\capex_pivot.csv")
-        self.non_capex_pivot.to_csv("E:\\COWS\\data\\finance\\capex\\non_capex_pivot.csv") 
+        LOCAL_CAPEX.mkdir(parents=True, exist_ok=True)
+        self.capex_details      .to_csv(LOCAL_CAPEX / "capex_details.csv")
+        self.non_capex_details  .to_csv(LOCAL_CAPEX / "non_capex_details.csv")
+        self.capex_pivot        .to_csv(LOCAL_CAPEX / "capex_pivot.csv")
+        self.non_capex_pivot    .to_csv(LOCAL_CAPEX / "non_capex_pivot.csv") 
  
     
 if __name__ == "__main__":

@@ -28,7 +28,7 @@ class CheckLastStop:
         self.DR = get_dependency('date_range')
         self.data = self.MB.data
         self.SD = get_dependency('status_data')
-        self.IUB = get_dependency('insem_ultra_basics')
+        self.IUB = get_dependency('Insem_ultra_basics')
         self.IUD = get_dependency('insem_ultra_data')
         self.allx = self.IUD.allx.iloc[:, :5].copy()
         self.status_col = self.SD.status_col
