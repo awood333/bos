@@ -40,7 +40,7 @@ class InsemUltraData:
         self.DR = get_dependency('date_range')
         self.MB = get_dependency('milk_basics')
         self.data = self.MB.data
-        self.IUB = get_dependency('insem_ultra_basics')
+        self.IUB = get_dependency('Insem_ultra_basics')
         self.SD = get_dependency('status_data')
         self.status_col = self.SD.status_col
         self.alive_mask = self.data['bd']['death_date'].isnull()

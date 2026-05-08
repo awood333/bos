@@ -1,18 +1,22 @@
 '''finance_functions/tax_docs/TaxDocs_NonCapex.py'''
 import pandas as pd 
+from config_path import MASTER_FINANCE_SHEET_ID
+from utilities.gdrive_loader import gdrive_read_sheet_tab
 
 class TaxDocs_NonCapex:
     def __init__(self):
         
-        from config_path import LOCAL_BKKBANK
-        bkk1a = pd.read_csv(LOCAL_BKKBANK / "BKKBankFarmAccount.csv")
+        bkk1a = gdrive_read_sheet_tab(MASTER_FINANCE_SHEET_ID, 'BKKBankFarmAccount')
+        bkk1a = bkk1a.reset_index()
+        bkk1a.columns = bkk1a.columns.str.strip()
         bkk1a['datex'] = pd.to_datetime(bkk1a['datex'], errors='coerce')
+        bkk1a['year']  = pd.to_numeric(bkk1a['year'],  errors='coerce')
+        bkk1a['month'] = pd.to_numeric(bkk1a['month'], errors='coerce')
         bkk1a.set_index(['datex', 'year', 'month'], inplace=True)
 
         bkk1b= bkk1a.loc[bkk1a.index.get_level_values('year') >= 2025 ]
         bkk1c= bkk1b.iloc[:,:12].copy()
-        bkk1c['debit'] = bkk1c['debit'].fillna(0)
-        bkk1c['debit'] = bkk1c['debit'].astype(float)
+        bkk1c['debit'] = pd.to_numeric(bkk1c['debit'], errors='coerce').fillna(0)
         self.bkk = bkk1c
         
         self.energy_pivot_monthly   = self.createEnergyDoc()

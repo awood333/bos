@@ -27,3 +27,12 @@ run_non_milk.py
 # DailyMilkRunner.py
 
 rclone-backup-user_accessKeys.csv
+# Ignore generated finance/tax_docs CSVs
+E:\COWS\data\finance\tax_docs/*.csv
+**/tax_docs/*.csv
+
+# Ignore specific scripts/utilities
+RunMilkUpdate.py
+insem_functions/Insem_ultra_basics.py
+utilities/rclone_gdrive_aws.sh
+utilities/rclone_gdrive_aws.bat

@@ -3,7 +3,8 @@ import inspect
 import pandas as pd
 
 from feed_functions.feedcost_basics import Feedcost_basics
-from config_path import GDRIVE_BKKBANK_ACCOUNT, GDRIVE_BKKBANK_DIR
+from config_path import MASTER_FINANCE_SHEET_ID, LOCAL_BKKBANK
+from utilities.gdrive_loader import gdrive_read_sheet_tab
 
 class FinanceBasics:
     def __init__(self, feedcost_basics=None):
@@ -18,8 +19,13 @@ class FinanceBasics:
         self.feedcost_pivot = None
 
     def load_and_process(self):
-        bkk = pd.read_csv(GDRIVE_BKKBANK_ACCOUNT, index_col='datex')
-        bkk.index = pd.to_datetime(bkk.index, format="%Y-%m-%d")
+        bkk = gdrive_read_sheet_tab(MASTER_FINANCE_SHEET_ID, 'BKKBankFarmAccount')
+        bkk = bkk.reset_index()
+        bkk.columns = bkk.columns.str.strip()
+        bkk['datex'] = pd.to_datetime(bkk['datex'], errors='coerce')
+        bkk['year']  = pd.to_numeric(bkk['year'],  errors='coerce')
+        bkk['month'] = pd.to_numeric(bkk['month'], errors='coerce')
+        bkk = bkk.set_index('datex')
         self.bkk1 = bkk.iloc[:, :12]
 
         self.startdate = pd.to_datetime("2025-01-01")
@@ -74,7 +80,7 @@ class FinanceBasics:
         bkk4 = bkk4.reset_index()
         self.bkk3 = bkk4
         
-        bkk5 = bkk4.drop(columns=[ 'feed']) 
+        bkk5 = bkk4.drop(columns=['feed'], errors='ignore') 
         total_row = bkk5.sum(axis=0, numeric_only=True).to_dict() 
         #dict avoids dtype probs in concat with numeric and text in same row
         
@@ -126,9 +132,9 @@ class FinanceBasics:
         return self.feedcost_pivot
     
     def create_write_to_csv(self):
-        pass
-        # self.feedcost_pivot     .to_csv(GDRIVE_BKKBANK_DIR / "feedcost_pivot.csv")
-        # self.cost_xfeed_pivot   .to_csv(GDRIVE_BKKBANK_DIR / "cost_xfeed_pivot.csv")
+        LOCAL_BKKBANK.mkdir(parents=True, exist_ok=True)
+        self.feedcost_pivot     .to_csv(LOCAL_BKKBANK / 'feedcost_pivot.csv')
+        self.cost_xfeed_pivot   .to_csv(LOCAL_BKKBANK / 'cost_xfeed_pivot.csv')
         
     
 if __name__ == "__main__":

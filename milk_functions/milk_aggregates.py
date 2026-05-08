@@ -52,7 +52,7 @@ class MilkAggregates:
         self.MB   = self.MAB.MB
         self.data = self.MB.data
         self.DR   = get_dependency('date_range')
-        self.IUB  = get_dependency('insem_ultra_basics')
+        self.IUB  = get_dependency('Insem_ultra_basics')
         self.IUD  = get_dependency('insem_ultra_data')
         self.allx = self.IUD.allx
 

@@ -32,7 +32,7 @@ class ModelGroups:
 
         self.SD = get_dependency('status_data')
         self.WD = get_dependency('wet_dry')
-        self.IUB= get_dependency('insem_ultra_basics')
+        self.IUB= get_dependency('Insem_ultra_basics')
         self.IUD= get_dependency('insem_ultra_data')
         self.MB = get_dependency('milk_basics')
         self.DR = get_dependency('date_range')

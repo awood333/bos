@@ -61,7 +61,7 @@ class Container:
         self.register_singleton('model_groups_tenday', self._create_model_groups)        
         
         # Insem
-        self.register_singleton('insem_ultra_basics',   self._create_insem_ultra_basics)
+        self.register_singleton('Insem_ultra_basics',   self._create_Insem_ultra_basics)
         self.register_singleton('insem_ultra_data',     self._create_insem_ultra_data)
         self.register_singleton('check_last_stop',      self._create_check_last_stop)
         self.register_singleton('i_u_merge',            self._create_i_u_merge)
@@ -235,8 +235,8 @@ class Container:
         return WetDry()
     
     # Insem functions
-    def _create_insem_ultra_basics(self):
-        from insem_functions.insem_ultra_basics import InsemUltraBasics
+    def _create_Insem_ultra_basics(self):
+        from insem_functions.Insem_ultra_basics import InsemUltraBasics
         return InsemUltraBasics()
             
     def _create_insem_ultra_data(self):
