@@ -302,7 +302,7 @@ class InsemUltraData:
     
     def create_write_to_csv(self):
               
-        self.allx        .to_csv(r"Q:\My Drive\COWS\reports\allx.csv")
+        # self.allx        .to_csv(r"Q:\My Drive\COWS\reports\allx.csv")
         # self.all_milking .to_csv('E:\\COWS\\data\\insem_data\\all_milking.csv')
         # self.all_dry     .to_csv('E:\\COWS\\data\\insem_data\\all_dry.csv')
         # self.not_preg    .to_csv('E:\\COWS\\data\\insem_data\\not_preg.csv')

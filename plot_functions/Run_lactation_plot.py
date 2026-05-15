@@ -1,5 +1,5 @@
 '''plot_functions.run_lactation_plot'''
-import io
+import os
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -7,16 +7,12 @@ from container import get_dependency
 import pandas as pd
 import numpy as np
 
-from utilities.gdrive_loader import gdrive_upload_png, gdrive_upload_bytes
-
-GDRIVE_LACTATION_FOLDER = "COWS/plots/Lactation"
-
-
-def _gdrive_upload_csv(folder_path, file_name, df):
-    gdrive_upload_bytes(folder_path, file_name, df.to_csv(index=False).encode(), mimetype='text/csv')
+from config_path import GDRIVE_LACTATION_PLOTS
 
 class RunLactationPlot:
     def __init__(self):
+        self.output_folder = str(GDRIVE_LACTATION_PLOTS)
+        os.makedirs(self.output_folder, exist_ok=True)
         self.TL = None
         self.LLS = None
         self.doc = None
@@ -37,7 +33,7 @@ class RunLactationPlot:
         self.df_weekly = self.TL.milking_wkly.iloc[:53, :].copy().dropna(axis=1, how='all')
         self.df_daily  = self.TL.milking_daily.iloc[:364, :].copy().dropna(axis=1, how='all')
         self.df_id_list = self.df_weekly.columns.to_frame(index=False, name="WY_id")
-        _gdrive_upload_csv(GDRIVE_LACTATION_FOLDER, 'cow_id_list.csv', self.df_id_list)
+        self.df_id_list.to_csv(os.path.join(self.output_folder, "cow_id_list.csv"), index=False)
 
         self.weekly_avg_all = self.df_weekly.mean(axis=1)
         self.daily_avg_all  = self.df_daily.mean(axis=1)
@@ -97,11 +93,9 @@ class RunLactationPlot:
 
             plt.title(f'WY {cow_id}', fontsize=20)
             plt.tight_layout()
-            buf = io.BytesIO()
-            plt.savefig(buf, format='png')
+            output_path = os.path.join(self.output_folder, f"cow_{cow_id}_weekly_daily.png")
+            plt.savefig(output_path)
             plt.close()
-            buf.seek(0)
-            gdrive_upload_png(GDRIVE_LACTATION_FOLDER, f"cow_{cow_id}_weekly_daily.png", buf.read())
 
 if __name__ == "__main__":
     plotter = RunLactationPlot()
