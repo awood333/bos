@@ -1,13 +1,16 @@
 '''
 plot_functions.plot_net_revenue_model
 '''
-import os
+import io
 import pandas as pd
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 from container import get_dependency
+from utilities.gdrive_loader import gdrive_upload_png
+
+GDRIVE_NET_REVENUE_FOLDER = "COWS/plots/Net_Revenue"
 
 
 class PlotNetRevenueModel:
@@ -24,9 +27,6 @@ class PlotNetRevenueModel:
         self.date_of_change1 = pd.to_datetime(getattr(LLS, 'date_of_change1', None))
         self.date_of_change2 = pd.to_datetime(getattr(LLS, 'date_of_change2', None))
         self.df['date'] = pd.to_datetime(self.df['date'])
-
-        self.output_folder = r"Q:\My Drive\COWS\data\plots\net_revenue_plots"
-        os.makedirs(self.output_folder, exist_ok=True)
 
         for cow_id in self.df['WY_id'].unique():
             cow_df = self.df[self.df['WY_id'] == cow_id].sort_values('date')
@@ -70,9 +70,11 @@ class PlotNetRevenueModel:
             ax1.legend(handles1 + handles2, labels1 + labels2, loc='upper center', facecolor='lightgreen', framealpha=0.25)
             plt.title(f'Net Revenue - WY {cow_id}', fontsize=20)
             plt.tight_layout()
-            output_path = os.path.join(self.output_folder, f"cow_{cow_id}_net_revenue.png")
-            plt.savefig(output_path)
+            buf = io.BytesIO()
+            plt.savefig(buf, format='png')
             plt.close()
+            buf.seek(0)
+            gdrive_upload_png(GDRIVE_NET_REVENUE_FOLDER, f"cow_{cow_id}_net_revenue.png", buf.read())
 
 if __name__ == "__main__":
     obj=PlotNetRevenueModel()

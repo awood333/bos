@@ -2,7 +2,9 @@
 import os
 import json
 import keyring
-from google.oauth2 import service_account
+from google_auth_oauthlib.flow import InstalledAppFlow
+from google.auth.transport.requests import Request
+import pickle
 
 SCOPES = [
     'https://www.googleapis.com/auth/drive',        # file upload/download
@@ -10,9 +12,9 @@ SCOPES = [
 ]
 
 _UTILITIES_DIR = os.path.dirname(os.path.abspath(__file__))
-_SERVICE_ACCOUNT_PATH = os.path.join(_UTILITIES_DIR, 'service_account.json')
+_service_account_PATH = os.path.join(_UTILITIES_DIR, 'bos_service_account.json')
 _KEYRING_SERVICE = 'bos_gdrive'
-_KEYRING_USERNAME = 'service_account'
+_KEYRING_USERNAME = 'bos_service_account'
 
 
 def _describe_keyring_backend():
@@ -22,61 +24,79 @@ def _describe_keyring_backend():
     backend_module = backend.__class__.__module__
     return f"{backend_module}.{backend_name}"
 
-def store_credentials_in_keyring(service_account_json_path):
+def store_credentials_in_keyring(bos_service_account_json_path):
     """
     Store service account credentials in the system keyring.
     
     Args:
-        service_account_json_path: Path to the service account JSON file
+        bos_service_account_json_path: Path to the service account JSON file
     """
-    if not os.path.exists(service_account_json_path):
-        raise FileNotFoundError(f"Service account file not found: {service_account_json_path}")
+    if not os.path.exists(bos_service_account_json_path):
+        raise FileNotFoundError(f"Service account file not found: {bos_service_account_json_path}")
     
-    with open(service_account_json_path, 'r', encoding='utf-8') as f:
+    with open(bos_service_account_json_path, 'r', encoding='utf-8') as f:
         credentials_json = f.read()
     
     keyring.set_password(_KEYRING_SERVICE, _KEYRING_USERNAME, credentials_json)
     print(f"Credentials stored in system keyring under service '{_KEYRING_SERVICE}'")
 
+
 def authenticate_gdrive():
     """
-    Authenticates using service account credentials.
-    
+    Authenticate for Google Drive API using OAuth (preferred for My Drive) or service account (for Shared Drives).
     Priority:
-    1. Try to load from the system keyring (secure)
-    2. Fall back to service_account.json file
-    
-    The service account email must be shared on any Google Drive folders/Sheets
-    that the app needs to access.
+    1. Try OAuth user credentials (token.pickle)
+    2. Try service account from keyring
+    3. Try bos_service_account.json file
     """
-    print(f"Using keyring backend: {_describe_keyring_backend()}")
+    # Try OAuth first
+    creds = None
+    token_path = os.path.join(_UTILITIES_DIR, 'token.pickle')
+    client_secrets_path = os.path.join(_UTILITIES_DIR, 'client_secrets.json')
+    if os.path.exists(token_path):
+        with open(token_path, 'rb') as token:
+            creds = pickle.load(token)
+    # If no valid creds, do OAuth flow
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        elif os.path.exists(client_secrets_path):
+            flow = InstalledAppFlow.from_client_secrets_file(client_secrets_path, SCOPES)
+            creds = flow.run_local_server(port=0)
+        # Save the credentials for the next run
+        if creds:
+            with open(token_path, 'wb') as token:
+                pickle.dump(creds, token)
+    if creds and creds.valid:
+        print("✓ Loaded OAuth user credentials (token.pickle)")
+        return creds
 
-    # Try loading from keyring first
+    # Fallback: service account (for Shared Drives only)
+    print(f"Using keyring backend: {_describe_keyring_backend()}")
     try:
         credentials_json = keyring.get_password(_KEYRING_SERVICE, _KEYRING_USERNAME)
         if credentials_json:
             credentials_dict = json.loads(credentials_json)
-            creds = service_account.Credentials.from_service_account_info(
+            from google.oauth2.service_account import Credentials as ServiceAccountCredentials
+            creds = ServiceAccountCredentials.from_service_account_info(
                 credentials_dict, scopes=SCOPES
             )
             print("✓ Loaded credentials from system keyring")
             return creds
     except Exception as e:
         print(f"Could not load from keyring: {e}")
-    
-    # Fall back to file method
-    if os.path.exists(_SERVICE_ACCOUNT_PATH):
-        creds = service_account.Credentials.from_service_account_file(
-            _SERVICE_ACCOUNT_PATH, scopes=SCOPES
+    if os.path.exists(_service_account_PATH):
+        from google.oauth2.service_account import Credentials as ServiceAccountCredentials
+        creds = ServiceAccountCredentials.from_service_account_file(
+            _service_account_PATH, scopes=SCOPES
         )
-        print("✓ Loaded credentials from service_account.json file")
-        print(f"💡 Consider storing credentials in keyring: python -c \"from utilities.gdrive_auth import store_credentials_in_keyring; store_credentials_in_keyring('{_SERVICE_ACCOUNT_PATH}')\"")
+        print("✓ Loaded credentials from bos_service_account.json file")
+        print(f"💡 Consider storing credentials in keyring: python -c \"from utilities.gdrive_auth import store_credentials_in_keyring; store_credentials_in_keyring('{_service_account_PATH}')\"")
         return creds
-    
     raise FileNotFoundError(
         f"No credentials found. Either:\n"
-        f"1. Store in keyring: python -c \"from utilities.gdrive_auth import store_credentials_in_keyring; store_credentials_in_keyring('path/to/service_account.json')\"\n"
-        f"2. Place service_account.json in {_UTILITIES_DIR}"
+        f"1. Complete OAuth flow (place client_secrets.json in {_UTILITIES_DIR})\n"
+        f"2. Store service account in keyring or bos_service_account.json in {_UTILITIES_DIR}"
     )
 
 if __name__ == "__main__":
@@ -85,7 +105,7 @@ if __name__ == "__main__":
         if len(sys.argv) > 2:
             store_credentials_in_keyring(sys.argv[2])
         else:
-            store_credentials_in_keyring(_SERVICE_ACCOUNT_PATH)
+            store_credentials_in_keyring(_service_account_PATH)
     else:
         user_creds = authenticate_gdrive()
         print("Google Drive authentication successful.")

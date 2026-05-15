@@ -1,0 +1,2 @@
+'''run_rclone_gdrive_aws.sh'''
+Terminal (simplest): bash /home/alanw/git_repos/bos/utilities/rclone_gdrive_aws.sh

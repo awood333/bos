@@ -58,6 +58,7 @@ BASIC_DATA_DIR  = DATA_ROOT / "basic_data"
 FEED_DATA_DIR   = DATA_ROOT / "feed_data"
 MILK_DATA_DIR   = DATA_ROOT / "milk_data"
 GROUP_DATA_DIR  = DATA_ROOT / "wb_groups"
+PLOTS_DIR       = DATA_ROOT / "plots"
 
 GDRIVE_FEED_INVOICE_DATA  = FEED_DATA_DIR / "feed_invoice_data"
 GDRIVE_FEED_DAILY_AMT_DATA = FEED_DATA_DIR / "feed_daily_amt_data"
@@ -75,6 +76,8 @@ MASTER_GROUPS_SHEET_ID          = os.getenv('MASTER_GROUPS_SHEET_ID',          '
 RAW_DIR         = MILK_DATA_DIR / "raw"
 TOTALS_DIR      = MILK_DATA_DIR / "totals" / "milk_aggregates"
 
+GDRIVE_NET_REVENUE_PLOTS = PLOTS_DIR / "Net_Revenue_plots" 
+GDRIVE_LACTATION_PLOTS   = PLOTS_DIR / "Lactation_plots"
 
 # ── Finance data files on GDrive (cross-platform) ──
 GDRIVE_BKKBANK_DIR = DATA_ROOT / "finance" / "BKKbank"

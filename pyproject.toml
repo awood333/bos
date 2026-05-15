@@ -1,0 +1,17 @@
+[project]
+name = "bos"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "dash>=4.1.0",
+    "google-api-python-client>=2.195.0",
+    "keyring>=25.7.0",
+    "matplotlib>=3.10.9",
+    "networkx>=3.6.1",
+    "pandas>=3.0.2",
+    "pyexcel-ods>=0.6.0",
+    "python-dotenv>=1.2.2",
+    "xlsxwriter>=3.2.9",
+]

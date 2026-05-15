@@ -5,7 +5,7 @@ utilities/token.pickle
 # Ignore Google OAuth client secret file
 utilities/client_secret_*.json
 # Ignore service account key (contains private key, do not share)
-utilities/service_account.json
+utilities/bos_service_account.json
 *.ipynb
 *.pyc
 .vs/

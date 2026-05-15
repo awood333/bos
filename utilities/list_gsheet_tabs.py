@@ -10,13 +10,13 @@ from google.oauth2.service_account import Credentials
 import os
 
 # --- CONFIGURE THESE ---
-SERVICE_ACCOUNT_FILE = os.path.join(os.path.dirname(__file__), 'service_account.json')  # Path to your credentials file
+bos_service_account_FILE = os.path.join(os.path.dirname(__file__), 'bos_service_account.json')  # Path to your credentials file
 SHEET_ID = '1ouQoDXxKjmIZ1XFH0_Ga4oISNXoKi60MmuKyHNYlONk'  # Your Google Sheet ID
 
 # --- DO NOT EDIT BELOW ---
 def main():
     creds = Credentials.from_service_account_file(
-        SERVICE_ACCOUNT_FILE,
+        bos_service_account_FILE,
         scopes=['https://www.googleapis.com/auth/spreadsheets.readonly']
     )
     service = build('sheets', 'v4', credentials=creds)
