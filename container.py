@@ -297,7 +297,7 @@ class Container:
         return PlotNetRevenueModel()
     
     def _create_run_lactation_plot(self):
-        from plot_functions.run_lactation_plot import RunLactationPlot
+        from plot_functions.Run_lactation_plot import RunLactationPlot
         return RunLactationPlot()
 
 

@@ -12,9 +12,10 @@ Usage:
 
 The path is relative to 'My Drive' (e.g., "COWS/basic_data/live_births.csv").
 Google Drive authentication is handled by gdrive_auth.py, which first tries
-the system keyring and then falls back to a local service_account.json file.
+the system keyring and then falls back to a local bos_service_account.json file.
 """
 
+# pylint: disable=no-member  # googleapiclient.discovery.build() returns dynamic Resource objects
 import io
 import pandas as pd
 from googleapiclient.discovery import build
@@ -323,3 +324,61 @@ def gdrive_write_excel(gdrive_path, excel_bytes):
     keys_to_remove = [k for k in _cache if isinstance(k, tuple) and k[1] == gdrive_path]
     for k in keys_to_remove:
         del _cache[k]
+
+
+def gdrive_upload_png(gdrive_folder_path, file_name, png_bytes):
+    """
+    Upload PNG bytes directly to a Google Drive folder via the API.
+    Creates the file if it doesn't exist, or replaces it if it does.
+
+    Args:
+        gdrive_folder_path: Folder path relative to 'My Drive',
+                            e.g. "COWS/plots/Net_Revenue_plots"
+        file_name:          File name, e.g. "cow_72_net_revenue.png"
+        png_bytes:          Raw PNG bytes (e.g. from io.BytesIO)
+    """
+    service = _get_service()
+    PNG_MIME = 'image/png'
+
+    folder_parts = gdrive_folder_path.replace('\\', '/').split('/')
+    folder_id = _resolve_folder_id(folder_parts)
+    print(f"  [gdrive] Uploading '{file_name}' to '{gdrive_folder_path}'...", flush=True)
+
+    media = MediaIoBaseUpload(io.BytesIO(png_bytes), mimetype=PNG_MIME, resumable=False)
+
+    try:
+        file_id, _ = _get_file_id(file_name, folder_id)
+        service.files().update(fileId=file_id, media_body=media).execute()
+        print(f"  [gdrive] Updated: {file_name}", flush=True)
+    except FileNotFoundError:
+        file_metadata = {'name': file_name, 'parents': [folder_id]}
+        service.files().create(body=file_metadata, media_body=media).execute()
+        print(f"  [gdrive] Created: {file_name}", flush=True)
+
+
+def gdrive_upload_bytes(gdrive_folder_path, file_name, data_bytes, mimetype='application/octet-stream'):
+    """
+    Upload arbitrary bytes directly to a Google Drive folder via the API.
+    Creates the file if it doesn't exist, or replaces it if it does.
+
+    Args:
+        gdrive_folder_path: Folder path relative to 'My Drive', e.g. "COWS/plots/Lactation_plots"
+        file_name:          File name, e.g. "cow_id_list.csv"
+        data_bytes:         Raw bytes to upload
+        mimetype:           MIME type string (default: 'application/octet-stream')
+    """
+    service = _get_service()
+    folder_parts = gdrive_folder_path.replace('\\', '/').split('/')
+    folder_id = _resolve_folder_id(folder_parts)
+    print(f"  [gdrive] Uploading '{file_name}' to '{gdrive_folder_path}'...", flush=True)
+
+    media = MediaIoBaseUpload(io.BytesIO(data_bytes), mimetype=mimetype, resumable=False)
+
+    try:
+        file_id, _ = _get_file_id(file_name, folder_id)
+        service.files().update(fileId=file_id, media_body=media).execute()
+        print(f"  [gdrive] Updated: {file_name}", flush=True)
+    except FileNotFoundError:
+        file_metadata = {'name': file_name, 'parents': [folder_id]}
+        service.files().create(body=file_metadata, media_body=media).execute()
+        print(f"  [gdrive] Created: {file_name}", flush=True)
