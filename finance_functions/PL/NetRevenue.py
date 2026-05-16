@@ -78,6 +78,8 @@ class NetRevenue:
 
  
     def write_to_csv(self):
+        
+        # writing to D:\Cow_backup/finance_data
         LOCAL_PL_DATA.mkdir(parents=True, exist_ok=True)
         self.net_revenue_daily_last .to_csv(LOCAL_PL_DATA / 'net_revenue_daily_last.csv')
         self.net_revenue_daily      .to_csv(LOCAL_PL_DATA / 'net_revenue_daily.csv')

@@ -1,5 +1,6 @@
 # Ignore environment variable files containing secrets
 .env
+.venv/
 # Ignore Google OAuth token (contains refresh token, do not share)
 utilities/token.pickle
 # Ignore Google OAuth client secret file
