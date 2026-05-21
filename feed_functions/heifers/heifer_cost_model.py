@@ -4,6 +4,8 @@ import pandas as pd
 import numpy as np
 
 from feed_functions.feedcost_basics import Feedcost_basics
+from config_path import LOCAL_FEED_DATA
+from pathlib import Path
 
 class HeiferCostModel:
     def __init__(self):
@@ -68,7 +70,8 @@ class HeiferCostModel:
     
     # this makes a timeseries - but amount still adds up to 1kg
     def create_heifer_feedcost(self):
-        diet1 = pd.read_csv('E:\\COWS\\data\\feed_data\\feed_csv\\heifer_daily_amt.csv')
+        feed_csv_dir = LOCAL_FEED_DATA / 'feed_csv'
+        diet1 = pd.read_csv(feed_csv_dir / 'heifer_daily_amt.csv')
         diet1['datex'] = pd.to_datetime(diet1['datex'], errors='coerce')
         diet1 = diet1.set_index('datex')
         diet2a = diet1.reindex(self.rng1).ffill()
@@ -93,8 +96,9 @@ class HeiferCostModel:
        
         
     def create_feeding_ranges(self):
-        
-        bd1 = pd.read_csv('E:\\COWS\\data\\csv_files\\heifers.csv')
+        # Use a CSV directory under LOCAL_FEED_DATA for heifers.csv
+        csv_dir = LOCAL_FEED_DATA.parent / 'csv_files'
+        bd1 = pd.read_csv(csv_dir / 'heifers.csv')
         bd1['b_date']           = pd.to_datetime(bd1['b_date'], errors='coerce')
         bd1['adj_bdate']        = pd.to_datetime(bd1['adj_bdate'], errors='coerce')
         bd1['ultra_conf_date']  = pd.to_datetime(bd1['ultra_conf_date'], errors='coerce')        
@@ -285,9 +289,12 @@ class HeiferCostModel:
         
     
     def write_to_csv(self):
-        
-        # self.heifer_feedcost_daily  .to_csv("E:\\COWS\\data\\feed_data\\heifers\\heifer_cost_daily.csv")
-        # self.heifer_feedcost_monthly.to_csv("E:\\COWS\\data\\feed_data\\heifers\\heifer_cost_monthly.csv")
+        # Example: Save outputs to the LOCAL_FEED_DATA / 'heifers' directory
+        heifers_dir = LOCAL_FEED_DATA / 'heifers'
+        heifers_dir.mkdir(parents=True, exist_ok=True)
+        # Uncomment to save outputs
+        # self.heifer_feedcost_daily.to_csv(heifers_dir / 'heifer_cost_daily.csv')
+        # self.heifer_feedcost_monthly.to_csv(heifers_dir / 'heifer_cost_monthly.csv')
         return
             
             

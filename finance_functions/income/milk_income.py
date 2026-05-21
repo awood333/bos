@@ -12,6 +12,9 @@ class MilkIncome:
         self.FCB = None
         self.DR = None
         self.startdate = None
+        from pathlib import Path
+        from config_path import LOCAL_PL_DATA, LOCAL_MILK_DIR
+
         self.sahagon = None
         self.sahagon_liters = None
         self.income_data = None
@@ -50,7 +53,8 @@ class MilkIncome:
             start_date_str = str(self.startdate)
         old_liters_pre_cutoff = old_total_liters2.loc[start_date_str:sahagon_cutoff_date]
 
-        new_liters1 = pd.read_excel(r"E:\COWS\data\milk_data\daily_milk\daily_milk.xlsx", sheet_name='stats', header=0)
+        daily_milk_xlsx = LOCAL_MILK_DIR / 'daily_milk' / 'daily_milk.xlsx'
+        new_liters1 = pd.read_excel(daily_milk_xlsx, sheet_name='stats', header=0)
         new_litersT = new_liters1.T.reset_index()
         # If the first row is not a date, drop it (e.g., contains 'sale total', 'heldback AM', etc.)
         try:
@@ -103,12 +107,18 @@ class MilkIncome:
     
     # BACKUP
     def write_to_csv(self):
-        self.income     .to_csv('E:\\COWS\\data\\PL_data\\milk_income\\output\\milk_income_.csv')
-        self.income     .to_csv('E:\\COWS\\data_backup\\milk_income_backup\\milk_income_'+tdy+'.csv')
+        from pathlib import Path
+        from config_path import LOCAL_PL_DATA
+        milk_income_dir = LOCAL_PL_DATA / 'milk_income' / 'output'
+        milk_income_dir.mkdir(parents=True, exist_ok=True)
+        backup_dir = Path.home() / 'cows_data' / 'data_backup' / 'milk_income_backup'
+        backup_dir.mkdir(parents=True, exist_ok=True)
 
-        self.income     .to_csv('E:\\COWS\\data\\PL_data\\milk_income\\output\\milk_income_daily.csv')
-        # self.income_daily_last  .to_csv('E:\\COWS\\data\\PL_data\\milk_income\\output\\milk_income_daily_last.csv')
-        self.income_monthly     .to_csv('E:\\COWS\\data\\PL_data\\milk_income\\output\\milk_income_monthly.csv')
+        self.income.to_csv(milk_income_dir / 'milk_income_.csv')
+        self.income.to_csv(backup_dir / f'milk_income_{tdy}.csv')
+        self.income.to_csv(milk_income_dir / 'milk_income_daily.csv')
+        # self.income_daily_last.to_csv(milk_income_dir / 'milk_income_daily_last.csv')
+        self.income_monthly.to_csv(milk_income_dir / 'milk_income_monthly.csv')
         
 
 if __name__ == '__main__':

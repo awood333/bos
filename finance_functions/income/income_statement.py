@@ -6,6 +6,8 @@ import pandas as pd
 from container import get_dependency
 
 
+from config_path import LOCAL_PL_DATA
+
 class IncomeStatement:
     def __init__(self):
         print(f"IncomeStatement instantiated by: {inspect.stack()[1].filename}")
@@ -66,8 +68,9 @@ class IncomeStatement:
         return self.net_income, self.net_income_details
 
     def write_to_csv(self):
-        self.net_income.to_csv('E:\\COWS\\data\\PL_data\\net_income.csv')
-        self.net_income_details.to_csv('E:\\COWS\\data\\PL_data\\net_income_details.csv')                
+        LOCAL_PL_DATA.mkdir(parents=True, exist_ok=True)
+        self.net_income.to_csv(LOCAL_PL_DATA / 'net_income.csv')
+        self.net_income_details.to_csv(LOCAL_PL_DATA / 'net_income_details.csv')
         
 if __name__ == "__main__":
     obj=IncomeStatement()
