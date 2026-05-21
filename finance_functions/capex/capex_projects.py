@@ -3,6 +3,9 @@ import inspect
 import pandas as pd
 from container import get_dependency
 
+from config_path import LOCAL_FINANCE_DATA
+from pathlib import Path
+
 class CapexProjects:
     def __init__(self):
         print(f"CapexProjects instantiated by: {inspect.stack()[1].filename}")
@@ -30,10 +33,12 @@ class CapexProjects:
         self.CB = get_dependency('capex_basics')
 
         self.capex          = self.CB.capex_details
-        self.old_capex      = pd.read_csv("E:\\COWS\\data\\finance\\capex\\old capex\\old_capex_list.csv", index_col='datex')
+        old_capex_path = LOCAL_FINANCE_DATA / 'capex' / 'old capex' / 'old_capex_list.csv'
+        self.old_capex      = pd.read_csv(old_capex_path, index_col='datex')
         self.old_capex.index = pd.to_datetime(self.old_capex.index).date
-        
-        self.project_completion_dates = pd.read_csv("E:\\COWS\\data\\finance\\capex\\projects\\project_completion_dates\\project_completion_dates.csv")
+
+        project_completion_path = LOCAL_FINANCE_DATA / 'capex' / 'projects' / 'project_completion_dates' / 'project_completion_dates.csv'
+        self.project_completion_dates = pd.read_csv(project_completion_path)
         self.project_completion_dates['completion_date'] = pd.to_datetime(self.project_completion_dates['completion_date']).dt.date
         self.ptoc = self.create_project_details_value()
 
@@ -97,10 +102,14 @@ class CapexProjects:
 
             setattr(self, f"{project_name}_initial_project_details", initial_project_details)
 
-            getattr(self, f"{project_name}_initial_project_details")    .to_csv(f"E:\\COWS\\data\\finance\\capex\\projects\\project_details\\{project_name}_initial_project_details.csv")
+            details_dir = LOCAL_FINANCE_DATA / 'capex' / 'projects' / 'project_details'
+            details_dir.mkdir(parents=True, exist_ok=True)
+            getattr(self, f"{project_name}_initial_project_details").to_csv(details_dir / f"{project_name}_initial_project_details.csv")
  
         self.ptoc = project_totals_old_capex
-        project_totals_old_capex.to_csv("E:\\COWS\\data\\finance\\capex\\projects\\project_details\\project_totals_old_capex.csv", index=False)
+        details_dir = LOCAL_FINANCE_DATA / 'capex' / 'projects' / 'project_details'
+        details_dir.mkdir(parents=True, exist_ok=True)
+        project_totals_old_capex.to_csv(details_dir / "project_totals_old_capex.csv", index=False)
         
         return self.ptoc
        

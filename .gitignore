@@ -1,5 +1,6 @@
 # Ignore environment variable files containing secrets
 .env
+.local_env
 # Ignore Google OAuth token (contains refresh token, do not share)
 utilities/token.pickle
 # Ignore Google OAuth client secret file
@@ -26,10 +27,9 @@ run_non_milk.py
 # RunInsemStatusIU.py
 # DailyMilkRunner.py
 
-rclone-backup-user_accessKeys.csv
-# Ignore generated finance/tax_docs CSVs
-E:\COWS\data\finance\tax_docs/*.csv
-**/tax_docs/*.csv
+
+# Ignore all CSV files everywhere
+*.csv
 
 # Ignore specific scripts/utilities
 RunMilkUpdate.py

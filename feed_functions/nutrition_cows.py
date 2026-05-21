@@ -2,8 +2,11 @@
 nutrition_cows.py
 '''
 
+
 import pandas as pd
 import numpy as np
+from config_path import LOCAL_FEED_DATA
+from pathlib import Path
 
 
 class NutritionCows:
@@ -23,21 +26,24 @@ class NutritionCows:
     
   def data_loader(self):
       
-    self.comp1  = pd.read_csv    ('E:\\COWS\\data\\feed_data\\nutrition_data\\feedipedia_comp.csv',index_col=0)
-    self.kg1    = pd.read_csv    ('E:\\COWS\\data\\feed_data\\nutrition_data\\kg.csv',         index_col=0)
-    self.price1 = pd.read_csv    ('E:\\COWS\\data\\feed_data\\nutrition_data\\price.csv',      index_col=0)
-    self.comp   = pd.read_csv    ('E:\\COWS\\data\\feed_data\\nutrition_data\\composition_of_feed_WY.csv')
-    
-    self.beans_amt1     = pd.read_csv   ('E:\\COWS\\data\\feed_data\\feed_csv\\beans_daily_amt.csv')
-    self.cassava_amt1   = pd.read_csv   ('E:\\COWS\\data\\feed_data\\feed_csv\\cassava_daily_amt.csv')
-    self.corn_amt1      = pd.read_csv   ('E:\\COWS\\data\\feed_data\\feed_csv\\corn_daily_amt.csv')
-    self.straw_amt1     = pd.read_csv   ('E:\\COWS\\data\\feed_data\\feed_csv\\straw_daily_amt.csv')
 
+    nutrition_data_dir = LOCAL_FEED_DATA / 'nutrition_data'
+    feed_csv_dir = LOCAL_FEED_DATA / 'feed_csv'
 
-    self.beans_price1     = pd.read_csv   ('E:\\COWS\\data\\feed_data\\feed_csv\\beans_price_seq.csv')
-    self.cassava_price1   = pd.read_csv   ('E:\\COWS\\data\\feed_data\\feed_csv\\cassava_price_seq.csv')
-    self.corn_price1      = pd.read_csv   ('E:\\COWS\\data\\feed_data\\feed_csv\\corn_price_seq.csv')
-    self.straw_price1     = pd.read_csv   ('E:\\COWS\\data\\feed_data\\feed_csv\\straw_price_seq.csv')
+    self.comp1  = pd.read_csv(nutrition_data_dir / 'feedipedia_comp.csv', index_col=0)
+    self.kg1    = pd.read_csv(nutrition_data_dir / 'kg.csv', index_col=0)
+    self.price1 = pd.read_csv(nutrition_data_dir / 'price.csv', index_col=0)
+    self.comp   = pd.read_csv(nutrition_data_dir / 'composition_of_feed_WY.csv')
+
+    self.beans_amt1     = pd.read_csv(feed_csv_dir / 'beans_daily_amt.csv')
+    self.cassava_amt1   = pd.read_csv(feed_csv_dir / 'cassava_daily_amt.csv')
+    self.corn_amt1      = pd.read_csv(feed_csv_dir / 'corn_daily_amt.csv')
+    self.straw_amt1     = pd.read_csv(feed_csv_dir / 'straw_daily_amt.csv')
+
+    self.beans_price1     = pd.read_csv(feed_csv_dir / 'beans_price_seq.csv')
+    self.cassava_price1   = pd.read_csv(feed_csv_dir / 'cassava_price_seq.csv')
+    self.corn_price1      = pd.read_csv(feed_csv_dir / 'corn_price_seq.csv')
+    self.straw_price1     = pd.read_csv(feed_csv_dir / 'straw_price_seq.csv')
 
 
     return [self.comp1, self.kg1, 
