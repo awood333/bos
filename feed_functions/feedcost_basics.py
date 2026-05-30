@@ -53,7 +53,7 @@ class Feedcost_basics:
         self.data_loader = None
         self.price_loader = None
         self.amt_loader   = None
-        self.feed_type = ['corn','cassava','beans','straw', 'bypass_fat',  'NaHCO3', 
+        self.feed_type = ['corn','cassava','beans','straw',   'NaHCO3', 
                           'CP_005_21P', 'CP_005_DSW', 'CP_970_Plus', 'CP_973GM','CP_milk2', 'CP_power_starch' ]
         self.rng_monthly = None
         self.rng_monthly2 = None
@@ -62,6 +62,8 @@ class Feedcost_basics:
         self.price_seq_dict = {}
         self.daily_amt_dict = {}
         self.feed_series_dict = {}
+        self.feed_series_full_df = None
+        self.feed_series_last_row_T = None
         self.last_values_all_df = None
         # self.current_feedcost = None
         # self.unit_prices_daily = None
@@ -95,8 +97,14 @@ class Feedcost_basics:
         self.rng_monthly2 = getattr(self.DR, 'date_range_monthly2', None)
         self.rng_daily    = self.DR.date_range_daily
 
-        self.price_seq_dict, self.daily_amt_dict = self.create_feed_daily_cost_dict()
-        self.feed_series_dict = self.create_separate_feed_series()
+        self.price_seq_dict, self.daily_amt_dict        = self.create_feed_daily_cost_dict()
+        self.feed_series_dict, self.feed_series_full_df = self.create_separate_feed_series()
+        # Register the last row (transposed) of feed_series_full_df
+        if self.feed_series_full_df is not None and not self.feed_series_full_df.empty:
+            self.feed_series_last_row_T = self.feed_series_full_df.iloc[[-1]]
+        else:
+            self.feed_series_last_row_T = None
+
         self.daily_cost_dict_F    = self.calc_daily_feed_costs ('fresh_kg')
         self.daily_cost_dict_A    = self.calc_daily_feed_costs ('group_a_kg')
         self.daily_cost_dict_B    = self.calc_daily_feed_costs ('group_b_kg')
@@ -130,14 +138,25 @@ class Feedcost_basics:
     def create_separate_feed_series(self):
         psd = self.price_seq_dict
         dad = self.daily_amt_dict
-        
+
+        # Create the feed_series_dict as before
         self.feed_series_dict = {
             feed: {
                 'psd': psd[feed],
                 'dad': dad[feed]
-                } for feed in self.feed_type
-            }
-        return self.feed_series_dict
+            } for feed in self.feed_type
+        }
+
+        # Convert feed_series_dict to a DataFrame
+        # Each feed will have two columns: psd and dad, each is a DataFrame indexed by date
+        # We'll concatenate all 'psd' and all 'dad' into MultiIndex columns
+        psd_df = pd.concat({feed: self.feed_series_dict[feed]['psd'] for feed in self.feed_type}, axis=1)
+        dad_df = pd.concat({feed: self.feed_series_dict[feed]['dad'] for feed in self.feed_type}, axis=1)
+
+        # Combine psd and dad into a single DataFrame with MultiIndex columns
+        self.feed_series_full_df = pd.concat({'psd': psd_df, 'dad': dad_df}, axis=1)
+
+        return self.feed_series_dict, self.feed_series_full_df
 
     def calc_daily_feed_costs (self, kg_column):
         daily_cost_dict = {feed: [] for feed in self.feed_type}
@@ -217,11 +236,12 @@ class Feedcost_basics:
         return self.feedcost_daily, self.feedcost_monthly, self.feedcost_weekly
     
     def write_to_csv(self):
-        
         LOCAL_FEEDCOST_BY_GROUP.mkdir(parents=True, exist_ok=True)
-        self.feedcost_daily     .to_csv(LOCAL_FEEDCOST_BY_GROUP  / "feedcostByGroup_daily.csv")
-        self.feedcost_weekly    .to_csv(LOCAL_FEEDCOST_BY_GROUP  / "feedcostByGroup_weekly.csv")
-        self.feedcost_monthly   .to_csv(LOCAL_FEEDCOST_BY_GROUP  / "feedcostByGroup_monthly.csv")
+        self.feedcost_daily     .to_csv(LOCAL_FEEDCOST_BY_GROUP / "feedcostByGroup_daily.csv")
+        self.feedcost_weekly    .to_csv(LOCAL_FEEDCOST_BY_GROUP / "feedcostByGroup_weekly.csv")
+        self.feedcost_monthly   .to_csv(LOCAL_FEEDCOST_BY_GROUP / "feedcostByGroup_monthly.csv")
+        if self.feed_series_last_row_T is not None:
+            self.feed_series_last_row_T.to_csv(LOCAL_FEEDCOST_BY_GROUP / "feedcostByGroup_last.csv")
         
 
 if __name__ == "__main__":

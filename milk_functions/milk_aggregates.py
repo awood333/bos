@@ -197,6 +197,7 @@ class MilkAggregates:
         self.monthly_avg    .to_csv(LOCAL_TOTALS_DIR  / "monthly_avg.csv")
         self.weekly_avg     .to_csv(LOCAL_TOTALS_DIR  / "weekly_avg.csv")
         self.halfday        .to_csv(LOCAL_TOTALS_DIR  / "halfday.csv")
+        self.tenday         .to_csv(LOCAL_TOTALS_DIR  / "tenday.csv")
         
       
 if __name__ == '__main__':
