@@ -5,7 +5,7 @@ from typing import Dict, Any, Optional, Callable, TypeVar, Type
 import threading
 from datetime import datetime
 import networkx as nx
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 T = TypeVar('T')
 
