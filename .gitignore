@@ -10,7 +10,7 @@ utilities/bos_service_account.json
 *.ipynb
 *.pyc
 .vs/
-**/__init__.py
+
 Pipfile
 Pipfile.lock
 .vscode/launch.json
@@ -18,14 +18,6 @@ Pipfile.lock
 .pylintrc
 run_milk.py
 run_non_milk.py
-#
-# RunInsemStatusIU.py
-# RunMilkDataUpdate.py
-# RunMilkFuncts.py
-# RunMilkFuncts.py
-# RunMilkFuncts.py
-# RunInsemStatusIU.py
-# DailyMilkRunner.py
 
 
 # Ignore all CSV files everywhere

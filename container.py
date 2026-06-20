@@ -354,7 +354,7 @@ class Container:
 
     #Report_Milk
     def _create_report_milk(self):
-        from milk_functions.report_milk.report_milk import ReportMilk
+        from milk_functions.report_milk.Report_Milk import ReportMilk
         return ReportMilk()
 
     # def _create_report_milk_xlsx(self):

@@ -1,6 +1,10 @@
 import os
 import json
-import keyring
+try:
+    import keyring
+    _keyring_available = True
+except ImportError:
+    _keyring_available = False
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from google.auth.exceptions import RefreshError
@@ -30,6 +34,8 @@ def _get_service_account_path():
 
 
 def _describe_keyring_backend():
+    if not _keyring_available:
+        return "keyring not available"
     backend = keyring.get_keyring()
     return f"{backend.__class__.__module__}.{backend.__class__.__name__}"
 
@@ -93,20 +99,24 @@ def authenticate_gdrive():
     print(f"Using keyring backend: {backend}")
     auth_info("keyring", f"Active backend: {backend}")  # ← added
 
-    try:
-        credentials_json = keyring.get_password(_KEYRING_SERVICE, _KEYRING_USERNAME)
-        if credentials_json:
-            credentials_dict = json.loads(credentials_json)
-            from google.oauth2.service_account import Credentials as ServiceAccountCredentials
-            creds = ServiceAccountCredentials.from_service_account_info(
-                credentials_dict, scopes=SCOPES
-            )
-            print("✓ Loaded credentials from system keyring")
-            auth_ok("gdrive", "Loaded service account credentials from keyring")  # ← added
-            return creds
-    except Exception as e:
-        print(f"Could not load from keyring: {e}")
-        auth_warn("keyring", "Could not load service account from keyring", detail=str(e))  # ← added
+    if _keyring_available:
+        try:
+            credentials_json = keyring.get_password(_KEYRING_SERVICE, _KEYRING_USERNAME)
+            if credentials_json:
+                credentials_dict = json.loads(credentials_json)
+                from google.oauth2.service_account import Credentials as ServiceAccountCredentials
+                creds = ServiceAccountCredentials.from_service_account_info(
+                    credentials_dict, scopes=SCOPES
+                )
+                print("✓ Loaded credentials from system keyring")
+                auth_ok("gdrive", "Loaded service account credentials from keyring")
+                return creds
+        except Exception as e:
+            print(f"Could not load from keyring: {e}")
+            auth_warn("keyring", "Could not load service account from keyring", detail=str(e))
+    else:
+        auth_info("keyring", "keyring not available — skipping")
+        
 
     service_account_path = _get_service_account_path()
     if os.path.exists(service_account_path):
