@@ -28,6 +28,7 @@ image = (
         "python-dateutil==2.9.0.post0",
         "pytz==2025.2",
         "openpyxl==3.1.5",
+        "pyexcel-ods",
     )
     .add_local_dir(
         ".",

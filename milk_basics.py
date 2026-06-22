@@ -1,17 +1,14 @@
 '''milk_basics.py'''
 import inspect
 import pandas as pd
-from pathlib import Path
-from utilities.gdrive_loader import gdrive_read_csv
-from config_path import gdrive_rel, BASIC_DATA_DIR
+from sqlalchemy import text
+from sql_db_related.neon_connect import get_engine
 
 
 class MilkBasics:
     def __init__(self):
         print(f"MilkBasics instantiated by: {inspect.stack()[1].filename}")
         self.data = None
-        self.startx = None
-        self.stopx = None
         self.lb = None
         self.u = None
         self.i = None
@@ -26,74 +23,83 @@ class MilkBasics:
 
     def load_and_process(self):
         self.data = self.dataLoader()
-        
-        
+
     def dataLoader(self):
+        engine = get_engine()
+        with engine.connect() as conn:
+            startx = pd.read_sql(text("SELECT b_date FROM live_births"),  conn)
+            stopx  = pd.read_sql(text("SELECT stop FROM stop_dates"),   conn)
+            self.lb     = pd.read_sql(text("SELECT * FROM live_births"),  conn)
+            self.u      = pd.read_sql(text("SELECT * FROM ultra"),        conn)
+            self.i      = pd.read_sql(text("SELECT * FROM insem"),        conn)
+            bd1         = pd.read_sql(text("SELECT * FROM birth_death"),  conn)
 
-        self.startx  = gdrive_read_csv(gdrive_rel(Path("basic_data/live_births.csv")), index_col=None,  header=0)
-        self.stopx   = gdrive_read_csv(gdrive_rel(Path("basic_data/stop_dates.csv")),  index_col=None,  header=0)
+            # Get last date from am_wy view for lastday/datex
+            am_wy_tmp = pd.read_sql(text('SELECT * FROM "AM_wy"'), conn)
+            
+        am_wy_tmp = am_wy_tmp.drop(columns=['type'], errors='ignore')
+        am_wy_tmp = am_wy_tmp.set_index('date')
+        
+        # date cols — startx / stopx
+        startx['b_date'] = pd.to_datetime(startx['b_date'], errors='coerce')
+        stopx['stop']    = pd.to_datetime(stopx['stop'],    errors='coerce')
+        startx = startx.fillna({'b_date': pd.NaT, 'calf_num': pd.NA})
+        stopx  = stopx .fillna({'stop':   pd.NaT, 'calf_num': pd.NA})
 
-        # date cols
-        self.startx['b_date'] = pd.to_datetime(self.startx['b_date'], errors='coerce')    
-        self.stopx['stop']    = pd.to_datetime(self.stopx['stop'], errors='coerce')
-
-        self.startx = self.startx.fillna({'b_date': pd.NaT, 'calf#': pd.NA})
-        self.stopx  = self.stopx.fillna({'stop': pd.NaT, 'calf#': pd.NA})
-
-        bd1     = gdrive_read_csv(gdrive_rel(Path("basic_data/birth_death.csv")),  header=0)
-        self.lb = gdrive_read_csv(gdrive_rel(Path("basic_data/live_births.csv")),  index_col=None)
-        self.u  = gdrive_read_csv(gdrive_rel(Path("basic_data/ultra.csv")))
-        self.i  = gdrive_read_csv(gdrive_rel(Path("basic_data/insem.csv")))
-
+        # date cols — bd1
         bd1['birth_date'] = pd.to_datetime(bd1['birth_date'])
-        bd1['death_date'] = pd.to_datetime(bd1['death_date'], errors='coerce')        
-        bd1['arrived']    = pd.to_datetime(bd1['arrived'], errors='coerce')
-        bd1['adj_bdate']  = pd.to_datetime(bd1['adj_bdate'], errors='coerce')
+        bd1['death_date'] = pd.to_datetime(bd1['death_date'], errors='coerce')
+        bd1['arrived']    = pd.to_datetime(bd1['arrived'],    errors='coerce')
+        bd1['adj_bdate']  = pd.to_datetime(bd1['adj_bdate'],  errors='coerce')
 
-        self.lb['b_date']     = pd.to_datetime(self.lb['b_date'], errors='coerce')
-        self.u['ultra_date']  = pd.to_datetime(self.u['ultra_date'], errors='coerce')
-        self.i['insem_date']  = pd.to_datetime(self.i['insem_date'], errors='coerce')
+        # date cols — lb / u / i
+        self.lb['b_date']    = pd.to_datetime(self.lb['b_date'],    errors='coerce')
+        self.u['ultra_date'] = pd.to_datetime(self.u['ultra_date'], errors='coerce')
+        self.i['insem_date'] = pd.to_datetime(self.i['insem_date'], errors='coerce')
 
         self.WY_ids = bd1['WY_id'].tolist()
 
-        start1a = self.startx.pivot_table(index='WY_id', columns='calf#',    values='b_date', fill_value=pd.NaT)
-        stop1a  = self.stopx .pivot_table(index='WY_id', columns='lact_num', values='stop',   fill_value=pd.NaT)
+        # am_wy from Neon is long format (date, wy_id, value)
+        # Pivot to wide: index=date, columns=wy_id
+        am_wy_wide   = am_wy_tmp.T
+        am_wy_wide.index.name = 'index'
+        self.lastday = pd.to_datetime(am_wy_wide.columns[-1] , format='%Y-%m-%d', errors='coerce')
+        self.datex   = pd.to_datetime(am_wy_wide.columns    , format='%Y-%m-%d', errors='coerce')
+        self.milk    = None  # populated by MilkAggregatesBasic
 
-        start2a = start1a.reindex(self.WY_ids)
-        stop2a  = stop1a.reindex(self.WY_ids)
+        print('lastday:  ', self.lastday)
 
-        # Derive lastday and datex from AM_wy (live Google Sheet) — fullday is computed by MilkAggregatesBasic
-        am_wy_tmp = gdrive_read_csv(gdrive_rel(Path("milk_data/raw/AM_wy.csv")), index_col=0, header=0)
-        self.lastday = pd.to_datetime(am_wy_tmp.columns[-1], errors='coerce')
-        self.datex   = pd.to_datetime(am_wy_tmp.columns, errors='coerce')
-        self.milk    = None  # populated by MilkAggregatesBasic.load_and_process() via MB.data['milk']
+        # pivot start/stop
+        # start1a = startx.pivot_table(
+        #     index='WY_id', columns='calf_num', values='b_date', fill_value=pd.NaT)
+        # stop1a  = stopx.pivot_table(
+        #     index='WY_id', columns='lact_num', values='stop',   fill_value=pd.NaT)
 
-        # NOTE: extended range is renamed ext_rng in 'data'
-        self.extended_date_range_milk = pd.date_range(start='2016-09-01', end=self.lastday)
+        # self.start = start1a.reindex(self.WY_ids).T
+        # self.stop  = stop1a .reindex(self.WY_ids).T
+        self.bd    = bd1
 
-        self.start = start2a.T
-        self.stop  = stop2a.T
-        self.bd = bd1
+        self.extended_date_range_milk = pd.date_range(
+            start='2016-09-01', end=self.lastday)
 
         self.data = {
-            'milk'      : self.milk,   # None until MilkAggregatesBasic injects fresh fullday
-            'datex'     : self.datex,
-            'start'     : self.start,
-            'startx'    : self.startx, 
-            'stop'      : self.stop,
-            'stopx'     : self.stopx,   #this is the raw stop_dates file
-            'bd'        : self.bd,
-            'lb'        : self.lb,
-            'i'         : self.i,
-            'u'         : self.u,
-            'lastday'   : self.lastday,
-            'WY_ids'    : self.WY_ids,
-            'ext_rng'   : self.extended_date_range_milk
+            'milk'   : self.milk,
+            'datex'  : self.datex,
+            'start'  : self.start,
+            'startx' : startx,
+            'stop'   : self.stop,
+            'stopx'  : stopx,
+            'bd'     : self.bd,
+            'lb'     : self.lb,
+            'i'      : self.i,
+            'u'      : self.u,
+            'lastday': self.lastday,
+            'WY_ids' : self.WY_ids,
+            'ext_rng': self.extended_date_range_milk,
         }
         return self.data
-        
 
 
 if __name__ == '__main__':
-    mb=MilkBasics()
+    mb = MilkBasics()
     mb.load_and_process()

@@ -3,8 +3,13 @@ import inspect
 import os       #don't erase
 import pandas as pd
 from container import get_dependency
-from config_path import GDRIVE_FEED_INVOICE_DATA, GDRIVE_FEED_DAILY_AMT_DATA, LOCAL_FEEDCOST_BY_GROUP, MASTER_FEED_INVOICE_SHEET_ID, MASTER_FEED_DAILY_AMT_SHEET_ID
 from utilities.gdrive_loader import gdrive_read_sheet_tab
+from sql_db_related import neon_connect
+from sqlalchemy import get_engine
+
+from config_path import GDRIVE_FEED_INVOICE_DATA, GDRIVE_FEED_DAILY_AMT_DATA, LOCAL_FEEDCOST_BY_GROUP, MASTER_FEED_INVOICE_SHEET_ID, MASTER_FEED_DAILY_AMT_SHEET_ID
+
+
 
 class DataLoader:
     def __init__(self, base_path, sheet_id=None):  #see load and process data_loader for actual address
@@ -20,6 +25,7 @@ class DataLoader:
         return data
 
     def load_invoice_csv(self, feed):
+        engine = get_engine()
         tab_name = f'{feed}_invoice_detail'
         df = gdrive_read_sheet_tab(self.sheet_id, tab_name)
         df = df.reset_index()  # first col ('year') was auto-set as index

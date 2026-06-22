@@ -15,6 +15,7 @@ class I_U_merge:
         self.data = self.MB.data
         self.iu = self.create_basics()
         self.create_write_to_csv()
+        self.create_write_to_neon()
         
     def create_basics(self):
         b1 = self.data['bd'].copy()
@@ -54,8 +55,12 @@ class I_U_merge:
         return self.iu
         
     def create_write_to_csv(self):
-        LOCAL_IU_MERGE_DIR.mkdir(parents=True, exist_ok=True)
-        self.iu.to_csv(LOCAL_IU_MERGE_DIR / "IU_merge.csv", index=False)
+        pass
+        # LOCAL_IU_MERGE_DIR.mkdir(parents=True, exist_ok=True)
+        # self.iu.to_csv(LOCAL_IU_MERGE_DIR / "IU_merge.csv", index=False)
+        
+    def create_write_to_neon(self):
+        pass        
         
 if __name__ == '__main__':
     obj = I_U_merge()

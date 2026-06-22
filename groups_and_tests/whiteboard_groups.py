@@ -1,5 +1,9 @@
 '''milk_functions.WhiteboardGroups.py'''
 
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from container import get_dependency
 import json
 import inspect
@@ -43,7 +47,6 @@ class WhiteboardGroups:
         self.groups_matrix = None
         self.whiteboard_groups_dict = None
         self.whiteboard_groups_specific_date = None
-        self.whiteboard_groups_for_dailymilk = None
         self.specific_date = None
         self.whiteboard_groups_tenday = None
 
@@ -79,7 +82,6 @@ class WhiteboardGroups:
         self.groups_matrix, self.whiteboard_groups_dict = self.create_whiteboard_groups_dict()
         self.groups_by_date_by_cow = self.create_groups_by_date_by_cow()
         self.whiteboard_groups_specific_date, self.specific_date = self.create_whiteboard_groups_specific_date()
-        # self.whiteboard_groups_for_dailymilk = self.create_whiteboard_groups_for_dailymilk()
         self.whiteboard_groups_tenday = self.create_whiteboard_groups_tenday()
         self.write_to_csv()
 
@@ -266,7 +268,6 @@ class WhiteboardGroups:
     def write_to_csv(self):
         pass
         # self.whiteboard_groups_tenday       .to_csv(r"Q:\My Drive\COWS\milk_data\groups\\whiteboard_groups_tenday.csv")
-        # self.whiteboard_groups_for_dailymilk.to_csv('E:\\COWS\\data\\groups_and_tests\\whiteboard_groups_for_dailymilk.csv')
         # self.groups_by_date_by_cow          .to_csv(r"Q:\My Drive\COWS\milk_data\groups\\whiteboard_groups_by_date_by_cow.csv")
         # self.whiteboard_groups_specific_date.to_csv(r"Q:\My Drive\COWS\milk_data\groups\\whiteboard_groups_specific_date.csv")
 

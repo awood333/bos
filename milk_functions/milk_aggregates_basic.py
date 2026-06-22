@@ -1,22 +1,21 @@
-'''milk_functions\\milk_aggregates_basic.py
+'''milk_functions/milk_aggregates_basic.py
 
-Loads the 4 raw CSVs from Google Drive, computes AM/PM/fullday matrices,
+Loads milk data from Neon (milk_transpose table), computes AM/PM/fullday matrices,
 and injects MB.data['milk'] with the freshly computed fullday.
 No insem dependency — safe to load before status_data.
 '''
 
 import sys
 import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import inspect
 import pandas as pd
 import numpy as np
+from sqlalchemy import text
 
 from container import get_dependency
-from utilities.gdrive_loader import gdrive_read_csv
-from config_path import gdrive_rel, RAW_DIR
-
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from sql_db_related.neon_connect import get_engine
 
 
 class MilkAggregatesBasic:
@@ -26,7 +25,6 @@ class MilkAggregatesBasic:
         self.MB = None
         self.data = None
         self.lag = -10
-        self.date_format = '%m/%d/%Y'
         self.maxcols = None
         self.idx_am = None
         self.idx_pm = None
@@ -55,23 +53,26 @@ class MilkAggregatesBasic:
         [self.am, self.pm, self.fullday,
          self.fullday_lastdate] = self.fullday_calc()
 
-        # Inject fresh fullday so all downstream consumers see current data
         self.MB.data['milk'] = self.fullday
 
     def basics(self):
-        self.AM_liters = gdrive_read_csv(gdrive_rel(RAW_DIR / "AM_liters.csv"), index_col=0, header=0)
-        self.AM_wy     = gdrive_read_csv(gdrive_rel(RAW_DIR / "AM_wy.csv"),     index_col=0, header=0)
-        self.PM_liters = gdrive_read_csv(gdrive_rel(RAW_DIR / "PM_liters.csv"), index_col=0, header=0)
-        self.PM_wy     = gdrive_read_csv(gdrive_rel(RAW_DIR / "PM_wy.csv"),     index_col=0, header=0)
+        # Read milk_transpose from Neon — four targeted queries
+        engine = get_engine()
+        with engine.connect() as conn:
+            def _read_type(type_name):
+                sql = f"SELECT * FROM milk_transpose WHERE type = '{type_name}'"
+                return (pd.read_sql(sql, conn)
+                          .drop(columns=['type'])
+                          .set_index('date')
+                          .T)
 
-        liters_am = self.AM_liters
-        wy_am     = self.AM_wy
-        liters_pm = self.PM_liters
-        wy_pm     = self.PM_wy
+            self.AM_liters = _read_type('AM_liters')
+            self.AM_wy     = _read_type('AM_wy')
+            self.PM_liters = _read_type('PM_liters')
+            self.PM_wy     = _read_type('PM_wy')
 
         self.datex = pd.to_datetime(self.AM_liters.columns, errors="coerce")
-        last_index_value = self.datex[-1]
-        print('last index value ', last_index_value)
+        print('last index value ', self.datex[-1])
 
         self.maxcols = len(self.datex)
         maxrows      = len(self.data['bd']['WY_id'])
@@ -80,10 +81,10 @@ class MilkAggregatesBasic:
         self.idx_am  = idx.copy()
         self.idx_pm  = idx.copy()
 
-        self.wy_am_np     = wy_am.to_numpy(dtype=float)
-        self.wy_pm_np     = wy_pm.to_numpy(dtype=float)
-        self.liters_am_np = liters_am.to_numpy(dtype=float)
-        self.liters_pm_np = liters_pm.to_numpy(dtype=float)
+        self.wy_am_np     = self.AM_wy    .to_numpy(dtype=float)
+        self.wy_pm_np     = self.PM_wy    .to_numpy(dtype=float)
+        self.liters_am_np = self.AM_liters.to_numpy(dtype=float)
+        self.liters_pm_np = self.PM_liters.to_numpy(dtype=float)
 
         return [self.maxcols, self.idx_am, self.idx_pm,
                 self.wy_am_np, self.wy_pm_np,
@@ -92,16 +93,12 @@ class MilkAggregatesBasic:
     def fullday_calc(self):
         # AM calc
         target_am = []
-        i = 0
-        while i < self.maxcols:
-            index1  = self.wy_am_np[:, i]
-            index2  = np.nan_to_num(index1, nan=0).astype(int)
-            value1  = self.liters_am_np[:, i]
-            value2  = np.nan_to_num(value1, nan=0.0).astype(float)
+        for i in range(self.maxcols):
+            index2  = np.nan_to_num(self.wy_am_np[:, i],     nan=0).astype(int)
+            value2  = np.nan_to_num(self.liters_am_np[:, i], nan=0.0).astype(float)
             target1 = self.idx_am[:, i].astype(float)
             target1[index2] = value2
             target_am.append(target1)
-            i += 1
         am1 = pd.DataFrame(target_am)
 
         self.am = am1.T
@@ -111,16 +108,12 @@ class MilkAggregatesBasic:
 
         # PM calc
         target_pm = []
-        i = 0
-        while i < self.maxcols:
-            index1  = self.wy_pm_np[:, i]
-            index2  = np.nan_to_num(index1, nan=0).astype(int)
-            value1  = self.liters_pm_np[:, i]
-            value2  = np.nan_to_num(value1, nan=0.0).astype(float)
+        for i in range(self.maxcols):
+            index2  = np.nan_to_num(self.wy_pm_np[:, i],     nan=0).astype(int)
+            value2  = np.nan_to_num(self.liters_pm_np[:, i], nan=0.0).astype(float)
             target1 = self.idx_pm[:, i].astype(float)
             target1[index2] = value2
             target_pm.append(target1)
-            i += 1
         pm1 = pd.DataFrame(target_pm)
 
         self.pm = pm1.T
@@ -135,7 +128,7 @@ class MilkAggregatesBasic:
         fullday2.set_index('datex', inplace=True)
 
         self.fullday = fullday2
-        self.fullday.index = pd.to_datetime(self.fullday.index, errors='coerce', format="%m/%d/%Y")
+        self.fullday.index = pd.to_datetime(self.fullday.index, errors='coerce')  # ISO format from Neon
         self.fullday.replace(0, np.nan, inplace=True)
         self.fullday.drop(self.fullday.iloc[:, 0:1], axis=1, inplace=True)
         self.fullday.index.name = 'datex'

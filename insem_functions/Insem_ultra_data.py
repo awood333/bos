@@ -58,7 +58,7 @@ class InsemUltraData:
         self.all_dry, self.all_preg, 
         self.all_not_preg, self.days_milking) = self.create_allx()
         self.not_preg, self.no_insem = self.create_not_preg_df()
-        self.create_write_to_csv()
+        self.create_write_to_neon()
         
         
     def create_last_insem(self):
@@ -300,7 +300,8 @@ class InsemUltraData:
 
 
     
-    def create_write_to_csv(self):
+    def create_write_to_neon(self):
+        pass
               
         # self.allx        .to_csv(r"Q:\My Drive\COWS\reports\allx.csv")
         # self.all_milking .to_csv('E:\\COWS\\data\\insem_data\\all_milking.csv')
@@ -309,24 +310,24 @@ class InsemUltraData:
         # self.no_insem    .to_csv('E:\\COWS\\data\\insem_data\\no_insem.csv')
         # self.last_valid_ultra  .to_csv('E:\\COWS\\data\\insem_data\\last_valid_ultra.csv')
 
-        date_cols = ['i_date', 'u_date', 'last stop date', 'last calf bdate', 'expected bdate', 'exp drydate']
-        for col in date_cols:
-            if col in self.allx.columns:
-                self.allx[col] = self.allx[col].dt.strftime('%Y-%m-%d')
-            if col in self.not_preg.columns:
-                self.not_preg[col] = self.not_preg[col].dt.strftime('%Y-%m-%d')
-            if col in self.no_insem.columns:
-                self.no_insem[col] = self.no_insem[col].dt.strftime('%Y-%m-%d') 
+        # date_cols = ['i_date', 'u_date', 'last stop date', 'last calf bdate', 'expected bdate', 'exp drydate']
+        # for col in date_cols:
+        #     if col in self.allx.columns:
+        #         self.allx[col] = self.allx[col].dt.strftime('%Y-%m-%d')
+        #     if col in self.not_preg.columns:
+        #         self.not_preg[col] = self.not_preg[col].dt.strftime('%Y-%m-%d')
+        #     if col in self.no_insem.columns:
+        #         self.no_insem[col] = self.no_insem[col].dt.strftime('%Y-%m-%d') 
     
         # with pd.ExcelWriter('E:\\COWS\\data\\insem_data\\insem_data.xlsx', engine='xlsxwriter') as writer:
         #     self.allx.to_excel(writer,      sheet_name='allx', index=False)
             # self.not_preg.to_excel(writer,  sheet_name='not_preg', index=False)
             # self.no_insem.to_excel(writer,  sheet_name='no_insem', index=False)
        
-        LOCAL_REPORTS_DIR.mkdir(parents=True, exist_ok=True)
-        with pd.ExcelWriter(LOCAL_REPORTS_DIR / "insem_data.xlsx", engine='xlsxwriter') as writer:
-            self.allx.to_excel(writer,      sheet_name='allx', index=False)
-            # self.not_preg.to_excel(writer,  sheet_name='not_preg', index=False)
+        # LOCAL_REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+        # with pd.ExcelWriter(LOCAL_REPORTS_DIR / "insem_data.xlsx", engine='xlsxwriter') as writer:
+        #     self.allx.to_excel(writer,      sheet_name='allx', index=False)
+        #     # self.not_preg.to_excel(writer,  sheet_name='not_preg', index=False)
             # self.no_insem.to_excel(writer,  sheet_name='no_insem', index=False)
 
 if __name__ == "__main__":

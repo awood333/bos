@@ -21,6 +21,31 @@ class ReportMilk:
         self.WG = get_dependency('whiteboard_groups')
 
         self.tenday_formatted, self.halfday_formatted, self.WB_groups_formatted = self.createReportMilk()
+        
+        from sql_db_related.neon_connect import get_engine
+        engine = get_engine()
+        self.write_to_neon(engine)
+
+
+    def write_to_neon(self, engine):
+        with engine.begin() as conn:
+            self.tenday_formatted.to_sql(
+                'tenday_formatted', conn,
+                if_exists='replace', index=False
+            )
+            print(f"[neon] tenday_formatted written: {self.tenday_formatted.shape}")
+
+            self.halfday_formatted.to_sql(
+                'halfday_formatted', conn,
+                if_exists='replace', index=False
+            )
+            print(f"[neon] halfday_formatted written: {self.halfday_formatted.shape}")
+
+            self.WB_groups_formatted.to_sql(
+                'wb_groups_formatted', conn,
+                if_exists='replace', index=False
+            )
+            print(f"[neon] wb_groups_formatted written: {self.WB_groups_formatted.shape}")
 
 
     def createReportMilk(self): 
