@@ -15,17 +15,13 @@ class FinanceDataBackup:
         
         # read from the gdrive and copy to D:\backup
         
-        from config_path import GDRIVE_BKKBANK_DIR, GDRIVE_CAPEX_DIR, GDRIVE_ASG_MILK_INCOME_DIR
+        bkkbank = pd.read_csv(Path.home() / "gdrive_mount" / "COWS" / "finance" / "BKKbank" / "BKKBankFarmAccount.csv")
+        depr    = pd.read_csv(Path.home() / "gdrive_mount" / "COWS" / "finance" / "capex" / "depreciation_schedule" / "depreciation_schedule.csv")
+        milk_inc= pd.read_csv(Path.home() / "gdrive_mount" / "COWS" / "finance" / "ASG_milk_income" / "milk_income_data.csv")
         
-        bkkbank = pd.read_csv(GDRIVE_BKKBANK_DIR / "BKKBankFarmAccount.csv")
-        depr    = pd.read_csv(GDRIVE_CAPEX_DIR / "depreciation_schedule.csv")
-        milk_inc= pd.read_csv(GDRIVE_ASG_MILK_INCOME_DIR / "milk_income_data.csv")
-        
-        from config_path import LOCAL_BKKBANK, LOCAL_CAPEX, LOCAL_PROJECTS, LOCAL_ASG_MILK_INCOME
-        
-        bkkbank.to_csv(LOCAL_BKKBANK / f"BKKBankFarmAccount_{tdy}.csv")
-        depr.to_csv(LOCAL_CAPEX / f"depreciation_schedule_{tdy}.csv")
-        milk_inc.to_csv(LOCAL_ASG_MILK_INCOME / f"milk_income_{tdy}.csv")
+        bkkbank.to_csv(Path.home() / "cows_data" / "finance_data" / "BKKbank" / f"BKKBankFarmAccount_{tdy}.csv")
+        depr.to_csv(Path.home() / "cows_data" / "finance_data" / "capex" / f"depreciation_schedule_{tdy}.csv")
+        milk_inc.to_csv(Path.home() / "cows_data" / "finance_data" / "ASG_milk_income" / f"milk_income_{tdy}.csv")
         
 
 

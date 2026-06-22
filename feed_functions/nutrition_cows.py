@@ -5,7 +5,6 @@ nutrition_cows.py
 
 import pandas as pd
 import numpy as np
-from config_path import LOCAL_FEED_DATA
 from pathlib import Path
 
 
@@ -27,8 +26,8 @@ class NutritionCows:
   def data_loader(self):
       
 
-    nutrition_data_dir = LOCAL_FEED_DATA / 'nutrition_data'
-    feed_csv_dir = LOCAL_FEED_DATA / 'feed_csv'
+    nutrition_data_dir = Path.home() / "cows_data" / "feed_data" / 'nutrition_data'
+    feed_csv_dir = Path.home() / "cows_data" / "feed_data" / 'feed_csv'
 
     self.comp1  = pd.read_csv(nutrition_data_dir / 'feedipedia_comp.csv', index_col=0)
     self.kg1    = pd.read_csv(nutrition_data_dir / 'kg.csv', index_col=0)

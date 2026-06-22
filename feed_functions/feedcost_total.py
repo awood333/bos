@@ -1,9 +1,9 @@
 '''feed_functions.feedcost_total.py'''
 
 import inspect
+from pathlib import Path
 import pandas as pd
 from container import get_dependency
-from config_path import LOCAL_FEEDCOST_BY_GROUP
 
 
 class Feedcost_total:
@@ -198,13 +198,13 @@ class Feedcost_total:
 
 
     def write_to_csv(self):
-        LOCAL_FEEDCOST_BY_GROUP.mkdir(parents=True, exist_ok=True)
-        self.feedcost                   .to_csv(LOCAL_FEEDCOST_BY_GROUP / 'feedcost.csv')
-        self.total_feedcost_details_last.to_csv(LOCAL_FEEDCOST_BY_GROUP / 'total_feedcost_details_last.csv')
-        self.total_feedcost_monthly     .to_csv(LOCAL_FEEDCOST_BY_GROUP / 'total_feedcost_monthly.csv')
-        self.total_feedcost_weekly      .to_csv(LOCAL_FEEDCOST_BY_GROUP / 'total_feedcost_weekly.csv')
-        self.total_feedcost_monthly_from_df.to_csv(LOCAL_FEEDCOST_BY_GROUP / 'total_feedcost_monthly_from_df.csv')
-        self.feedcost_from_df_details   .to_csv(LOCAL_FEEDCOST_BY_GROUP / 'feedcost_from_df_details.csv')
+        Path.home() / "cows_data" / "feed_data" / "feedcost_by_group".mkdir(parents=True, exist_ok=True)
+        self.feedcost                   .to_csv(Path.home() / "cows_data" / "feed_data" / "feedcost_by_group" / 'feedcost.csv')
+        self.total_feedcost_details_last.to_csv(Path.home() / "cows_data" / "feed_data" / "feedcost_by_group" / 'total_feedcost_details_last.csv')
+        self.total_feedcost_monthly     .to_csv(Path.home() / "cows_data" / "feed_data" / "feedcost_by_group" / 'total_feedcost_monthly.csv')
+        self.total_feedcost_weekly      .to_csv(Path.home() / "cows_data" / "feed_data" / "feedcost_by_group" / 'total_feedcost_weekly.csv')
+        self.total_feedcost_monthly_from_df.to_csv(Path.home() / "cows_data" / "feed_data" / "feedcost_by_group" / 'total_feedcost_monthly_from_df.csv')
+        self.feedcost_from_df_details   .to_csv(Path.home() / "cows_data" / "feed_data" / "feedcost_by_group" / 'feedcost_from_df_details.csv')
 
 
 

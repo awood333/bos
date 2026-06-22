@@ -12,6 +12,7 @@ Outputs: full stats and a 'tenday' (last 10 days) version.
 import io
 import os
 import sys
+from pathlib import Path
 
 # pylint: disable=wrong-import-position
 # Add project root to Python path for cross-platform module imports
@@ -21,8 +22,6 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 import numpy as np
 import pandas as pd
 from googleapiclient.discovery import build
-
-from config_path import LOCAL_MILK_DIR
 from utilities.gdrive_auth import authenticate_gdrive
 from utilities.gdrive_loader import gdrive_read_sheet_tab, gdrive_write_sheet_tab
 # pylint: enable=wrong-import-position
@@ -78,7 +77,7 @@ class DailyMilkUpdater:
     def load_data(self):
         # [1] manual_entries drives the authoritative date range
         try:
-            self.manual_df = gdrive_read_sheet_tab(DAILY_MILK_SHEET_ID, MANUAL_ENTRIES_TAB)
+            self.manual_df = gdrive_read_sheet_tab(os.getenv('DAILY_MILK_SHEET_ID', '1ouQoDXxKjmIZ1XFH0_Ga4oISNXoKi60MmuKyHNYlONk'), MANUAL_ENTRIES_TAB)
             print(f"[1] manual_entries shape: {self.manual_df.shape}", flush=True)
         except Exception as e:
             print(f"[ERROR] Could not read manual_entries tab: {e}", flush=True)
@@ -188,12 +187,12 @@ class DailyMilkUpdater:
         self.stats_out = stats_out
 
     def save_outputs(self):
-        print(f"[5a] Target Sheet: {self._sheet_url(DAILY_MILK_SHEET_ID)}", flush=True)
+        print(f"[5a] Target Sheet: {self._sheet_url(os.getenv('DAILY_MILK_SHEET_ID', '1ouQoDXxKjmIZ1XFH0_Ga4oISNXoKi60MmuKyHNYlONk'))}", flush=True)
         # Write raw tabs (last 10 dates) to daily_milk sheet
         print("[5] Writing raw tabs to daily_milk Sheet (last 10 days)...", flush=True)
         for tab in RAW_TABS:
             try:
-                gdrive_write_sheet_tab(DAILY_MILK_SHEET_ID, tab, self.raw[tab])
+                gdrive_write_sheet_tab(os.getenv('DAILY_MILK_SHEET_ID', '1ouQoDXxKjmIZ1XFH0_Ga4oISNXoKi60MmuKyHNYlONk'), tab, self.raw[tab])
                 print(f"    wrote '{tab}'", flush=True)
             except Exception as e:
                 print(f"[ERROR] Could not write '{tab}' tab: {e}", flush=True)
@@ -202,7 +201,7 @@ class DailyMilkUpdater:
         print("[6] Writing group tabs to daily_milk Sheet (last 10 days)...", flush=True)
         for tab in GROUP_TABS:
             try:
-                gdrive_write_sheet_tab(DAILY_MILK_SHEET_ID, tab, self.groups[tab])
+                gdrive_write_sheet_tab(os.getenv('DAILY_MILK_SHEET_ID', '1ouQoDXxKjmIZ1XFH0_Ga4oISNXoKi60MmuKyHNYlONk'), tab, self.groups[tab])
                 print(f"    wrote '{tab}'", flush=True)
             except Exception as e:
                 print(f"[ERROR] Could not write '{tab}' tab: {e}", flush=True)
@@ -210,7 +209,7 @@ class DailyMilkUpdater:
         # Write stats tab
         print("[7] Writing 'stats' tab to daily_milk Sheet...", flush=True)
         try:
-            gdrive_write_sheet_tab(DAILY_MILK_SHEET_ID, 'stats', self.stats_out)
+            gdrive_write_sheet_tab(os.getenv('DAILY_MILK_SHEET_ID', '1ouQoDXxKjmIZ1XFH0_Ga4oISNXoKi60MmuKyHNYlONk'), 'stats', self.stats_out)
         except Exception as e:
             print(f"[ERROR] Could not write 'stats' tab: {e}", flush=True)
         self.verify_outputs()
@@ -220,7 +219,7 @@ class DailyMilkUpdater:
         """Read back a small slice so the script confirms the live Sheet changed."""
         print("[7a] Verifying live Sheet contents...", flush=True)
         for tab in ('AM_liters', 'stats'):
-            verify_df = gdrive_read_sheet_tab(DAILY_MILK_SHEET_ID, tab)
+            verify_df = gdrive_read_sheet_tab(os.getenv('DAILY_MILK_SHEET_ID', '1ouQoDXxKjmIZ1XFH0_Ga4oISNXoKi60MmuKyHNYlONk'), tab)
             actual_dates = [str(col) for col in verify_df.columns[-10:]]
             if actual_dates != list(map(str, self.last_10_dates)):
                 raise ValueError(
@@ -238,7 +237,7 @@ class DailyMilkUpdater:
         print(f"[9] Exporting daily_milk Sheet as XLSX to {out_gdrive_path} ...", flush=True)
         # Export as XLSX
         request = service.files().export_media(
-            fileId=DAILY_MILK_SHEET_ID,
+            fileId=os.getenv('DAILY_MILK_SHEET_ID', '1ouQoDXxKjmIZ1XFH0_Ga4oISNXoKi60MmuKyHNYlONk'),
             mimeType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
         data = request.execute()
@@ -262,7 +261,7 @@ class DailyMilkUpdater:
             print(f"[10] XLSX updated in Drive (file ID: {file_id})", flush=True)
             print(f"[10a] XLSX link: {self._drive_file_url(file_id)}", flush=True)
             # Also save a local copy so it's accessible without a GDrive mount
-            local_dir = LOCAL_MILK_DIR / "daily_milk"
+            local_dir = Path.home() / "cows_data" / "milk_data" / "daily_milk"
             local_dir.mkdir(parents=True, exist_ok=True)
             local_path = local_dir / file_name
             local_path.write_bytes(data)

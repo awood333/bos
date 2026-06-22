@@ -1,9 +1,10 @@
 '''finance_functions.FinanceBasics.py'''
+import os
 import inspect
+from pathlib import Path
 import pandas as pd
 
 from feed_functions.feedcost_basics import Feedcost_basics
-from config_path import MASTER_FINANCE_SHEET_ID, LOCAL_BKKBANK
 from utilities.gdrive_loader import gdrive_read_sheet_tab
 
 class FinanceBasics:
@@ -19,7 +20,7 @@ class FinanceBasics:
         self.feedcost_pivot = None
 
     def load_and_process(self):
-        bkk = gdrive_read_sheet_tab(MASTER_FINANCE_SHEET_ID, 'BKKBankFarmAccount')
+        bkk = gdrive_read_sheet_tab(os.getenv('MASTER_FINANCE_SHEET_ID', '1UjDt0xH_TPsQ2tOhwf1iDZ9KGCyBOExdFrLdM5n9acA'), 'BKKBankFarmAccount')
         bkk = bkk.reset_index()
         bkk.columns = bkk.columns.str.strip()
         bkk['datex'] = pd.to_datetime(bkk['datex'], errors='coerce')
@@ -132,9 +133,9 @@ class FinanceBasics:
         return self.feedcost_pivot
     
     def create_write_to_csv(self):
-        LOCAL_BKKBANK.mkdir(parents=True, exist_ok=True)
-        self.feedcost_pivot     .to_csv(LOCAL_BKKBANK / 'feedcost_pivot.csv')
-        self.cost_xfeed_pivot   .to_csv(LOCAL_BKKBANK / 'cost_xfeed_pivot.csv')
+        Path.home() / "cows_data" / "finance_data" / "BKKbank".mkdir(parents=True, exist_ok=True)
+        self.feedcost_pivot     .to_csv(Path.home() / "cows_data" / "finance_data" / "BKKbank" / 'feedcost_pivot.csv')
+        self.cost_xfeed_pivot   .to_csv(Path.home() / "cows_data" / "finance_data" / "BKKbank" / 'cost_xfeed_pivot.csv')
         
     
 if __name__ == "__main__":

@@ -4,7 +4,6 @@ import pandas as pd
 import numpy as np
 
 from feed_functions.feedcost_basics import Feedcost_basics
-from config_path import LOCAL_FEED_DATA
 from pathlib import Path
 
 class HeiferCostModel:
@@ -70,7 +69,7 @@ class HeiferCostModel:
     
     # this makes a timeseries - but amount still adds up to 1kg
     def create_heifer_feedcost(self):
-        feed_csv_dir = LOCAL_FEED_DATA / 'feed_csv'
+        feed_csv_dir = Path.home() / "cows_data" / "feed_data" / 'feed_csv'
         diet1 = pd.read_csv(feed_csv_dir / 'heifer_daily_amt.csv')
         diet1['datex'] = pd.to_datetime(diet1['datex'], errors='coerce')
         diet1 = diet1.set_index('datex')
@@ -96,8 +95,8 @@ class HeiferCostModel:
        
         
     def create_feeding_ranges(self):
-        # Use a CSV directory under LOCAL_FEED_DATA for heifers.csv
-        csv_dir = LOCAL_FEED_DATA.parent / 'csv_files'
+        # Use a CSV directory under Path.home() / "cows_data" / "feed_data" for heifers.csv
+        csv_dir = Path.home() / "cows_data" / "feed_data".parent / 'csv_files'
         bd1 = pd.read_csv(csv_dir / 'heifers.csv')
         bd1['b_date']           = pd.to_datetime(bd1['b_date'], errors='coerce')
         bd1['adj_bdate']        = pd.to_datetime(bd1['adj_bdate'], errors='coerce')
@@ -289,8 +288,8 @@ class HeiferCostModel:
         
     
     def write_to_csv(self):
-        # Example: Save outputs to the LOCAL_FEED_DATA / 'heifers' directory
-        heifers_dir = LOCAL_FEED_DATA / 'heifers'
+        # Example: Save outputs to the Path.home() / "cows_data" / "feed_data" / 'heifers' directory
+        heifers_dir = Path.home() / "cows_data" / "feed_data" / 'heifers'
         heifers_dir.mkdir(parents=True, exist_ok=True)
         # Uncomment to save outputs
         # self.heifer_feedcost_daily.to_csv(heifers_dir / 'heifer_cost_daily.csv')

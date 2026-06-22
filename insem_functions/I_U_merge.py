@@ -1,7 +1,7 @@
 import inspect
+from pathlib import Path
 import pandas as pd
 from container import get_dependency
-from config_path import LOCAL_IU_MERGE_DIR
 
 class I_U_merge:
     def __init__(self):
@@ -56,8 +56,8 @@ class I_U_merge:
         
     def create_write_to_csv(self):
         pass
-        # LOCAL_IU_MERGE_DIR.mkdir(parents=True, exist_ok=True)
-        # self.iu.to_csv(LOCAL_IU_MERGE_DIR / "IU_merge.csv", index=False)
+        # Path.home() / "cows_data" / "insem_data" / "IU_merge".mkdir(parents=True, exist_ok=True)
+        # self.iu.to_csv(Path.home() / "cows_data" / "insem_data" / "IU_merge" / "IU_merge.csv", index=False)
         
     def create_write_to_neon(self):
         pass        

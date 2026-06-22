@@ -1,12 +1,12 @@
 '''feedcost_data.py'''
 
 import inspect
+from pathlib import Path
 import pandas as pd
 import numpy as np
 
 from container import get_dependency
 from utilities.gdrive_loader import gdrive_read_sheet_tab
-from config_path import LOCAL_FEED_CONSUMPTION
 
 class FeedcostData:
     def __init__(self):
@@ -84,9 +84,9 @@ class FeedcostData:
 
 
                 # write cost seq and daily amt dfs
-                LOCAL_FEED_CONSUMPTION.mkdir(parents=True, exist_ok=True)
-                dcs.to_csv(LOCAL_FEED_CONSUMPTION / f"cost_sequence_{feed}.csv")
-                daily_amt.to_csv(LOCAL_FEED_CONSUMPTION / f"daily_amt_{feed}.csv")
+                Path.home() / "cows_data" / "feed_data" / "feed_consumption".mkdir(parents=True, exist_ok=True)
+                dcs.to_csv(Path.home() / "cows_data" / "feed_data" / "feed_consumption" / f"cost_sequence_{feed}.csv")
+                daily_amt.to_csv(Path.home() / "cows_data" / "feed_data" / "feed_consumption" / f"daily_amt_{feed}.csv")
 
                 self.results[feed] = {
                     'cost_sequence': dcs,

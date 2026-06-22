@@ -1,12 +1,10 @@
 '''finance_functions.income.IncomeStatement'''
 
 import inspect
+from pathlib import Path
 import pandas as pd
 # from date_range import DateRange
 from container import get_dependency
-
-
-from config_path import LOCAL_PL_DATA
 
 class IncomeStatement:
     def __init__(self):
@@ -68,9 +66,9 @@ class IncomeStatement:
         return self.net_income, self.net_income_details
 
     def write_to_csv(self):
-        LOCAL_PL_DATA.mkdir(parents=True, exist_ok=True)
-        self.net_income.to_csv(LOCAL_PL_DATA / 'net_income.csv')
-        self.net_income_details.to_csv(LOCAL_PL_DATA / 'net_income_details.csv')
+        Path.home() / "cows_data" / "finance_data" / "PL_data".mkdir(parents=True, exist_ok=True)
+        self.net_income.to_csv(Path.home() / "cows_data" / "finance_data" / "PL_data" / 'net_income.csv')
+        self.net_income_details.to_csv(Path.home() / "cows_data" / "finance_data" / "PL_data" / 'net_income_details.csv')
         
 if __name__ == "__main__":
     obj=IncomeStatement()

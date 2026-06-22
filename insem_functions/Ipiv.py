@@ -1,7 +1,7 @@
 import inspect
+from pathlib import Path
 import pandas as pd
 from container import get_dependency
-from config_path import LOCAL_INSEM_DATA
 
 class Ipiv:
     def __init__(self):
@@ -92,8 +92,8 @@ class Ipiv:
         return self.ipiv_milkers
     
     def write_to_csv(self):
-        LOCAL_INSEM_DATA.mkdir(parents=True, exist_ok=True)
-        self.ipiv_milkers.to_csv(LOCAL_INSEM_DATA / "ipiv_milkers.csv")   
+        Path.home() / "cows_data" / "insem_data".mkdir(parents=True, exist_ok=True)
+        self.ipiv_milkers.to_csv(Path.home() / "cows_data" / "insem_data" / "ipiv_milkers.csv")   
     
     
 if __name__ == "__main__":

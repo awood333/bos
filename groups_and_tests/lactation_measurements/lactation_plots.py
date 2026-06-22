@@ -2,12 +2,12 @@
 import numpy as np
 import base64
 import io
+from pathlib import Path
 import matplotlib.pyplot as plt
 import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 from container import get_dependency
-from config_path import LOCAL_PLOTS_DIR
 
 class LactationPlots:
     def __init__(self):
@@ -26,7 +26,7 @@ class LactationPlots:
         self.avg_zscore_per_row_daily_log = None
         self.avg_zscore_per_row_daily_log_index = None
 
-        self.output_folder = LOCAL_PLOTS_DIR
+        self.output_folder = Path.home() / "cows_data" / "plots"
 
 
     def load_and_process(self, wy_id=None):

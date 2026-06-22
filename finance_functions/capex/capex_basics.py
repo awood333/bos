@@ -1,10 +1,11 @@
 '''finance/CapexBasics.py'''
 
+import os
 import inspect
 from datetime import datetime
+from pathlib import Path
 import pandas as pd
 from container import get_dependency
-from config_path import LOCAL_CAPEX
 
 
 tdy = datetime.now()
@@ -34,9 +35,8 @@ class CapexBasics:
         self.write_to_csv()
 
     def load_partition_data(self):
-        from config_path import MASTER_FINANCE_SHEET_ID
         from utilities.gdrive_loader import gdrive_read_sheet_tab
-        bkk1 = gdrive_read_sheet_tab(MASTER_FINANCE_SHEET_ID, 'BKKBankFarmAccount')
+        bkk1 = gdrive_read_sheet_tab(os.getenv('MASTER_FINANCE_SHEET_ID', '1UjDt0xH_TPsQ2tOhwf1iDZ9KGCyBOExdFrLdM5n9acA'), 'BKKBankFarmAccount')
         bkk1 = bkk1.reset_index()
         bkk1.columns = bkk1.columns.str.strip()
         bkk1['datex'] = pd.to_datetime(bkk1['datex'], errors='coerce')
@@ -119,11 +119,11 @@ class CapexBasics:
         
 
     def write_to_csv(self):
-        LOCAL_CAPEX.mkdir(parents=True, exist_ok=True)
-        self.capex_details      .to_csv(LOCAL_CAPEX / "capex_details.csv")
-        self.non_capex_details  .to_csv(LOCAL_CAPEX / "non_capex_details.csv")
-        self.capex_pivot        .to_csv(LOCAL_CAPEX / "capex_pivot.csv")
-        self.non_capex_pivot    .to_csv(LOCAL_CAPEX / "non_capex_pivot.csv") 
+        Path.home() / "cows_data" / "finance_data" / "capex".mkdir(parents=True, exist_ok=True)
+        self.capex_details      .to_csv(Path.home() / "cows_data" / "finance_data" / "capex" / "capex_details.csv")
+        self.non_capex_details  .to_csv(Path.home() / "cows_data" / "finance_data" / "capex" / "non_capex_details.csv")
+        self.capex_pivot        .to_csv(Path.home() / "cows_data" / "finance_data" / "capex" / "capex_pivot.csv")
+        self.non_capex_pivot    .to_csv(Path.home() / "cows_data" / "finance_data" / "capex" / "non_capex_pivot.csv") 
  
     
 if __name__ == "__main__":

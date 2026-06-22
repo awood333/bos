@@ -1,8 +1,8 @@
 '''/milk_functions/sahagon.py'''
 from datetime import datetime
+from pathlib import Path
 import pandas as pd
 from container import get_dependency
-from config_path import GDRIVE_ASG_MILK_INCOME_DIR
         
 class sahagon:
     def __init__(self):
@@ -18,9 +18,9 @@ class sahagon:
         self.write_to_csv()
     
     def get_data(self):
-        # Use GDRIVE_ASG_MILK_INCOME_DIR from config_path for cross-platform path
+        # Use Path.home() / "gdrive_mount" / "COWS" / "finance" / "ASG_milk_income" from config_path for cross-platform path
 
-        excel_path = GDRIVE_ASG_MILK_INCOME_DIR / "daily_milk.ods"
+        excel_path = Path.home() / "gdrive_mount" / "COWS" / "finance" / "ASG_milk_income" / "daily_milk.ods"
         dm1 = pd.read_excel(excel_path, sheet_name='stats')
         dm2 = dm1.iloc[1,:].copy()
         dm2.index   = pd.to_datetime( dm2.index, format='ISO8601', errors='coerce')

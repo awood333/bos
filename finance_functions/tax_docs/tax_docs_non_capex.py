@@ -1,12 +1,12 @@
 '''finance_functions/tax_docs/TaxDocs_NonCapex.py'''
 import pandas as pd 
-from config_path import MASTER_FINANCE_SHEET_ID
+import os
 from utilities.gdrive_loader import gdrive_read_sheet_tab
 
 class TaxDocs_NonCapex:
     def __init__(self):
         
-        bkk1a = gdrive_read_sheet_tab(MASTER_FINANCE_SHEET_ID, 'BKKBankFarmAccount')
+        bkk1a = gdrive_read_sheet_tab(os.getenv('MASTER_FINANCE_SHEET_ID', '1UjDt0xH_TPsQ2tOhwf1iDZ9KGCyBOExdFrLdM5n9acA'), 'BKKBankFarmAccount')
         bkk1a = bkk1a.reset_index()
         bkk1a.columns = bkk1a.columns.str.strip()
         bkk1a['datex'] = pd.to_datetime(bkk1a['datex'], errors='coerce')

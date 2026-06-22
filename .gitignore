@@ -18,6 +18,7 @@ Pipfile.lock
 .pylintrc
 run_milk.py
 run_non_milk.py
+bos.egg-info/
 
 
 # Ignore all CSV files everywhere

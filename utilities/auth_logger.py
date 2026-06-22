@@ -19,20 +19,13 @@ two writers (Diotima = OS landscape, BOS = app auth events).
 """
 
 import json
-import platform
 from datetime import datetime
 from pathlib import Path
 
-# ─────────────────────────────────────────────
+# ───────────────────────────────────────────────
 # Shared log root — must match diotima_logger.py
-# ─────────────────────────────────────────────
-IS_WINDOWS = platform.system() == "Windows"
-
-LOG_ROOT = (
-    Path(r"D:/diotima_log")
-    if IS_WINDOWS
-    else Path.home() / "diotima_log"
-)
+# ───────────────────────────────────────────────
+LOG_ROOT = Path.home() / "diotima_log"
 
 
 def _today_path() -> Path:

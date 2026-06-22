@@ -2,9 +2,9 @@
 status_functions.status_data
 '''
 import inspect
+from pathlib import Path
 import pandas as pd
 from container import get_dependency
-from config_path import LOCAL_STATUS
 
 
 class status_data:
@@ -166,14 +166,14 @@ class status_data:
 
     def create_write_to_csv(self):
         # STATUS refers to the status_stuff here --- correct in config_path
-        LOCAL_STATUS.mkdir(parents=True, exist_ok=True)
-        self.milker_ids_df .to_csv(LOCAL_STATUS / "milker_ids.csv")
-        self.dry_ids_df    .to_csv(LOCAL_STATUS / "dry_ids.csv")
-        self.herd_daily    .to_csv(LOCAL_STATUS / "herd_daily.csv")
-        self.herd_monthly  .to_csv(LOCAL_STATUS / "herd_monthly.csv")
-        pd.DataFrame(self.milkers_ids,  columns=['ids']).to_csv(LOCAL_STATUS / "milkers_ids_last.csv")
-        pd.DataFrame(self.dry_ids_last, columns=['ids']).to_csv(LOCAL_STATUS / "dry_ids_last.csv")
-        self.status_col    .to_csv(LOCAL_STATUS / "status_col.csv")
+        Path.home() / "cows_data" / "status".mkdir(parents=True, exist_ok=True)
+        self.milker_ids_df .to_csv(Path.home() / "cows_data" / "status" / "milker_ids.csv")
+        self.dry_ids_df    .to_csv(Path.home() / "cows_data" / "status" / "dry_ids.csv")
+        self.herd_daily    .to_csv(Path.home() / "cows_data" / "status" / "herd_daily.csv")
+        self.herd_monthly  .to_csv(Path.home() / "cows_data" / "status" / "herd_monthly.csv")
+        pd.DataFrame(self.milkers_ids,  columns=['ids']).to_csv(Path.home() / "cows_data" / "status" / "milkers_ids_last.csv")
+        pd.DataFrame(self.dry_ids_last, columns=['ids']).to_csv(Path.home() / "cows_data" / "status" / "dry_ids_last.csv")
+        self.status_col    .to_csv(Path.home() / "cows_data" / "status" / "status_col.csv")
 
 if __name__ == "__main__":
     obj = status_data()

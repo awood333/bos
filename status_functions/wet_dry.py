@@ -2,9 +2,9 @@
 status_functions.wet_dry
 '''
 import inspect
+from pathlib import Path
 import pandas as pd
 from container import get_dependency
-from config_path import  LOCAL_WET_DRY
 
 today = pd.Timestamp.today()
 
@@ -362,12 +362,12 @@ class WetDry:
 
     def write_to_csv(self):
         # Ensure the output directory exists
-        LOCAL_WET_DRY.mkdir(parents=True, exist_ok=True)
+        Path.home() / "cows_data" / "status" / "wet_dry".mkdir(parents=True, exist_ok=True)
 
-        self.wet_dry_df    .to_csv(LOCAL_WET_DRY / "wet_dry_df.csv")
-        self.wsd           .to_csv(LOCAL_WET_DRY / "wd_sum.csv")
-        self.wmd           .to_csv(LOCAL_WET_DRY / "wd_max.csv")
-        self.wet_dry_weekly.to_csv(LOCAL_WET_DRY / "wet_dry_weekly.csv")
+        self.wet_dry_df    .to_csv(Path.home() / "cows_data" / "status" / "wet_dry" / "wet_dry_df.csv")
+        self.wsd           .to_csv(Path.home() / "cows_data" / "status" / "wet_dry" / "wd_sum.csv")
+        self.wmd           .to_csv(Path.home() / "cows_data" / "status" / "wet_dry" / "wd_max.csv")
+        self.wet_dry_weekly.to_csv(Path.home() / "cows_data" / "status" / "wet_dry" / "wet_dry_weekly.csv")
         
 
 

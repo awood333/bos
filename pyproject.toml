@@ -16,3 +16,6 @@ dependencies = [
     "python-dotenv>=1.2.2",
     "xlsxwriter>=3.2.9",
 ]
+
+[tool.setuptools.packages.find]
+where = ["."]

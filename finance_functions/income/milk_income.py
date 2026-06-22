@@ -13,7 +13,6 @@ class MilkIncome:
         self.DR = None
         self.startdate = None
         from pathlib import Path
-        from config_path import LOCAL_PL_DATA, LOCAL_MILK_DIR
 
         self.sahagon = None
         self.sahagon_liters = None
@@ -53,7 +52,7 @@ class MilkIncome:
             start_date_str = str(self.startdate)
         old_liters_pre_cutoff = old_total_liters2.loc[start_date_str:sahagon_cutoff_date]
 
-        daily_milk_xlsx = LOCAL_MILK_DIR / 'daily_milk' / 'daily_milk.xlsx'
+        daily_milk_xlsx = Path.home() / "cows_data" / "milk_data" / 'daily_milk' / 'daily_milk.xlsx'
         new_liters1 = pd.read_excel(daily_milk_xlsx, sheet_name='stats', header=0)
         new_litersT = new_liters1.T.reset_index()
         # If the first row is not a date, drop it (e.g., contains 'sale total', 'heldback AM', etc.)
@@ -108,8 +107,7 @@ class MilkIncome:
     # BACKUP
     def write_to_csv(self):
         from pathlib import Path
-        from config_path import LOCAL_PL_DATA
-        milk_income_dir = LOCAL_PL_DATA / 'milk_income' / 'output'
+        milk_income_dir = Path.home() / "cows_data" / "finance_data" / "PL_data" / 'milk_income' / 'output'
         milk_income_dir.mkdir(parents=True, exist_ok=True)
         backup_dir = Path.home() / 'cows_data' / 'data_backup' / 'milk_income_backup'
         backup_dir.mkdir(parents=True, exist_ok=True)

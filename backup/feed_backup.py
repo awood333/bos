@@ -4,14 +4,12 @@ import pandas as pd
 
 # Generate a timestamp for the backup
 tdy = pd.Timestamp('now').strftime('%Y-%m-%d_%H-%M-%S')
-
-from config_path import LOCAL_FEED_DATA
 from pathlib import Path
 
 class FeedDataBackup:
     def __init__(self):
         # Use config_path nomenclature for cross-platform compatibility
-        self.source_folder = LOCAL_FEED_DATA
+        self.source_folder = Path.home() / "cows_data" / "feed_data"
         # Compose backup folder path using Path and config_path
         backup_root = Path.home() / 'cows_data' / 'data_backup' / 'feed_backup'
         self.backup_folder = backup_root / f'feed_backup_{tdy}'

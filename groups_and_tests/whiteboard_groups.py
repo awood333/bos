@@ -2,6 +2,7 @@
 
 import sys
 import os
+from pathlib import Path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from container import get_dependency
@@ -15,7 +16,6 @@ import os
 from pyexcel_ods import get_data
 import pandas as pd
 from utilities.gdrive_loader import gdrive_read_csv
-from config_path import GROUP_DATA_DIR, gdrive_rel
 pd.set_option('future.no_silent_downcasting', True)
 
 
@@ -68,7 +68,7 @@ class WhiteboardGroups:
         self.date_range = pd.date_range(start_date, stop_date)
 
         def sheet_to_df(sheet):
-            df = gdrive_read_csv(gdrive_rel(GROUP_DATA_DIR / f"{sheet}.csv"), header=0, index_col=0)
+            df = gdrive_read_csv(f"COWS/wb_groups/{sheet}.csv", header=0, index_col=0)
             df.index = pd.to_numeric(df.index, errors='coerce').fillna(0).astype(int)
             df.columns = pd.to_datetime(df.columns, errors='coerce')
             df = df.iloc[:55, :]

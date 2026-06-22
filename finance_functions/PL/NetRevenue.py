@@ -1,8 +1,8 @@
 '''finance_functions\\PL\\net_revenue_daily.py'''
 import inspect
+from pathlib import Path
 import pandas as pd
 from container import get_dependency
-from config_path import LOCAL_PL_DATA
 # from date_range import DateRange
 
 
@@ -80,10 +80,10 @@ class NetRevenue:
     def write_to_csv(self):
         
         # writing to D:\Cow_backup/finance_data
-        LOCAL_PL_DATA.mkdir(parents=True, exist_ok=True)
-        self.net_revenue_daily_last .to_csv(LOCAL_PL_DATA / 'net_revenue_daily_last.csv')
-        self.net_revenue_daily      .to_csv(LOCAL_PL_DATA / 'net_revenue_daily.csv')
-        self.net_revenue_monthly    .to_csv(LOCAL_PL_DATA / 'net_revenue_monthly.csv')
+        Path.home() / "cows_data" / "finance_data" / "PL_data".mkdir(parents=True, exist_ok=True)
+        self.net_revenue_daily_last .to_csv(Path.home() / "cows_data" / "finance_data" / "PL_data" / 'net_revenue_daily_last.csv')
+        self.net_revenue_daily      .to_csv(Path.home() / "cows_data" / "finance_data" / "PL_data" / 'net_revenue_daily.csv')
+        self.net_revenue_monthly    .to_csv(Path.home() / "cows_data" / "finance_data" / "PL_data" / 'net_revenue_monthly.csv')
         
         
         

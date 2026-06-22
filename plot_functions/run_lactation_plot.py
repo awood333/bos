@@ -1,17 +1,16 @@
 '''plot_functions.run_lactation_plot'''
 import os
 import matplotlib
+from pathlib import Path
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from container import get_dependency
 import pandas as pd
 import numpy as np
 
-from config_path import GDRIVE_LACTATION_PLOTS
-
 class RunLactationPlot:
     def __init__(self):
-        self.output_folder = str(GDRIVE_LACTATION_PLOTS)
+        self.output_folder = str(Path.home() / "gdrive_mount" / "COWS" / "plots" / "Lactation_plots")
         os.makedirs(self.output_folder, exist_ok=True)
         self.TL = None
         self.LLS = None

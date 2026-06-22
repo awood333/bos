@@ -1,8 +1,8 @@
 '''finance_functions/tax_docs/tax_docs_depreciation.py'''
 
+import os
 import inspect
 import pandas as pd 
-from config_path import MASTER_FINANCE_SHEET_ID
 from utilities.gdrive_loader import gdrive_read_sheet_tab
         
 class TaxDocs_Depreciation:
@@ -10,7 +10,7 @@ class TaxDocs_Depreciation:
         
         print(f"TaxDocs_Depreciation instantiated by: {inspect.stack()[1].filename}")
         
-        bkk1a = gdrive_read_sheet_tab(MASTER_FINANCE_SHEET_ID, 'BKKBankFarmAccount')
+        bkk1a = gdrive_read_sheet_tab(os.getenv('MASTER_FINANCE_SHEET_ID', '1UjDt0xH_TPsQ2tOhwf1iDZ9KGCyBOExdFrLdM5n9acA'), 'BKKBankFarmAccount')
         bkk1a = bkk1a.reset_index()
         bkk1a.columns = bkk1a.columns.str.strip()
         bkk1a['datex'] = pd.to_datetime(bkk1a['datex'], errors='coerce')

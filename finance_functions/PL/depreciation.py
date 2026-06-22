@@ -1,9 +1,9 @@
 '''finance_functions.PL.depreciation.py'''
 import inspect
 from datetime import datetime as dt
+from pathlib import Path
 import pandas as pd
 from container import get_dependency
-from config_path import LOCAL_DEPRECIATION
 
 class DepreciationCalc:
     def __init__(self):
@@ -69,9 +69,9 @@ class DepreciationCalc:
         return self.available_depr_summary
     
     def write_to_csv(self):
-        LOCAL_DEPRECIATION.mkdir(parents=True, exist_ok=True)
-        self.available_depr_details.to_csv(LOCAL_DEPRECIATION / 'available_depr_details.csv')
-        self.available_depr_summary.to_csv(LOCAL_DEPRECIATION / 'available_depr_summary.csv')
+        Path.home() / "cows_data" / "finance_data" / "capex" / "depreciation".mkdir(parents=True, exist_ok=True)
+        self.available_depr_details.to_csv(Path.home() / "cows_data" / "finance_data" / "capex" / "depreciation" / 'available_depr_details.csv')
+        self.available_depr_summary.to_csv(Path.home() / "cows_data" / "finance_data" / "capex" / "depreciation" / 'available_depr_summary.csv')
     
     
 if __name__ == "__main__":

@@ -1,15 +1,13 @@
 '''feed_functions\\feedcost_basics.py'''
 import inspect
+from pathlib import Path
 import os       #don't erase
 import pandas as pd
 from container import get_dependency
 from utilities.gdrive_loader import gdrive_read_sheet_tab
-from sql_db_related import neon_connect
-from sqlalchemy import get_engine
 
-from config_path import GDRIVE_FEED_INVOICE_DATA, GDRIVE_FEED_DAILY_AMT_DATA, LOCAL_FEEDCOST_BY_GROUP, MASTER_FEED_INVOICE_SHEET_ID, MASTER_FEED_DAILY_AMT_SHEET_ID
-
-
+from sqlalchemy import text
+from sql_db_related.neon_connect import get_engine
 
 class DataLoader:
     def __init__(self, base_path, sheet_id=None):  #see load and process data_loader for actual address
@@ -25,7 +23,7 @@ class DataLoader:
         return data
 
     def load_invoice_csv(self, feed):
-        engine = get_engine()
+        # engine = get_engine()
         tab_name = f'{feed}_invoice_detail'
         df = gdrive_read_sheet_tab(self.sheet_id, tab_name)
         df = df.reset_index()  # first col ('year') was auto-set as index
@@ -96,8 +94,8 @@ class Feedcost_basics:
         self.MB = get_dependency('milk_basics')
         self.DR = get_dependency('date_range')
         
-        self.price_loader = DataLoader(GDRIVE_FEED_INVOICE_DATA, sheet_id=MASTER_FEED_INVOICE_SHEET_ID)
-        self.amt_loader   = DataLoader(GDRIVE_FEED_DAILY_AMT_DATA, sheet_id=MASTER_FEED_DAILY_AMT_SHEET_ID)
+        self.price_loader = DataLoader(Path.home() / "gdrive_mount" / "COWS" / "feed_data" / "feed_invoice_data", sheet_id=os.getenv('MASTER_FEED_INVOICE_SHEET_ID', '1uLuKSNkfyqPSyIHPpaYGuJhaNmnjwp2nmwuO_eT7yg4'))
+        self.amt_loader   = DataLoader(Path.home() / "gdrive_mount" / "COWS" / "feed_data" / "feed_daily_amt_data", sheet_id=os.getenv('MASTER_FEED_DAILY_AMT_SHEET_ID', '1165euk9UhKGTNa5fW-iVsIM1XZS-EgiC-Km2Rbtix78'))
 
         self.rng_monthly  = self.DR.date_range_monthly
         self.rng_monthly2 = getattr(self.DR, 'date_range_monthly2', None)
@@ -242,12 +240,12 @@ class Feedcost_basics:
         return self.feedcost_daily, self.feedcost_monthly, self.feedcost_weekly
     
     def write_to_csv(self):
-        LOCAL_FEEDCOST_BY_GROUP.mkdir(parents=True, exist_ok=True)
-        self.feedcost_daily     .to_csv(LOCAL_FEEDCOST_BY_GROUP / "feedcostByGroup_daily.csv")
-        self.feedcost_weekly    .to_csv(LOCAL_FEEDCOST_BY_GROUP / "feedcostByGroup_weekly.csv")
-        self.feedcost_monthly   .to_csv(LOCAL_FEEDCOST_BY_GROUP / "feedcostByGroup_monthly.csv")
+        Path.home() / "cows_data" / "feed_data" / "feedcost_by_group".mkdir(parents=True, exist_ok=True)
+        self.feedcost_daily     .to_csv(Path.home() / "cows_data" / "feed_data" / "feedcost_by_group" / "feedcostByGroup_daily.csv")
+        self.feedcost_weekly    .to_csv(Path.home() / "cows_data" / "feed_data" / "feedcost_by_group" / "feedcostByGroup_weekly.csv")
+        self.feedcost_monthly   .to_csv(Path.home() / "cows_data" / "feed_data" / "feedcost_by_group" / "feedcostByGroup_monthly.csv")
         if self.feed_series_last_row_T is not None:
-            self.feed_series_last_row_T.to_csv(LOCAL_FEEDCOST_BY_GROUP / "feedcostByGroup_last.csv")
+            self.feed_series_last_row_T.to_csv(Path.home() / "cows_data" / "feed_data" / "feedcost_by_group" / "feedcostByGroup_last.csv")
         
 
 if __name__ == "__main__":

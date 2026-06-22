@@ -1,8 +1,8 @@
 '''Lactations.py'''
 import inspect
+from pathlib import Path
 import pandas as pd 
 from container import get_dependency
-from config_path import LOCAL_LACTS_DIR
 
 
 class Lactations:
@@ -61,13 +61,13 @@ class Lactations:
         
     def write_to_csv(self):
 
-        LOCAL_LACTS_DIR.mkdir(parents=True, exist_ok=True)
-        self.live_L1.to_csv(LOCAL_LACTS_DIR / "lactation_1.csv")
-        self.live_L2.to_csv(LOCAL_LACTS_DIR / "lactation_2.csv")
-        self.live_L3.to_csv(LOCAL_LACTS_DIR / "lactation_3.csv")
-        self.live_L4.to_csv(LOCAL_LACTS_DIR / "lactation_4.csv")
-        self.live_L5.to_csv(LOCAL_LACTS_DIR / "lactation_5.csv")
-        self.live_L6.to_csv(LOCAL_LACTS_DIR / "lactation_6.csv")
+        Path.home() / "cows_data" / "milk_data" / "lactations" / "daily".mkdir(parents=True, exist_ok=True)
+        self.live_L1.to_csv(Path.home() / "cows_data" / "milk_data" / "lactations" / "daily" / "lactation_1.csv")
+        self.live_L2.to_csv(Path.home() / "cows_data" / "milk_data" / "lactations" / "daily" / "lactation_2.csv")
+        self.live_L3.to_csv(Path.home() / "cows_data" / "milk_data" / "lactations" / "daily" / "lactation_3.csv")
+        self.live_L4.to_csv(Path.home() / "cows_data" / "milk_data" / "lactations" / "daily" / "lactation_4.csv")
+        self.live_L5.to_csv(Path.home() / "cows_data" / "milk_data" / "lactations" / "daily" / "lactation_5.csv")
+        self.live_L6.to_csv(Path.home() / "cows_data" / "milk_data" / "lactations" / "daily" / "lactation_6.csv")
 
 
     
