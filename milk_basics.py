@@ -27,12 +27,20 @@ class MilkBasics:
     def dataLoader(self):
         engine = get_engine()
         with engine.connect() as conn:
-            startx = pd.read_sql(text("SELECT b_date FROM live_births"),  conn)
-            stopx  = pd.read_sql(text("SELECT stop FROM stop_dates"),   conn)
+            
+            stopx       = pd.read_sql(text("SELECT * FROM stop_dates"),   conn)
             self.lb     = pd.read_sql(text("SELECT * FROM live_births"),  conn)
             self.u      = pd.read_sql(text("SELECT * FROM ultra"),        conn)
             self.i      = pd.read_sql(text("SELECT * FROM insem"),        conn)
             bd1         = pd.read_sql(text("SELECT * FROM birth_death"),  conn)
+            # startx      = pd.read_sql(text("SELECT b_date FROM live_births"),  conn)
+            
+            startx      = self.lb   .drop(columns=['type'], errors='ignore')
+            stopx       = stopx     .drop(columns=['type'], errors='ignore')
+            self.u      = self.u    .drop(columns=['type'], errors='ignore')
+            self.i      = self.i    .drop(columns=['type'], errors='ignore')
+            bd1         = bd1       .drop(columns=['type'], errors='ignore')
+            
 
             # Get last date from am_wy view for lastday/datex
             am_wy_tmp = pd.read_sql(text('SELECT * FROM "AM_wy"'), conn)

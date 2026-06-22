@@ -32,9 +32,9 @@ class Ipiv:
 
   
     def create_ipiv(self):
-        lc = self.IUB.last_calf[['WY_id', 'last calf#']].copy()
-        lc['last calf#'] += 1
-        lc = lc.rename(columns={'last calf#' : 'lact#'})
+        lc = self.IUB.last_calf[['WY_id', 'last calf_num']].copy()
+        lc['last calf_num'] += 1
+        lc = lc.rename(columns={'last calf_num' : 'lact#'})
          
        
         # Filter with alive_ids

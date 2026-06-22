@@ -1,52 +1,96 @@
 '''feed_functions\\feedcost_basics.py'''
-import inspect
-from pathlib import Path
-import os       #don't erase
-import pandas as pd
-from container import get_dependency
-from utilities.gdrive_loader import gdrive_read_sheet_tab
 
+"""feed_functions\\feedcost_basics.py"""
+
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import inspect
+import os  # don't erase
+from pathlib import Path
+
+from container import get_dependency
+import pandas as pd
 from sqlalchemy import text
 from sql_db_related.neon_connect import get_engine
+from utilities.gdrive_loader import gdrive_read_sheet_tab
+
 
 class DataLoader:
-    def __init__(self, base_path, sheet_id=None):  #see load and process data_loader for actual address
+
+    def __init__(
+        self, base_path, sheet_id=None
+    ):  # see load and process data_loader for actual address
         self.base_path = base_path
         self.sheet_id = sheet_id
 
     def load_csv(self, filename):
         path = os.path.join(self.base_path, filename)
-        data = pd.read_csv(path, header=0).dropna(how='all')
-        data['datex'] = pd.to_datetime(data['datex'], errors='coerce')
-        data = data.set_index(data['datex']).drop(columns=['datex'])
+        data = pd.read_csv(path, header=0).dropna(how="all")
+        data["datex"] = pd.to_datetime(data["datex"], errors="coerce")
+        data = data.set_index(data["datex"]).drop(columns=["datex"])
         data = data.sort_index()
         return data
 
     def load_invoice_csv(self, feed):
         # engine = get_engine()
-        tab_name = f'{feed}_invoice_detail'
+        tab_name = f"{feed}_invoice_detail"
         df = gdrive_read_sheet_tab(self.sheet_id, tab_name)
         df = df.reset_index()  # first col ('year') was auto-set as index
         df.columns = df.columns.str.strip()
-        df['Invoice date'] = pd.to_datetime(df['Invoice date'], errors='coerce')
-        df = df.dropna(subset=['Invoice date'])
-        df = df.set_index('Invoice date')[['price/kg']].rename(columns={'price/kg': 'unit_price'})
-        df['unit_price'] = pd.to_numeric(df['unit_price'], errors='coerce')
-        df = df[~df.index.duplicated(keep='last')]
+        df["invoice date"] = pd.to_datetime(df["invoice date"], errors="coerce")
+        df = df.dropna(subset=["invoice date"])
+        df = df.set_index("invoice date")[["price/kg"]].rename(
+            columns={"price/kg": "unit_price"}
+        )
+        df["unit_price"] = pd.to_numeric(df["unit_price"], errors="coerce")
+        df = df[~df.index.duplicated(keep="last")]
         return df.sort_index()
 
     def load_daily_amt_sheet(self, feed):
-        tab_name = f'{feed}_daily_amt'
+        tab_name = f"{feed}_daily_amt"
         df = gdrive_read_sheet_tab(self.sheet_id, tab_name)
         df = df.reset_index()
         df.columns = df.columns.str.strip()
-        df['datex'] = pd.to_datetime(df['datex'], errors='coerce')
-        df = df.dropna(subset=['datex'])
-        df = df.set_index('datex')
-        df = df.apply(pd.to_numeric, errors='coerce')
-        df = df[~df.index.duplicated(keep='last')]
+        df["datex"] = pd.to_datetime(df["datex"], errors="coerce")
+        df = df.dropna(subset=["datex"])
+        df = df.set_index("datex")
+        df = df.apply(pd.to_numeric, errors="coerce")
+        df = df[~df.index.duplicated(keep="last")]
         return df.sort_index()
-        
+
+    def load_all_feed_data(self, feed_list, max_workers=5):
+        """Loads invoice and daily amount sheets concurrently for all feeds.
+
+        Returns a dictionary of DataFrames mapped by 'feed_type'.
+        """
+        results = {}
+
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            future_to_tab = {}
+
+            # Submit all jobs to the thread pool concurrently
+            for feed in feed_list:
+                invoice_key = f"{feed}_invoice"
+                daily_key = f"{feed}_daily"
+
+                future_to_tab[executor.submit(self.load_invoice_csv, feed)] = (
+                    invoice_key
+                )
+                future_to_tab[
+                    executor.submit(self.load_daily_amt_sheet, feed)
+                ] = daily_key
+
+            # Gather results as they finish
+            for future in as_completed(future_to_tab):
+                key = future_to_tab[future]
+                try:
+                    df = future.result()
+                    results[key] = df
+                except Exception as e:
+                    print(f"❌ Error loading {key}: {e}")
+                    results[key] = None  # Or handle error as needed
+
+        return results
+
 
 class Feedcost_basics:
 
@@ -56,9 +100,20 @@ class Feedcost_basics:
         self.DR = None
         self.data_loader = None
         self.price_loader = None
-        self.amt_loader   = None
-        self.feed_type = ['corn','cassava','beans','straw',   'NaHCO3', 
-                          'CP_005_21P', 'CP_005_DSW', 'CP_970_Plus', 'CP_973GM','CP_milk2', 'CP_power_starch' ]
+        self.amt_loader = None
+        self.feed_type = [
+            "corn",
+            "cassava",
+            "beans",
+            "straw",
+            "NaHCO3",
+            "CP_005_21P",
+            "CP_005_DSW",
+            "CP_970_Plus",
+            "CP_973GM",
+            "CP_milk2",
+            "CP_power_starch",
+        ]
         self.rng_monthly = None
         self.rng_monthly2 = None
         self.rng_daily = None
@@ -72,7 +127,7 @@ class Feedcost_basics:
         # self.current_feedcost = None
         # self.unit_prices_daily = None
         self.daily_cost_dict_F = {}
-        self.last_cost_details_F_df = None        
+        self.last_cost_details_F_df = None
         self.daily_cost_dict_A = {}
         self.last_cost_details_A_df = None
         self.daily_cost_dict_B = {}
@@ -87,41 +142,262 @@ class Feedcost_basics:
         self.totalcost_D_df = None
         self.totalcost_F_df = None
         self.feedcost_daily = None
-        self.feedcost_weekly = None            
+        self.feedcost_weekly = None
         self.feedcost_monthly = None
+        self.all_data = {}  # Holds concurrent data extraction matrices
 
     def load_and_process(self):
-        self.MB = get_dependency('milk_basics')
-        self.DR = get_dependency('date_range')
+        self.MB = get_dependency("milk_basics")
+        self.DR = get_dependency("date_range")
+
+        self.price_loader = DataLoader(
+            Path.home()
+            / "gdrive_mount"
+            / "COWS"
+            / "feed_data"
+            / "feed_invoice_data",
+            sheet_id=os.getenv(
+                "MASTER_FEED_INVOICE_SHEET_ID",
+                "1uLuKSNkfyqPSyIHPpaYGuJhaNmnjwp2nmwuO_eT7yg4",
+            ),
+        )
+        self.amt_loader = DataLoader(
+            Path.home()
+            / "gdrive_mount"
+            / "COWS"
+            / "feed_data"
+            / "feed_daily_amt_data",
+            sheet_id=os.getenv(
+                "MASTER_FEED_DAILY_AMT_SHEET_ID",
+                "1165euk9UhKGTNa5fW-iVsIM1XZS-EgiC-Km2Rbtix78",
+            ),
+        )
+
+        self.rng_monthly = self.DR.date_range_monthly
+        self.rng_monthly2 = getattr(self.DR, "date_range_monthly2", None)
+        self.rng_daily = self.DR.date_range_daily
+
+        # Run concurrent API extraction jobs over both separate Google Sheets IDs
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            future_to_tab = {}
+
+            for feed in self.feed_type:
+                future_to_tab[
+                    executor.submit(self.price_loader.load_invoice_csv, feed)
+                ] = f"{feed}_invoice"
+                future_to_tab[
+                    executor.submit(self.amt_loader.load_daily_amt_sheet, feed)
+                ] = f"{feed}_daily"
+
+            for future in as_completed(future_to_tab):
+                key = future_to_tab[future]
+                try:
+                    self.all_data[key] = future.result()
+                except Exception as e:
+                    print(f"❌ Error loading {key}: {e}")
+                    self.all_data[key] = None
+
+        # Call methods to run standard workflow downstream structures below
+        # self.price_seq_dict, self.daily_amt_dict = self.create_feed_daily_cost_dict()
+        # ... balance of the processing execution logic goes below ...
+
+# import inspect
+# from pathlib import Path
+# import os       #don't erase
+# import pandas as pd
+# from container import get_dependency
+# from concurrent.futures import ThreadPoolExecutor, as_completed
+# from utilities.gdrive_loader import gdrive_read_sheet_tab
+
+# from sqlalchemy import text
+# from sql_db_related.neon_connect import get_engine
+
+# class DataLoader:
+#     def __init__(self, base_path, sheet_id=None):  #see load and process data_loader for actual address
+#         self.base_path = base_path
+#         self.sheet_id = sheet_id
+
+#     def load_csv(self, filename):
+#         path = os.path.join(self.base_path, filename)
+#         data = pd.read_csv(path, header=0).dropna(how='all')
+#         data['datex'] = pd.to_datetime(data['datex'], errors='coerce')
+#         data = data.set_index(data['datex']).drop(columns=['datex'])
+#         data = data.sort_index()
+#         return data
+
+#     def load_invoice_csv(self, feed):
+#         # engine = get_engine()
+#         tab_name = f'{feed}_invoice_detail'
+#         df = gdrive_read_sheet_tab(self.sheet_id, tab_name)
+#         df = df.reset_index()  # first col ('year') was auto-set as index
+#         df.columns = df.columns.str.strip()
+#         df['invoice date'] = pd.to_datetime(df['invoice date'], errors='coerce')
+#         df = df.dropna(subset=['invoice date'])
+#         df = df.set_index('invoice date')[['price/kg']].rename(columns={'price/kg': 'unit_price'})
+#         df['unit_price'] = pd.to_numeric(df['unit_price'], errors='coerce')
+#         df = df[~df.index.duplicated(keep='last')]
+#         return df.sort_index()
+
+#     def load_daily_amt_sheet(self, feed):
+#         tab_name = f'{feed}_daily_amt'
+#         df = gdrive_read_sheet_tab(self.sheet_id, tab_name)
+#         df = df.reset_index()
+#         df.columns = df.columns.str.strip()
+#         df['datex'] = pd.to_datetime(df['datex'], errors='coerce')
+#         df = df.dropna(subset=['datex'])
+#         df = df.set_index('datex')
+#         df = df.apply(pd.to_numeric, errors='coerce')
+#         df = df[~df.index.duplicated(keep='last')]
+#         return df.sort_index()
+    
+#     def load_all_feed_data(self, feed_list, max_workers=5):
+#         """Loads invoice and daily amount sheets concurrently for all feeds.
+
+#         Returns a dictionary of DataFrames mapped by 'feed_type'.
+#         """
+#         results = {}
+
+#         with ThreadPoolExecutor(max_workers=max_workers) as executor:
+#             future_to_tab = {}
+
+#             # Submit all jobs to the thread pool concurrently
+#             for feed in feed_list:
+#                 invoice_key = f"{feed}_invoice"
+#                 daily_key = f"{feed}_daily"
+
+#                 future_to_tab[executor.submit(self.load_invoice_csv, feed)] = (
+#                     invoice_key
+#                 )
+#                 future_to_tab[executor.submit(self.load_daily_amt_sheet, feed)] = (
+#                     daily_key
+#                 )
+
+#             # Gather results as they finish
+#             for future in as_completed(future_to_tab):
+#                 key = future_to_tab[future]
+#                 try:
+#                     df = future.result()
+#                     results[key] = df
+#                 except Exception as e:
+#                     print(f"❌ Error loading {key}: {e}")
+#                     results[key] = None  # Or handle error as needed
+
+#         return results
         
-        self.price_loader = DataLoader(Path.home() / "gdrive_mount" / "COWS" / "feed_data" / "feed_invoice_data", sheet_id=os.getenv('MASTER_FEED_INVOICE_SHEET_ID', '1uLuKSNkfyqPSyIHPpaYGuJhaNmnjwp2nmwuO_eT7yg4'))
-        self.amt_loader   = DataLoader(Path.home() / "gdrive_mount" / "COWS" / "feed_data" / "feed_daily_amt_data", sheet_id=os.getenv('MASTER_FEED_DAILY_AMT_SHEET_ID', '1165euk9UhKGTNa5fW-iVsIM1XZS-EgiC-Km2Rbtix78'))
 
-        self.rng_monthly  = self.DR.date_range_monthly
-        self.rng_monthly2 = getattr(self.DR, 'date_range_monthly2', None)
-        self.rng_daily    = self.DR.date_range_daily
+# class Feedcost_basics:
 
-        self.price_seq_dict, self.daily_amt_dict        = self.create_feed_daily_cost_dict()
-        self.feed_series_dict, self.feed_series_full_df = self.create_separate_feed_series()
-        # Register the last row (transposed) of feed_series_full_df
-        if self.feed_series_full_df is not None and not self.feed_series_full_df.empty:
-            self.feed_series_last_row_T = self.feed_series_full_df.iloc[[-1]]
-        else:
-            self.feed_series_last_row_T = None
+#     def __init__(self):
+#         print(f"Feedcost_basics instantiated by: {inspect.stack()[1].filename}")
+#         self.MB = None
+#         self.DR = None
+#         self.data_loader = None
+#         self.price_loader = None
+#         self.amt_loader   = None
+#         self.feed_type = ['corn','cassava','beans','straw',   'NaHCO3', 
+#                           'CP_005_21P', 'CP_005_DSW', 'CP_970_Plus', 'CP_973GM','CP_milk2', 'CP_power_starch' ]
+#         self.rng_monthly = None
+#         self.rng_monthly2 = None
+#         self.rng_daily = None
 
-        self.daily_cost_dict_F    = self.calc_daily_feed_costs ('fresh_kg')
-        self.daily_cost_dict_A    = self.calc_daily_feed_costs ('group_a_kg')
-        self.daily_cost_dict_B    = self.calc_daily_feed_costs ('group_b_kg')
-        self.daily_cost_dict_C    = self.calc_daily_feed_costs ('group_c_kg')
-        self.daily_cost_dict_D    = self.calc_daily_feed_costs ('dry_kg')
-        self.totalcost_F_df = self.create_total_cost_group(self.daily_cost_dict_F, 'F')
-        self.totalcost_A_df = self.create_total_cost_group(self.daily_cost_dict_A, 'A')
-        self.totalcost_B_df = self.create_total_cost_group(self.daily_cost_dict_B, 'B')
-        self.totalcost_C_df = self.create_total_cost_group(self.daily_cost_dict_C, 'C')
-        self.totalcost_D_df = self.create_total_cost_group(self.daily_cost_dict_D, 'D')
-        self.last_values_all_df = self.create_last_values()
-        self.feedcost_daily, self.feedcost_monthly, self.feedcost_weekly = self.create_total_feedcostByGroup()
-        self.write_to_csv()
+#         self.price_seq_dict = {}
+#         self.daily_amt_dict = {}
+#         self.feed_series_dict = {}
+#         self.feed_series_full_df = None
+#         self.feed_series_last_row_T = None
+#         self.last_values_all_df = None
+#         # self.current_feedcost = None
+#         # self.unit_prices_daily = None
+#         self.daily_cost_dict_F = {}
+#         self.last_cost_details_F_df = None        
+#         self.daily_cost_dict_A = {}
+#         self.last_cost_details_A_df = None
+#         self.daily_cost_dict_B = {}
+#         self.last_cost_details_B_df = None
+#         self.daily_cost_dict_C = {}
+#         self.last_cost_details_C_df = None
+#         self.daily_cost_dict_D = {}
+#         self.last_cost_details_D_df = None
+#         self.totalcost_A_df = None
+#         self.totalcost_B_df = None
+#         self.totalcost_C_df = None
+#         self.totalcost_D_df = None
+#         self.totalcost_F_df = None
+#         self.feedcost_daily = None
+#         self.feedcost_weekly = None            
+#         self.feedcost_monthly = None
+
+#     def load_and_process(self):
+#         self.MB = get_dependency('milk_basics')
+#         self.DR = get_dependency('date_range')
+        
+#         self.price_loader = DataLoader(Path.home() / "gdrive_mount" / "COWS" / "feed_data" / "feed_invoice_data", sheet_id=os.getenv('MASTER_FEED_INVOICE_SHEET_ID', '1uLuKSNkfyqPSyIHPpaYGuJhaNmnjwp2nmwuO_eT7yg4'))
+#         self.amt_loader   = DataLoader(Path.home() / "gdrive_mount" / "COWS" / "feed_data" / "feed_daily_amt_data", sheet_id=os.getenv('MASTER_FEED_DAILY_AMT_SHEET_ID', '1165euk9UhKGTNa5fW-iVsIM1XZS-EgiC-Km2Rbtix78'))
+
+#         self.rng_monthly  = self.DR.date_range_monthly
+#         self.rng_monthly2 = getattr(self.DR, 'date_range_monthly2', None)
+#         self.rng_daily    = self.DR.date_range_daily
+        
+        
+#         # # Initialize your loader
+#         # loader = DataLoader(base_path="/path/to/data", sheet_id="your_sheet_id")
+    
+#         # Define your target feeds based on your logs
+#         feeds = ["corn", "cassava", "beans", "straw", "NaHCO3", "CP_005_21P"]
+        
+#         all_data = {}
+#         with ThreadPoolExecutor(max_workers=10) as executor:
+#             future_to_tab = {}
+            
+#             for feed in feeds:
+#                 # Submit invoices to price_loader, and daily amounts to amt_loader
+#                 future_to_tab[executor.submit(self.price_loader.load_invoice_csv, feed)] = f"{feed}_invoice"
+#                 future_to_tab[executor.submit(self.amt_loader.load_daily_amt_sheet, feed)] = f"{feed}_daily"
+            
+#             # Collect results as they complete
+#             for future in as_completed(future_to_tab):
+#                 key = future_to_tab[future]
+#                 try:
+#                     all_data[key] = future.result()
+#                 except Exception as e:
+#                     print(f"❌ Error loading {key}: {e}")
+#                     all_data[key] = None
+
+#         # 3. Store the dictionary in the class so your other methods can access it
+#         self.all_data = all_data
+    
+#         # Fetch everything simultaneously 
+#         all_data = loader.load_all_feed_data(feeds, max_workers=6)
+    
+#         # Access individual DataFrames from the results dictionary
+#         corn_invoice_df = all_data["corn_invoice"]
+#         corn_daily_df = all_data["corn_daily"]
+    
+        
+        
+        
+
+#         self.price_seq_dict, self.daily_amt_dict        = self.create_feed_daily_cost_dict()
+#         self.feed_series_dict, self.feed_series_full_df = self.create_separate_feed_series()
+#         # Register the last row (transposed) of feed_series_full_df
+#         if self.feed_series_full_df is not None and not self.feed_series_full_df.empty:
+#             self.feed_series_last_row_T = self.feed_series_full_df.iloc[[-1]]
+#         else:
+#             self.feed_series_last_row_T = None
+
+#         self.daily_cost_dict_F    = self.calc_daily_feed_costs ('fresh_kg')
+#         self.daily_cost_dict_A    = self.calc_daily_feed_costs ('group_a_kg')
+#         self.daily_cost_dict_B    = self.calc_daily_feed_costs ('group_b_kg')
+#         self.daily_cost_dict_C    = self.calc_daily_feed_costs ('group_c_kg')
+#         self.daily_cost_dict_D    = self.calc_daily_feed_costs ('dry_kg')
+#         self.totalcost_F_df = self.create_total_cost_group(self.daily_cost_dict_F, 'F')
+#         self.totalcost_A_df = self.create_total_cost_group(self.daily_cost_dict_A, 'A')
+#         self.totalcost_B_df = self.create_total_cost_group(self.daily_cost_dict_B, 'B')
+#         self.totalcost_C_df = self.create_total_cost_group(self.daily_cost_dict_C, 'C')
+#         self.totalcost_D_df = self.create_total_cost_group(self.daily_cost_dict_D, 'D')
+#         self.last_values_all_df = self.create_last_values()
+#         self.feedcost_daily, self.feedcost_monthly, self.feedcost_weekly = self.create_total_feedcostByGroup()
+#         self.write_to_csv()
 
     def create_feed_daily_cost_dict(self):
         self.price_seq_dict = {}
@@ -240,16 +516,27 @@ class Feedcost_basics:
         return self.feedcost_daily, self.feedcost_monthly, self.feedcost_weekly
     
     def write_to_csv(self):
-        Path.home() / "cows_data" / "feed_data" / "feedcost_by_group".mkdir(parents=True, exist_ok=True)
-        self.feedcost_daily     .to_csv(Path.home() / "cows_data" / "feed_data" / "feedcost_by_group" / "feedcostByGroup_daily.csv")
-        self.feedcost_weekly    .to_csv(Path.home() / "cows_data" / "feed_data" / "feedcost_by_group" / "feedcostByGroup_weekly.csv")
-        self.feedcost_monthly   .to_csv(Path.home() / "cows_data" / "feed_data" / "feedcost_by_group" / "feedcostByGroup_monthly.csv")
-        if self.feed_series_last_row_T is not None:
-            self.feed_series_last_row_T.to_csv(Path.home() / "cows_data" / "feed_data" / "feedcost_by_group" / "feedcostByGroup_last.csv")
+        pass
+        # Path.home() / "cows_data" / "feed_data" / "feedcost_by_group".mkdir(parents=True, exist_ok=True)
+        # self.feedcost_daily     .to_csv(Path.home() / "cows_data" / "feed_data" / "feedcost_by_group" / "feedcostByGroup_daily.csv")
+        # self.feedcost_weekly    .to_csv(Path.home() / "cows_data" / "feed_data" / "feedcost_by_group" / "feedcostByGroup_weekly.csv")
+        # self.feedcost_monthly   .to_csv(Path.home() / "cows_data" / "feed_data" / "feedcost_by_group" / "feedcostByGroup_monthly.csv")
+        # if self.feed_series_last_row_T is not None:
+        #     self.feed_series_last_row_T.to_csv(Path.home() / "cows_data" / "feed_data" / "feedcost_by_group" / "feedcostByGroup_last.csv")
         
 
 if __name__ == "__main__":
+    # 1. Instantiate your class object instance
     obj = Feedcost_basics()
+
+    # 2. Call the instance method via your object to run data extraction
     obj.load_and_process()
-    
-                 
+
+    # 3. Access your loaded concurrent dataframes dictionary from the object attribute store
+    all_data_dict = obj.all_data
+
+    # Optional: Verify things loaded fine by checking a key
+    if "corn_invoice" in all_data_dict and all_data_dict["corn_invoice"] is not None:
+        print(
+            f"🚀 Success! Corn Invoice loaded swiftly with {len(all_data_dict['corn_invoice'])} rows."
+        )

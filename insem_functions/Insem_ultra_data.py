@@ -66,7 +66,7 @@ class InsemUltraData:
         # get last insem event from 'i'
         i1 = self.data['i'].groupby('WY_id').last().reset_index()
         i2 = i1.rename(columns = {
-            'calf_num'    : 'i_calf#',
+            'calf_num'    : 'i_calf_num',
             'insem_date'   : 'i_date',
             'try_num'      : 'try#'
             })
@@ -81,10 +81,10 @@ class InsemUltraData:
     def create_last_valid_insem(self):
         
         i4 = self.last_insem.loc[(
-            self.last_insem['i_calf#'] > self.last_insem['last calf#']
+            self.last_insem['i_calf_num'] > self.last_insem['last calf_num']
         )].reset_index(drop=True)
   
-        self.last_valid_insem = i4[['WY_id','i_calf#', 'i_date' ,'last calf#']]
+        self.last_valid_insem = i4[['WY_id','i_calf_num', 'i_date' ,'last calf_num']]
         
         return self.last_valid_insem
     
@@ -93,10 +93,10 @@ class InsemUltraData:
     def create_last_invalid_insem(self):
         
         i4 = self.last_insem.loc[(
-            self.last_insem['i_calf#'] == self.last_insem['last calf#']
+            self.last_insem['i_calf_num'] == self.last_insem['last calf_num']
         )].reset_index(drop=True)
   
-        self.last_invalid_insem = i4[['WY_id','i_calf#', 'i_date' ,'last calf#']]
+        self.last_invalid_insem = i4[['WY_id','i_calf_num', 'i_date' ,'last calf_num']]
         
         return self.last_invalid_insem
 
@@ -105,7 +105,7 @@ class InsemUltraData:
     def create_last_ultra(self):
         
         u1 = self.data['u'].groupby('WY_id').last().reset_index()
-        self.last_ultra = u1.rename(columns = {'calf_num'  :'u_calf#',
+        self.last_ultra = u1.rename(columns = {'calf_num'  :'u_calf_num',
                             'ultra_date':'u_date',
                             'readex'    : 'u_read'
                             })
@@ -125,7 +125,7 @@ class InsemUltraData:
             )
                           ].reset_index(drop=True)
         
-        df2 = df1.drop(columns=(['i_calf#','i_date','try_num', 'typex']))
+        df2 = df1.drop(columns=(['i_calf_num','i_date','try_num', 'typex']))
                
         bdemask1 =  df2.loc[
             (df2 ['u_date'].notnull())  & 
@@ -149,7 +149,7 @@ class InsemUltraData:
                 ] = ''
 
    
-        self.last_valid_ultra = valid_ultra2.drop(columns =  ['last calf#','i_date'])
+        self.last_valid_ultra = valid_ultra2.drop(columns =  ['last calf_num','i_date'])
         
         return self.last_valid_ultra
         
@@ -166,7 +166,7 @@ class InsemUltraData:
             )
                           ].reset_index(drop=True)
         
-        self.last_invalid_ultra = df1.drop(columns=(['i_calf#','i_date','try_num', 'typex']))     
+        self.last_invalid_ultra = df1.drop(columns=(['i_calf_num','i_date','try_num', 'typex']))     
            
         return self.last_invalid_ultra        
         
@@ -186,7 +186,7 @@ class InsemUltraData:
                            )
         
 
-        last_stop_cols = self.IUB.last_stop[['WY_id','stop calf#','last stop date']]
+        last_stop_cols = self.IUB.last_stop[['WY_id','stop calf_num','last stop date']]
         
         df4 =       df3a.merge(right=last_stop_cols ,
                               on='WY_id', 
@@ -194,9 +194,9 @@ class InsemUltraData:
         
         df4['age insem'] =  (self.today - df4['i_date']).dt.days
         df4['age ultra'] =  (self.today - df4['u_date']).dt.days
-        df4['i_check']    = df4['i_calf#'] - df4['last calf#']
+        df4['i_check']    = df4['i_calf_num'] - df4['last calf_num']
 
-        df4['u_check1']  =  df4['u_calf#'] - df4['last calf#'] 
+        df4['u_check1']  =  df4['u_calf_num'] - df4['last calf_num'] 
         df4['u_check2']  = (df4['u_date'] - df4['i_date']).dt.days
         
         df5 = df4.rename(columns={'last calf age' : 'days milking'})
@@ -224,14 +224,14 @@ class InsemUltraData:
             'WY_id',
             'status',
             'last stop date',
-            'stop calf#',
+            'stop calf_num',
             'last calf bdate',
-            'last calf#',
+            'last calf_num',
             'days milking',
-            'i_calf#',
+            'i_calf_num',
             'i_date',
             'age insem',
-            'u_calf#',
+            'u_calf_num',
             'u_date',
             'u_read',
             'age ultra',
@@ -272,10 +272,10 @@ class InsemUltraData:
             'WY_id',
             'status',
             'days milking',
-            'i_calf#',
+            'i_calf_num',
             'i_date',
             'age insem',
-            'u_calf#',
+            'u_calf_num',
             'u_date',
             'u_read',
             'age ultra',

@@ -42,7 +42,7 @@ class CheckLastStop:
         print("✅ CheckLastStop: Complete!")
 
 # this is to identify missing last_stop dates. 
-        # cows that are alive and milking but the laststop date/calf# is missing
+        # cows that are alive and milking but the laststop date/calf_num is missing
         
 
     def create_list(self):

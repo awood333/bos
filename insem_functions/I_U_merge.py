@@ -37,12 +37,12 @@ class I_U_merge:
         lb2['typex'] = 'calf_birth'
         
         u1 = self.data['u'].copy()
-        u2 = u1.rename(columns={'ultra_date': 'datex', 'calf_num': 'u-calf#'})
+        u2 = u1.rename(columns={'ultra_date': 'datex', 'calf_num': 'u-calf_num'})
         u2['datex'] = pd.to_datetime(u2['datex']).dt.date
         u2['typex'] = 'ultra'
         
         i1 = self.data['i'].copy()
-        i2 = i1.rename(columns={'insem_date': 'datex', 'calf_num': 'i_calf#'})
+        i2 = i1.rename(columns={'insem_date': 'datex', 'calf_num': 'i_calf_num'})
         i2['datex'] = pd.to_datetime(i2['datex']).dt.date
         i2['typex'] = 'insem'
         

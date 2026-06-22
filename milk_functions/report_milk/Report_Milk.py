@@ -52,7 +52,7 @@ class ReportMilk:
 
         tenday  = self.MA.tenday.copy()
         halfday = self.MA.halfday.copy()
-        WB_groups  = self.WG.whiteboard_groups_tenday.copy()
+        WB_groups  = self.WG.whiteboard_groups_tenday
         # CompareGroups = self.CompareGroups.compare_groups()
 
 

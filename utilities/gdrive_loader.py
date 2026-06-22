@@ -69,7 +69,7 @@ def gdrive_read_sheet_tab(spreadsheet_id, tab_name, **kwargs):
         .get(spreadsheetId=spreadsheet_id, range=tab_name)
         .execute()
     )
-    values = result.get('values', [])
+    values = result.get('values', [])  #grabs headers 
     if not values:
         raise ValueError(f"No data found in tab '{tab_name}' of spreadsheet {spreadsheet_id}")
 

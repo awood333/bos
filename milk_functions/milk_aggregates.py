@@ -187,17 +187,18 @@ class MilkAggregates:
     
 
     def write_to_csv(self):
-        print(">>> write_to_csv called")
-        Path.home() / "cows_data" / "milk_data" / "fullday".mkdir(parents=True, exist_ok=True)
-        Path.home() / "cows_data" / "milk_data" / "totals" / "milk_aggregates".mkdir(parents=True, exist_ok=True)
+        pass
+        # print(">>> write_to_csv called")
+        # Path.home() / "cows_data" / "milk_data" / "fullday".mkdir(parents=True, exist_ok=True)
+        # Path.home() / "cows_data" / "milk_data" / "totals" / "milk_aggregates".mkdir(parents=True, exist_ok=True)
 
-        self.fullday        .to_csv(Path.home() / "cows_data" / "milk_data" / "fullday" / "fullday.csv")
-        self.monthly_summary.to_csv(Path.home() / "cows_data" / "milk_data" / "totals" / "milk_aggregates"  / "monthly_summary.csv")
-        self.weekly_summary .to_csv(Path.home() / "cows_data" / "milk_data" / "totals" / "milk_aggregates"  / "weekly_summary.csv")
-        self.monthly_avg    .to_csv(Path.home() / "cows_data" / "milk_data" / "totals" / "milk_aggregates"  / "monthly_avg.csv")
-        self.weekly_avg     .to_csv(Path.home() / "cows_data" / "milk_data" / "totals" / "milk_aggregates"  / "weekly_avg.csv")
-        self.halfday        .to_csv(Path.home() / "cows_data" / "milk_data" / "totals" / "milk_aggregates"  / "halfday.csv")
-        self.tenday         .to_csv(Path.home() / "cows_data" / "milk_data" / "totals" / "milk_aggregates"  / "tenday.csv")
+        # self.fullday        .to_csv(Path.home() / "cows_data" / "milk_data" / "fullday" / "fullday.csv")
+        # self.monthly_summary.to_csv(Path.home() / "cows_data" / "milk_data" / "totals" / "milk_aggregates"  / "monthly_summary.csv")
+        # self.weekly_summary .to_csv(Path.home() / "cows_data" / "milk_data" / "totals" / "milk_aggregates"  / "weekly_summary.csv")
+        # self.monthly_avg    .to_csv(Path.home() / "cows_data" / "milk_data" / "totals" / "milk_aggregates"  / "monthly_avg.csv")
+        # self.weekly_avg     .to_csv(Path.home() / "cows_data" / "milk_data" / "totals" / "milk_aggregates"  / "weekly_avg.csv")
+        # self.halfday        .to_csv(Path.home() / "cows_data" / "milk_data" / "totals" / "milk_aggregates"  / "halfday.csv")
+        # self.tenday         .to_csv(Path.home() / "cows_data" / "milk_data" / "totals" / "milk_aggregates"  / "tenday.csv")
         
       
 if __name__ == '__main__':

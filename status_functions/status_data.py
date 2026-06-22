@@ -165,15 +165,16 @@ class status_data:
         return self.status_col
 
     def create_write_to_csv(self):
+        pass
         # STATUS refers to the status_stuff here --- correct in config_path
-        Path.home() / "cows_data" / "status".mkdir(parents=True, exist_ok=True)
-        self.milker_ids_df .to_csv(Path.home() / "cows_data" / "status" / "milker_ids.csv")
-        self.dry_ids_df    .to_csv(Path.home() / "cows_data" / "status" / "dry_ids.csv")
-        self.herd_daily    .to_csv(Path.home() / "cows_data" / "status" / "herd_daily.csv")
-        self.herd_monthly  .to_csv(Path.home() / "cows_data" / "status" / "herd_monthly.csv")
-        pd.DataFrame(self.milkers_ids,  columns=['ids']).to_csv(Path.home() / "cows_data" / "status" / "milkers_ids_last.csv")
-        pd.DataFrame(self.dry_ids_last, columns=['ids']).to_csv(Path.home() / "cows_data" / "status" / "dry_ids_last.csv")
-        self.status_col    .to_csv(Path.home() / "cows_data" / "status" / "status_col.csv")
+        # Path.home() / "cows_data" / "status".mkdir(parents=True, exist_ok=True)
+        # self.milker_ids_df .to_csv(Path.home() / "cows_data" / "status" / "milker_ids.csv")
+        # self.dry_ids_df    .to_csv(Path.home() / "cows_data" / "status" / "dry_ids.csv")
+        # self.herd_daily    .to_csv(Path.home() / "cows_data" / "status" / "herd_daily.csv")
+        # self.herd_monthly  .to_csv(Path.home() / "cows_data" / "status" / "herd_monthly.csv")
+        # pd.DataFrame(self.milkers_ids,  columns=['ids']).to_csv(Path.home() / "cows_data" / "status" / "milkers_ids_last.csv")
+        # pd.DataFrame(self.dry_ids_last, columns=['ids']).to_csv(Path.home() / "cows_data" / "status" / "dry_ids_last.csv")
+        # self.status_col    .to_csv(Path.home() / "cows_data" / "status" / "status_col.csv")
 
 if __name__ == "__main__":
     obj = status_data()
