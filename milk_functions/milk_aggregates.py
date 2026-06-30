@@ -8,11 +8,9 @@ plus insem_ultra_data (for days-milking merge).
 import sys
 import os
 import inspect
-from pathlib import Path
 import pandas as pd
 
 from container import get_dependency
-
 
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -35,8 +33,6 @@ class MilkAggregates:
         self.fullday_lastdate = None
         self.datex = None
         self.AM_liters = None
-        self.halfday_AM = None
-        self.halfday_PM = None
         self.halfday = None
         self.tenday = None
         self.tenday1 = None
@@ -49,7 +45,7 @@ class MilkAggregates:
 
     def load_and_process(self):
         self.MAB  = get_dependency('milk_aggregates_basic')
-        self.MB   = self.MAB.MB
+        self.MB   = get_dependency('milk_basics')
         self.data = self.MB.data
         self.DR   = get_dependency('date_range')
         self.IUB  = get_dependency('Insem_ultra_basics')
@@ -64,15 +60,14 @@ class MilkAggregates:
         self.datex            = self.MAB.datex
         self.AM_liters        = self.MAB.AM_liters
 
-        self.halfday_AM, self.halfday_PM, self.halfday = self.halfday_AM_PM()
 
+# methods
+        self.halfday = self.halfday_AM_PM()
         self.tenday, self.tenday1 = self.ten_day()
 
         [self.monthly_summary, self.weekly_summary,
          self.start, self.stop,
          self.monthly_avg, self.weekly_avg] = self.create_monthly_weekly()
-
-        self.write_to_csv()
 
         
         
@@ -83,15 +78,17 @@ class MilkAggregates:
         lastday_PM = self.pm.iloc[:,-1:]
         ldpm=lastday_PM.loc[(lastday_PM.notna() ).any(axis=1),:].index.tolist() 
         
-        self.halfday_AM = lastday_AM.loc[ldam,:]
-        self.halfday_PM = lastday_PM.loc[ldpm,:]    
+        halfday_AM = lastday_AM.loc[ldam,:]
+        halfday_PM = lastday_PM.loc[ldpm,:]    
         
-        self.halfday = self.halfday_AM.merge(self.halfday_PM, how='left', left_index=True, right_index=True)
+        date_str = str(halfday_AM.columns[0])  # e.g. '2026-06-22'
+        
+        self.halfday = halfday_AM.merge(halfday_PM, how='left', left_index=True, right_index=True)
         self.halfday.columns = ['AM', 'PM']
-        self.halfday.index.name = 'WY_id'
+        self.halfday.index.name = date_str
         self.halfday = self.halfday.reset_index()
             
-        return self.halfday_AM, self.halfday_PM, self.halfday
+        return  self.halfday
 
 
     def ten_day(self):
@@ -122,15 +119,10 @@ class MilkAggregates:
   
 
         tendayT['avg']=avg.round(1).astype(str)
-
-        
-        tendayT.index.name='WY_id'
+        tendayT.index.name='wy_id'
  
-                
-   
-        
-        days1 = pd.DataFrame(self.allx.loc[:,['WY_id','days milking', 'u_read', 'expected bdate']])
-        days = days1.set_index('WY_id')
+        days1 = pd.DataFrame(self.allx.loc[:,['wy_id','days milking', 'u_read', 'expected bdate']])
+        days = days1.set_index('wy_id')
         days.index = days.index.astype('int').astype('str')
         tendayT.index = tendayT.index.astype('str')
  
@@ -139,12 +131,12 @@ class MilkAggregates:
                     left_index=True, 
                     right_index=True
                                     )
-        # tenday2.index.name = 'WY_id_1'
+        # tenday2.index.name = 'wy_id_1'
         tenday3 = tenday2.reset_index()
         self.tenday = tenday3
         
 
-        
+        # self.tenday.to_excel("/home/alanw/Documents/tenday.xlsx")
         return self.tenday, self.tenday1
     
 
@@ -185,21 +177,7 @@ class MilkAggregates:
             self.start, self.stop,
             self.monthly_avg, self.weekly_avg]
     
-
-    def write_to_csv(self):
-        pass
-        # print(">>> write_to_csv called")
-        # Path.home() / "cows_data" / "milk_data" / "fullday".mkdir(parents=True, exist_ok=True)
-        # Path.home() / "cows_data" / "milk_data" / "totals" / "milk_aggregates".mkdir(parents=True, exist_ok=True)
-
-        # self.fullday        .to_csv(Path.home() / "cows_data" / "milk_data" / "fullday" / "fullday.csv")
-        # self.monthly_summary.to_csv(Path.home() / "cows_data" / "milk_data" / "totals" / "milk_aggregates"  / "monthly_summary.csv")
-        # self.weekly_summary .to_csv(Path.home() / "cows_data" / "milk_data" / "totals" / "milk_aggregates"  / "weekly_summary.csv")
-        # self.monthly_avg    .to_csv(Path.home() / "cows_data" / "milk_data" / "totals" / "milk_aggregates"  / "monthly_avg.csv")
-        # self.weekly_avg     .to_csv(Path.home() / "cows_data" / "milk_data" / "totals" / "milk_aggregates"  / "weekly_avg.csv")
-        # self.halfday        .to_csv(Path.home() / "cows_data" / "milk_data" / "totals" / "milk_aggregates"  / "halfday.csv")
-        # self.tenday         .to_csv(Path.home() / "cows_data" / "milk_data" / "totals" / "milk_aggregates"  / "tenday.csv")
-        
+     
       
 if __name__ == '__main__':
     obj=MilkAggregates()

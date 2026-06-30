@@ -75,7 +75,7 @@ class MilkAggregatesBasic:
         print('last index value ', self.datex[-1])
 
         self.maxcols = len(self.datex)
-        maxrows      = len(self.data['bd']['WY_id'])
+        maxrows      = len(self.data['bd']['wy_id'])
 
         idx          = np.zeros((maxrows + 1, self.maxcols), dtype=int)
         self.idx_am  = idx.copy()
@@ -132,6 +132,7 @@ class MilkAggregatesBasic:
         self.fullday.replace(0, np.nan, inplace=True)
         self.fullday.drop(self.fullday.iloc[:, 0:1], axis=1, inplace=True)
         self.fullday.index.name = 'datex'
+        # self.fullday.to_csv("/tmp/fullday.csv")
 
         self.fullday_lastdate = pd.DataFrame(
             index=[self.fullday.index[-1]], columns=['last_date'])

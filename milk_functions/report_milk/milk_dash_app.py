@@ -12,7 +12,7 @@ import pandas as pd
 
 
 COLUMN_WIDTHS = {
-    'WY_id': '90px',
+    'wy_id': '90px',
     'avg': "80px",
     'AM': '50px',
     'PM': '50px',
@@ -83,7 +83,7 @@ def get_style_cell_conditional(table_columns):
 def get_style_cell_conditional_for_tenday(table_columns):
     """Set width for first column as in COLUMN_WIDTHS, next 9 dynamic cols to 120px, rest use COLUMN_WIDTHS if defined."""
     style = []
-    # First column (usually WY_id)
+    # First column (usually wy_id)
     first_col = table_columns[0]
     if first_col in COLUMN_WIDTHS:
         style.append({'if': {'column_id': first_col}, 'width': COLUMN_WIDTHS[first_col]})
@@ -143,7 +143,7 @@ def run_milk_dash_app():
                             style_cell_conditional=get_style_cell_conditional_for_tenday(tenday_df.columns),
                             style_data_conditional=[
                                 {
-                                    'if': {'column_id': 'WY_id'},
+                                    'if': {'column_id': 'wy_id'},
                                     'textAlign': 'center',
                                     'verticalAlign': 'middle',
                                 },
@@ -196,7 +196,7 @@ def run_milk_dash_app():
                             style_cell_conditional=get_style_cell_conditional(halfday_df.columns),
                             style_data_conditional=[
                                 {
-                                    'if': {'column_id': 'WY_id'},
+                                    'if': {'column_id': 'wy_id'},
                                     'textAlign': 'center',
                                     'verticalAlign': 'middle',
                                 },
@@ -218,7 +218,7 @@ def run_milk_dash_app():
                             style_cell_conditional=get_style_cell_conditional(groups_df.columns),
                             style_data_conditional=[
                                 {
-                                    'if': {'column_id': 'WY_id'},
+                                    'if': {'column_id': 'wy_id'},
                                     'textAlign': 'center',
                                     'verticalAlign': 'middle',
                                 },
@@ -269,7 +269,7 @@ def run_milk_dash_app():
                             style_cell_conditional=get_style_cell_conditional(next_ultra_check_df.columns),
                             style_data_conditional=[
                                 {
-                                    'if': {'column_id': 'WY_id'},
+                                    'if': {'column_id': 'wy_id'},
                                     'textAlign': 'center',
                                     'verticalAlign': 'middle',
                                 },

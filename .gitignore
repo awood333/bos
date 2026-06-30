@@ -29,6 +29,7 @@ RunMilkUpdate.py
 insem_functions/Insem_ultra_basics.py
 utilities/rclone_gdrive_aws.sh
 utilities/rclone_gdrive_aws.bat
+node_modules/
 
 *accessKeys*
 *.csv

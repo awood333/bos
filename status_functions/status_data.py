@@ -50,7 +50,7 @@ class status_data:
         self.stopdate = self.maxdate
         self.bd1 = self.MB.data['bd']
         self.bdmax = len(self.bd1)
-        self.wy_series = pd.Series(list(range(1, self.bdmax + 1)), name='WY_id', index=range(1, self.bdmax + 1))
+        self.wy_series = pd.Series(list(range(1, self.bdmax + 1)), name='wy_id', index=range(1, self.bdmax + 1))
         # Per-date lists
         [self.milker_ids, self.dry_ids, self.alive_ids,
          self.alive_count, self.milker_count, self.dry_count] = self.create_milking_list()
@@ -66,7 +66,7 @@ class status_data:
         milker_ids_list, dry_ids_list, alive_ids_list = [], [], []
         alive_count, milker_count, dry_count = [], [], []
         datex = self.f.index
-        bd = self.bd1['birth_date']
+        bd = self.bd1['b_date']
         bd.index += 1
         bd.index = bd.index.astype(str)
         dd = self.bd1['death_date']
@@ -127,8 +127,8 @@ class status_data:
         bd = self.MB.data['bd'].reset_index(drop=True)
         alive_mask = bd['death_date'].isnull()
         gone_mask = bd['death_date'].notnull()
-        alive_ids_last = bd.loc[alive_mask, 'WY_id'].to_list()
-        gone_ids = bd.loc[gone_mask, 'WY_id'].to_list()
+        alive_ids_last = bd.loc[alive_mask, 'wy_id'].to_list()
+        gone_ids = bd.loc[gone_mask, 'wy_id'].to_list()
         last_milking = mab.fullday.iloc[-1:, :]
         milkers_mask = mab.fullday.iloc[-1, :] > 0
         milkers_ids = last_milking.columns[milkers_mask].astype(int).tolist()

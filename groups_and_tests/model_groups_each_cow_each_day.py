@@ -17,18 +17,18 @@ class ModelGroupsEachCowEachDay:
 
 		# startdate = None
 		# lastday = None
-		# WY_ids = None
+		# wy_ids = None
 
 	def load_and_process(self):
 		startdate 	= pd.to_datetime(self.DateRange.startdate)
 		lastday 	= pd.to_datetime(self.MB.lastday)
-		WY_ids 		= self.MB.WY_ids
+		wy_ids 		= self.MB.wy_ids
 	
 		# Load the JSON data
 		with open(self.json_path, "r", encoding="utf-8") as f:
 			self.model_groups_dict = json.load(f)
 
-		# Prepare WY_id columns (1-311 as strings)
+		# Prepare wy_id columns (1-311 as strings)
 		# wy_ids = [str(i) for i in range(1, 312)]
 
 		# Prepare date range from 2024-01-01 to the latest date in the JSON
@@ -43,7 +43,7 @@ class ModelGroupsEachCowEachDay:
 		date_range = pd.date_range(start=startdate, end=lastday, freq="D")
 
 		# Create empty DataFrame
-		result_df = pd.DataFrame(index=date_range.strftime("%Y-%m-%d"), columns=WY_ids)
+		result_df = pd.DataFrame(index=date_range.strftime("%Y-%m-%d"), columns=wy_ids)
 
         # Fill in group labels
 		group_map = {

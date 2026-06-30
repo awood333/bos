@@ -1,7 +1,7 @@
 """
 insem_functions\next_ultra_check.py
 Class to create a DataFrame for next ultra check dates.
-Fields: WY_id, i_date, age_insem, next_ultra_check_date
+Fields: wy_id, i_date, age_insem, next_ultra_check_date
 Logic: If 'age insem' is not null and 'u_date' is null, next_ultra_check_date = i_date + 40 days
 Uses: get_dependency from container.py and allx from insem_ultra_data.py
 """
@@ -30,7 +30,7 @@ class NextUltraCheck:
             & self.allx['u_date'].isnull()
             & (self.allx['status'] == 'M')
         )
-        next_ultra_check = self.allx.loc[mask, ['WY_id', 'i_date', 'age insem']].copy()
+        next_ultra_check = self.allx.loc[mask, ['wy_id', 'i_date', 'age insem']].copy()
         # Calculate estimated ultra check date: i_date + 40 days
         next_ultra_check['i_date'] = pd.to_datetime(next_ultra_check['i_date'], errors='coerce').dt.date
         next_ultra_check['next ultra check date'] = (

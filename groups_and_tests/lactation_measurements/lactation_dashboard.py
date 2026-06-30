@@ -59,7 +59,7 @@ app.layout = html.Div([
 
 def get_lactation_plot(wy_id):
     lact = LactationsLogStandard()
-    lact.WY_id = wy_id
+    lact.wy_id = wy_id
     lact.load_and_process()
     plots = LactationPlots()
     plots.load_and_process(lact)
@@ -70,8 +70,8 @@ def get_iu_table(wy_id):
     iu_merge = I_U_merge()
     iu_merge.load_and_process()
     df = iu_merge.iu
-    # Filter for the selected WY_id
-    df_filtered = df[df['WY_id'] == wy_id].copy()
+    # Filter for the selected wy_id
+    df_filtered = df[df['wy_id'] == wy_id].copy()
     # Ensure 'datex' is string (YYYY-MM-DD)
     if 'datex' in df_filtered.columns:
         df_filtered['datex'] = df_filtered['datex'].astype(str)

@@ -24,7 +24,7 @@ class Ipiv:
         self.insem = self.IUB.data['i']
         alive_ids1 = self.IUB.data['bd'].loc[self.IUB.data['bd']['death_date'].isnull()]
         alive_ids2 = alive_ids1.reset_index()
-        self.alive_ids = alive_ids2['WY_id']
+        self.alive_ids = alive_ids2['wy_id']
 
         self.ipiv_milking = self.create_ipiv()
         self.ipiv_milkers = self.add_cols_from_allx()
@@ -32,14 +32,14 @@ class Ipiv:
 
   
     def create_ipiv(self):
-        lc = self.IUB.last_calf[['WY_id', 'last calf_num']].copy()
+        lc = self.IUB.last_calf[['wy_id', 'last calf_num']].copy()
         lc['last calf_num'] += 1
         lc = lc.rename(columns={'last calf_num' : 'lact#'})
          
        
         # Filter with alive_ids
-        this_calf = lc[lc['WY_id'].isin(self.alive_ids)].reset_index(drop=True)
-        this_calf['WY_id'] = pd.to_numeric(this_calf['WY_id'], errors='coerce').dropna().astype(int)
+        this_calf = lc[lc['wy_id'].isin(self.alive_ids)].reset_index(drop=True)
+        this_calf['wy_id'] = pd.to_numeric(this_calf['wy_id'], errors='coerce').dropna().astype(int)
         this_calf['lact#'] = pd.to_numeric(this_calf['lact#'], errors='coerce').dropna().astype(int)
 
         insem1 = self.insem.copy()
@@ -47,8 +47,8 @@ class Ipiv:
         
         #this_calf1 adds the try_nums to the 'last_calf' (now called 'lact#)
         this_calf1 = this_calf.merge(insem1,
-                                      left_on=['WY_id', 'lact#'],
-                                      right_on=['WY_id', 'calf_num'],
+                                      left_on=['wy_id', 'lact#'],
+                                      right_on=['wy_id', 'calf_num'],
                                       how='left')
 
         this_calf2 = this_calf1.drop(columns=['calf_num','typex', 'readex'])
@@ -58,7 +58,7 @@ class Ipiv:
         
         ipiv_milking1 = pd.pivot_table(this_calf2,
             values='insem_date',
-            index=['WY_id'],
+            index=['wy_id'],
             columns='try_num',
             aggfunc='first',
             dropna=False 
@@ -71,7 +71,7 @@ class Ipiv:
     
     def add_cols_from_allx(self):
         
-        xxx = self.IUD.allx[['WY_id', 'u_read', 'days milking']].set_index('WY_id', drop=True)
+        xxx = self.IUD.allx[['wy_id', 'u_read', 'days milking']].set_index('wy_id', drop=True)
         xxx.index = xxx.index.astype(int).astype(str)
    
 
@@ -81,7 +81,7 @@ class Ipiv:
 
         ipiv_milkers2 = ipiv_milkers1.sort_index()
 
-        # Move 'u_read' and 'days milking' after 'WY_id'
+        # Move 'u_read' and 'days milking' after 'wy_id'
         # cols = ipiv_milkers2.columns.tolist()
         # for col in ['u_read', 'days milking']:
         #     cols.remove(col)

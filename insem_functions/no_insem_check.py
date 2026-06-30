@@ -1,6 +1,6 @@
 """
 Class to create a DataFrame for cows with no insemination check.
-Fields: WY_id, i_date, age_insem
+Fields: wy_id, i_date, age_insem
 Logic: If 'age insem' is null and 'status' is 'M', select those rows.
 Uses: get_dependency from container.py and allx from insem_ultra_data.py
 """
@@ -29,7 +29,7 @@ class NoInsemCheck:
 			& (self.allx['status'] == 'M')
 		)
 		# Include 'days milking' field
-		no_insem_check = self.allx.loc[mask, ['WY_id', 'i_date', 'age insem', 'days milking']].copy()
+		no_insem_check = self.allx.loc[mask, ['wy_id', 'i_date', 'age insem', 'days milking']].copy()
 		# Convert i_date to string for display
 		no_insem_check['i_date'] = pd.to_datetime(no_insem_check['i_date'], errors='coerce').dt.date.astype(str)
 		# Sort by 'days milking' ascending

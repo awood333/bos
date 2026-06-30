@@ -20,6 +20,7 @@ class ReportMilk:
         self.MA = get_dependency('milk_aggregates')
         self.WG = get_dependency('whiteboard_groups')
 
+# methods
         self.tenday_formatted, self.halfday_formatted, self.WB_groups_formatted = self.createReportMilk()
         
         from sql_db_related.neon_connect import get_engine
@@ -66,10 +67,10 @@ class ReportMilk:
             'PM': '{:.1f}',
             # 'litres': '{:.1f}',
             # 'avg': '{:.1f}',
-            'WY_id': '{:.0f}',
-            # 'WY_id_1': '{:.0f}',
+            'wy_id': '{:.0f}',
+            # 'wy_id_1': '{:.0f}',
             # 'cow_id': '{:.0f}',
-            # 'WY_id_2': '{:.0f}',
+            # 'wy_id_2': '{:.0f}',
             'milking days': '{:.0f}',
             'days milking': '{:.0f}',
             'expected bdate': 'iso8601',
@@ -120,13 +121,13 @@ class ReportMilk:
         # Format whiteboard groups (no pre-sort; WB_groups may not have 'avg')
         groups_formatted1 = format_dataframe(WB_groups, column_formats)
 
-        # Slice tenday to get WY_id and the dynamic 10-day columns, excluding the last summary row
+        # Slice tenday to get wy_id and the dynamic 10-day columns, excluding the last summary row
         cols = tenday_formatted.columns
         ten_day_cols = list(cols[11:18])
-        tenday_part = tenday_formatted.loc[tenday_formatted.index[:-1], ['WY_id'] + ten_day_cols]
+        tenday_part = tenday_formatted.loc[tenday_formatted.index[:-1], ['wy_id'] + ten_day_cols]
 
-        # Merge on WY_id so that group info lines up with the correct 10-day values
-        groups_merged = pd.merge(groups_formatted1, tenday_part, on='WY_id', how='left', sort=False)
+        # Merge on wy_id so that group info lines up with the correct 10-day values
+        groups_merged = pd.merge(groups_formatted1, tenday_part, on='wy_id', how='left', sort=False)
 
         # Sort numerically by avg if present, then drop helper column
         if 'avg' in groups_merged.columns:

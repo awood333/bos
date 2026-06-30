@@ -13,7 +13,7 @@ class IpivDashApp:
             # Dynamically set column widths
             cols = list(self.ipiv_milkers_df.columns)
             self.COLUMN_WIDTHS = {
-                cols[0]: '70px',    # WY_id
+                cols[0]: '70px',    # wy_id
                 cols[1]: '70px',    # lact#
             }
             # Set wider width for all remaining columns

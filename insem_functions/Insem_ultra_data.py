@@ -64,7 +64,7 @@ class InsemUltraData:
     def create_last_insem(self):
         
         # get last insem event from 'i'
-        i1 = self.data['i'].groupby('WY_id').last().reset_index()
+        i1 = self.data['i'].groupby('wy_id').last().reset_index()
         i2 = i1.rename(columns = {
             'calf_num'    : 'i_calf_num',
             'insem_date'   : 'i_date',
@@ -73,7 +73,7 @@ class InsemUltraData:
         
         #    merge last insem series with last calf series to set up comp below
         self.last_insem = i2.merge(self.IUB.last_calf,
-                      on='WY_id',
+                      on='wy_id',
                       how = 'left')
 
         return    self.last_insem        
@@ -84,7 +84,7 @@ class InsemUltraData:
             self.last_insem['i_calf_num'] > self.last_insem['last calf_num']
         )].reset_index(drop=True)
   
-        self.last_valid_insem = i4[['WY_id','i_calf_num', 'i_date' ,'last calf_num']]
+        self.last_valid_insem = i4[['wy_id','i_calf_num', 'i_date' ,'last calf_num']]
         
         return self.last_valid_insem
     
@@ -96,7 +96,7 @@ class InsemUltraData:
             self.last_insem['i_calf_num'] == self.last_insem['last calf_num']
         )].reset_index(drop=True)
   
-        self.last_invalid_insem = i4[['WY_id','i_calf_num', 'i_date' ,'last calf_num']]
+        self.last_invalid_insem = i4[['wy_id','i_calf_num', 'i_date' ,'last calf_num']]
         
         return self.last_invalid_insem
 
@@ -104,7 +104,7 @@ class InsemUltraData:
 
     def create_last_ultra(self):
         
-        u1 = self.data['u'].groupby('WY_id').last().reset_index()
+        u1 = self.data['u'].groupby('wy_id').last().reset_index()
         self.last_ultra = u1.rename(columns = {'calf_num'  :'u_calf_num',
                             'ultra_date':'u_date',
                             'readex'    : 'u_read'
@@ -116,7 +116,7 @@ class InsemUltraData:
     def create_last_valid_ultra(self):
         
         df = self.last_valid_insem.merge(self.last_ultra,
-                            on = "WY_id",
+                            on = "wy_id",
                             how = 'left'
                             )
         
@@ -132,13 +132,13 @@ class InsemUltraData:
             ((df2 ['u_read'] == 'ok' ) | (df2 ['u_read'] == 'x'))
             ]   
         
-        bdemask = bdemask1 ['WY_id'].to_list()
+        bdemask = bdemask1 ['wy_id'].to_list()
                             
-        valid_ultra1 = df2 [df2 ['WY_id'].isin(bdemask)].reset_index(drop=True)
+        valid_ultra1 = df2 [df2 ['wy_id'].isin(bdemask)].reset_index(drop=True)
         
-        valid_ultra2 = valid_ultra1.merge(df[['WY_id', 'i_date']],
+        valid_ultra2 = valid_ultra1.merge(df[['wy_id', 'i_date']],
                              how = 'left',
-                             on = 'WY_id'
+                             on = 'wy_id'
                              )
         valid_ultra2.loc[
                 valid_ultra2['u_read'] == ( 'ok'),'expected bdate'
@@ -157,7 +157,7 @@ class InsemUltraData:
     def create_last_invalid_ultra(self):
         
         df = self.last_valid_insem.merge(self.last_ultra,
-                            on = "WY_id",
+                            on = "wy_id",
                             how = 'left'
                             )
         
@@ -176,20 +176,20 @@ class InsemUltraData:
         #merge the valid and invalid dfs
         df3  = self.last_valid_insem .merge( right = self.last_valid_ultra,
                               how='left',
-                              on='WY_id' )        
+                              on='wy_id' )        
         
-        last_calf_cols = self.IUB.last_calf[['WY_id','last calf bdate', 'last calf age']]
+        last_calf_cols = self.IUB.last_calf[['wy_id','last calf bdate', 'last calf age']]
         
         df3a = df3 . merge( right = last_calf_cols,
                            how = 'outer',
-                           on = 'WY_id'
+                           on = 'wy_id'
                            )
         
 
-        last_stop_cols = self.IUB.last_stop[['WY_id','stop calf_num','last stop date']]
+        last_stop_cols = self.IUB.last_stop[['wy_id','stop calf_num','last stop date']]
         
         df4 =       df3a.merge(right=last_stop_cols ,
-                              on='WY_id', 
+                              on='wy_id', 
                               how='left' )  
         
         df4['age insem'] =  (self.today - df4['i_date']).dt.days
@@ -202,7 +202,7 @@ class InsemUltraData:
         df5 = df4.rename(columns={'last calf age' : 'days milking'})
         
         df6 = df5.merge(right=self.status_col[['ids','status']], 
-                             left_on= 'WY_id', right_on ='ids',
+                             left_on= 'wy_id', right_on ='ids',
                              suffixes=('', 'R'))
    
 
@@ -210,7 +210,7 @@ class InsemUltraData:
         df6         = df6.drop(columns=['ids'])
         df6         = df6.reset_index(drop=True)
         df6['exp drydate'] = df6['expected bdate'] - timedelta(days=61)
-        df6['WY_id'] = df6['WY_id'].astype(int)
+        df6['wy_id'] = df6['wy_id'].astype(int)
 
         self.df7 = df6
         
@@ -221,7 +221,7 @@ class InsemUltraData:
         
         self.allx = self.df7[
             [
-            'WY_id',
+            'wy_id',
             'status',
             'last stop date',
             'stop calf_num',
@@ -247,7 +247,7 @@ class InsemUltraData:
         self.all_dry     = self.allx[self.allx['status'] == 'D']
         self.all_preg    = self.allx[self.allx['u_read'] == 'ok']
         self.all_not_preg = self.allx[ (self.allx['u_read'] != 'ok') ]
-        self.days_milking = self.allx[['WY_id','days milking']]
+        self.days_milking = self.allx[['wy_id','days milking']]
         
         return (self.allx, self.all_milking, 
                 self.all_dry, self.all_preg, 
@@ -269,7 +269,7 @@ class InsemUltraData:
 
         notpreg2 = notpreg1[
             [
-            'WY_id',
+            'wy_id',
             'status',
             'days milking',
             'i_calf_num',

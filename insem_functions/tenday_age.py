@@ -15,13 +15,13 @@ class TendayMilkingDays:
     def load_and_process(self):
         self.IUD = get_dependency('insem_ultra_data')
         self.MA  = get_dependency('milk_aggregates')
-        self.days= self.IUD.allx.loc[:, ['WY_id', 'days milking']]
-        self.preg= self.IUD.allx.loc[:, ['WY_id', 'u_read', 'expected bdate']]
+        self.days= self.IUD.allx.loc[:, ['wy_id', 'days milking']]
+        self.preg= self.IUD.allx.loc[:, ['wy_id', 'u_read', 'expected bdate']]
         self.td2 = self.tenday_days()
 
     def tenday_days(self):
         td = self.MA.tenday.reset_index()
-        self.td2 = pd.merge(td, self.preg, on='WY_id', how='left')
+        self.td2 = pd.merge(td, self.preg, on='wy_id', how='left')
         self.td2.to_csv('E:\\COWS\\data\\milk_data\\totals\\milk_aggregates\\tenday_days.csv')
         return self.td2
         

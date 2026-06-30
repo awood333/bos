@@ -26,7 +26,7 @@ class WhiteboardGroups:
             wbg1 = pd.read_sql("SELECT * FROM latest_groups_payload_view;", conn)
             date = str(wbg1['snapshot_date'][0])     
             wbgroups2 = wbg1.drop(columns=['snapshot_date'])       
-            wbgroups2 = wbgroups2.rename(columns= {'group_name': date, 'wy_id' : 'WY_id'})
+            wbgroups2 = wbgroups2.rename(columns= {'group_name': date, 'wy_id' : 'wy_id'})
             self.whiteboard_groups_tenday = wbgroups2
         
         

@@ -37,13 +37,13 @@ class LactationPlots:
         doc1 = getattr(LLS, 'days_on_date_of_change1', None)
         doc2 = getattr(LLS, 'days_on_date_of_change2', None)
 
-        # Set default WY_id if not provided
+        # Set default wy_id if not provided
         if wy_id is None and self.m1_weekly_all is not None:
             self.default_wy_id = self.m1_weekly_all.columns[0]
         else:
             self.default_wy_id = wy_id
 
-        # Now get cow-specific data using the correct WY_id
+        # Now get cow-specific data using the correct wy_id
         self.m1_weekly_cow = LLS.m1_weekly_all.loc[:, self.default_wy_id] if self.default_wy_id in LLS.m1_weekly_all.columns else None
         self.m1_daily_cow  = LLS.m1_daily_all.loc[:, self.default_wy_id] if self.default_wy_id in LLS.m1_daily_all.columns else None
 
@@ -106,7 +106,7 @@ class LactationPlots:
             weekly_cow.head(52).values,
             'o-',
             color='red',
-            label=f'Cow Liters (WY_id {wy_id})',
+            label=f'Cow Liters (wy_id {wy_id})',
             alpha=0.7
         )
         if daily_cow is not None:
@@ -116,7 +116,7 @@ class LactationPlots:
                 linestyle=':',
                 linewidth=2,
                 color='pink',
-                label=f'Daily Liters (WY_id {wy_id})',
+                label=f'Daily Liters (wy_id {wy_id})',
                 alpha=0.5
             )   
         ax2.set_xlabel('week')
@@ -139,7 +139,7 @@ class LactationPlots:
         lines2, labels2 = ax2.get_legend_handles_labels()
         ax1.legend(lines1 + lines2, labels1 + labels2, loc='upper left')
 
-        plt.title(f"WY_id {wy_id} : Liters weekly" if wy_id else 'Liters: all_v_cow', fontsize=20 )
+        plt.title(f"wy_id {wy_id} : Liters weekly" if wy_id else 'Liters: all_v_cow', fontsize=20 )
         plt.tight_layout()
 
         buf = io.BytesIO()

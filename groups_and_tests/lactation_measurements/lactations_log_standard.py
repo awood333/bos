@@ -19,8 +19,8 @@ class LactationsLogStandard:
         self.LW  = None
         self.WD = None
             
-        self.input_WY_id =None
-        self.WY_id = None
+        self.input_wy_id =None
+        self.wy_id = None
         self.days_on_date_of_change1 = None
         self.days_on_date_of_change2 = None
         self.date_of_change1 = None
@@ -88,7 +88,7 @@ class LactationsLogStandard:
         
         # Methods
 
-        self.input_WY_id            = self.create_input_WY_id()
+        self.input_wy_id            = self.create_input_wy_id()
         days_milking = self.get_days_milking()
         self.days_on_date_of_change1 = days_milking[0]
         self.days_on_date_of_change2 = days_milking[1]
@@ -105,8 +105,8 @@ class LactationsLogStandard:
             self.daily_diff_all
             )                   = self.create_daily_all()
 
-        if self.WY_id is None and self.m1_daily_all is not None:
-            self.WY_id = self.m1_daily_all.columns[0]
+        if self.wy_id is None and self.m1_daily_all is not None:
+            self.wy_id = self.m1_daily_all.columns[0]
 
         (   self.m1_daily_cow,
             self.max_daily_cow,
@@ -148,8 +148,8 @@ class LactationsLogStandard:
 
         self.write_to_csv() 
 
-    def create_input_WY_id(self):
-        return self.WY_id
+    def create_input_wy_id(self):
+        return self.wy_id
 
 
     def get_days_milking(self):
@@ -216,15 +216,15 @@ class LactationsLogStandard:
     
     def create_daily_cow(self):
         # Load daily data from ThisLactation -- index is from day 1 (not date)
-        m1_daily_cow = self.m1_daily_all.loc[:, self.WY_id].copy()
+        m1_daily_cow = self.m1_daily_all.loc[:, self.wy_id].copy()
 
         # Ensure columns and index are int for alignment
         m1_daily_cow = m1_daily_cow.astype(float)
         m1_daily_cow.index = m1_daily_cow.index.astype(int)
 
         # For the cow
-        max_daily_cow       = self.max_daily_all.loc[self.WY_id]
-        idx_max_daily_cow   = self.idx_max_daily_all.loc[self.WY_id]
+        max_daily_cow       = self.max_daily_all.loc[self.wy_id]
+        idx_max_daily_cow   = self.idx_max_daily_all.loc[self.wy_id]
         maxdiff_daily_cow   = m1_daily_cow - max_daily_cow['max']
         daily_cow_diff      = m1_daily_cow.diff(periods=1)
 
@@ -314,15 +314,15 @@ class LactationsLogStandard:
 
     def create_weekly_cow(self):
         # Load weekly data for the cow
-        m1_weekly_cow = self.m1_weekly_all.loc[:, self.WY_id].copy()
+        m1_weekly_cow = self.m1_weekly_all.loc[:, self.wy_id].copy()
 
         # Ensure columns and index are int for alignment
         m1_weekly_cow = m1_weekly_cow.astype(float)
         m1_weekly_cow.index = m1_weekly_cow.index.astype(int)
 
         # For the cow
-        max_weekly_cow = self.max_weekly_all.loc[self.WY_id]
-        idx_max_weekly_cow = self.idx_max_weekly_all.loc[self.WY_id]
+        max_weekly_cow = self.max_weekly_all.loc[self.wy_id]
+        idx_max_weekly_cow = self.idx_max_weekly_all.loc[self.wy_id]
         maxdiff_weekly_cow = m1_weekly_cow - max_weekly_cow['max']
         weekly_diff_cow = m1_weekly_cow.diff(periods=1)
 

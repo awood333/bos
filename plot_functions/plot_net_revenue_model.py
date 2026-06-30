@@ -28,8 +28,8 @@ class PlotNetRevenueModel:
         self.date_of_change2 = pd.to_datetime(getattr(LLS, 'date_of_change2', None))
         self.df['date'] = pd.to_datetime(self.df['date'])
 
-        for cow_id in self.df['WY_id'].unique():
-            cow_df = self.df[self.df['WY_id'] == cow_id].sort_values('date')
+        for cow_id in self.df['wy_id'].unique():
+            cow_df = self.df[self.df['wy_id'] == cow_id].sort_values('date')
             # Group by week
             weekly = cow_df.groupby('week').agg({
                 'revenue': 'sum',

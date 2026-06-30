@@ -14,24 +14,22 @@ class I_U_merge:
         self.MB = get_dependency('milk_basics')
         self.data = self.MB.data
         self.iu = self.create_basics()
-        self.create_write_to_csv()
-        self.create_write_to_neon()
         
     def create_basics(self):
         b1 = self.data['bd'].copy()
-        b2 = b1.drop(columns=(['birth_date','death_date', 'dam_num', 'arrived']))
+        b2 = b1.drop(columns=(['b_date','death_date', 'dam_num', 'arrived']))
         b2 = b2.rename(columns={'adj_bdate': 'datex'})
         b2['datex'] = pd.to_datetime(b2['datex']).dt.date
         b2['typex'] = 'cow_birth'
         
         d1 = self.data['bd'].copy()
-        d2 = d1.drop(columns=(['birth_date','dam_num', 'arrived', 'adj_bdate']))
+        d2 = d1.drop(columns=(['b_date','dam_num', 'arrived', 'adj_bdate']))
         d2 = d2.rename(columns={'death_date': 'datex'})
         d2['datex'] = pd.to_datetime(d2['datex']).dt.date
         d2['typex'] = 'cow_death'
         
         lb1 = self.data['lb'].copy()
-        lb1 = lb1.drop(columns=(['try#']))
+        lb1 = lb1.drop(columns=(['try_num']))
         lb2 = lb1.rename(columns={'b_date': 'datex'})
         lb2['datex'] = pd.to_datetime(lb2['datex']).dt.date
         lb2['typex'] = 'calf_birth'
@@ -47,20 +45,14 @@ class I_U_merge:
         i2['typex'] = 'insem'
         
         s1 = self.data['stopx'].copy()
-        s2 = s1.rename(columns={'lact_num': 'stop#', 'stop': 'datex'})
+        s2 = s1.rename(columns={'lact_num': 'stop_num', 'stop': 'datex'})
         s2['datex'] = pd.to_datetime(s2['datex']).dt.date
 
         self.iu = pd.concat([b2, i2, u2, lb2, s2, d2], axis=0, ignore_index=False)\
-            .sort_values(['WY_id', 'datex']).reset_index(drop=True)
+            .sort_values(['wy_id', 'datex']).reset_index(drop=True)
         return self.iu
         
-    def create_write_to_csv(self):
-        pass
-        # Path.home() / "cows_data" / "insem_data" / "IU_merge".mkdir(parents=True, exist_ok=True)
-        # self.iu.to_csv(Path.home() / "cows_data" / "insem_data" / "IU_merge" / "IU_merge.csv", index=False)
-        
-    def create_write_to_neon(self):
-        pass        
+    
         
 if __name__ == '__main__':
     obj = I_U_merge()

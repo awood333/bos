@@ -4,8 +4,7 @@
 # First run:
 #   modal secret create neon-credentials "DATABASE_URL=postgresql://...full url..."
 #
-# Then:
-#   modal run bos_backend.py
+# NOTE: USE THIS ON COMMAND LINE   modal run modal_dailyUpdate.py
 
 import modal
 

@@ -45,12 +45,12 @@ class WetDryGroups:
         # Get pregnant_mask from insem_ultra_data
         IUD = get_dependency('insem_ultra_data')
         preg = IUD.all_preg.reset_index(drop=True)
-        pregnant_mask1 = preg[['WY_id', 'status']]
+        pregnant_mask1 = preg[['wy_id', 'status']]
         pregnant_mask2 = pregnant_mask1.loc[pregnant_mask1['status'] == 'M'].reset_index(drop=True)
-        pregnant_mask = pd.Series(pregnant_mask2['WY_id'])
+        pregnant_mask = pd.Series(pregnant_mask2['wy_id'])
 
-        # Sort by WY_id, period, and period_week, then reset index
-        sort_cols = ['WY_id', 'period', 'period_week'] if 'period' in grouped_df.columns and 'period_week' in grouped_df.columns else ['WY_id', 'period_week'] if 'period_week' in grouped_df.columns else ['WY_id', 'date']
+        # Sort by wy_id, period, and period_week, then reset index
+        sort_cols = ['wy_id', 'period', 'period_week'] if 'period' in grouped_df.columns and 'period_week' in grouped_df.columns else ['wy_id', 'period_week'] if 'period_week' in grouped_df.columns else ['wy_id', 'date']
         grouped_df = grouped_df.sort_values(sort_cols).reset_index(drop=True)
 
         def assign_group(row):
@@ -58,7 +58,7 @@ class WetDryGroups:
             week_num = row['period_week'] if 'period_week'  in row else row.get('week_num', None)
             day_num  = row['day_num']     if 'day_num'      in row else row.get( None) 
             liters = row['liters']
-            wy_id = row['WY_id'] if 'WY_id' in row else None
+            wy_id = row['wy_id'] if 'wy_id' in row else None
             if pd.isna(week_num) or pd.isna(day_num) or pd.isna(liters):
                 return None
             if day_num < 21 and liters >0:
@@ -93,7 +93,7 @@ class WetDryGroups:
         def get_feedcost(row):
             group = row['group']
             week_date = row['date'] if 'date' in row else None
-            wy_id = row['WY_id'] if 'WY_id' in row else None
+            wy_id = row['wy_id'] if 'wy_id' in row else None
             if pd.isna(group) or pd.isna(week_date):
                 return None
             col = group_to_col.get(group)

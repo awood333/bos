@@ -55,14 +55,14 @@ class ModelGroups:
         wet = self.WD_weekly
 
         preg = self.IUD.all_preg.reset_index(drop=True)
-        pregnant_mask1 = preg[['WY_id', 'status']]
+        pregnant_mask1 = preg[['wy_id', 'status']]
         pregnant_mask2 = pregnant_mask1.loc[pregnant_mask1['status'] == 'M'].reset_index(drop=True)
-        pregnant_mask = pd.Series(pregnant_mask2['WY_id'])
+        pregnant_mask = pd.Series(pregnant_mask2['wy_id'])
 
         def assign_group(row):
             day_num = row['day_num']
             liters  = row['liters']
-            wy_id   = row['WY_id']
+            wy_id   = row['wy_id']
             if pd.isna(day_num) or pd.isna(liters):
                 return None
             if day_num < 21:

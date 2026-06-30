@@ -22,19 +22,19 @@ class CompareModelWhiteboardGroups_Last:
         model = self.model_groups.model_groups_lastrow.copy()
         wb = self.whiteboard_groups.whiteboard_groups_tenday.copy()
 
-        # Ensure WY_id is int for both
-        model['WY_id'] = model['WY_id'].astype(int)
-        wb['WY_id'] = wb['WY_id'].astype(int)
+        # Ensure wy_id is int for both
+        model['wy_id'] = model['wy_id'].astype(int)
+        wb['wy_id'] = wb['wy_id'].astype(int)
 
         # Rename columns for clarity
         model = model.rename(columns={'group': 'model group'})
         wb = wb.rename(columns={'group': 'whiteboard group'})
 
-        # Keep only 'WY_id' and 'whiteboard group' columns in wb
-        wb = wb[['WY_id', 'whiteboard group']]
+        # Keep only 'wy_id' and 'whiteboard group' columns in wb
+        wb = wb[['wy_id', 'whiteboard group']]
 
-        # Merge on WY_id
-        merged = pd.merge(model, wb, on="WY_id", suffixes=('_model', '_whiteboard'))
+        # Merge on wy_id
+        merged = pd.merge(model, wb, on="wy_id", suffixes=('_model', '_whiteboard'))
 
         # Reorder columns so 'model group' is last
         cols = merged.columns.tolist()

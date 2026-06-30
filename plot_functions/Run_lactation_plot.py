@@ -31,7 +31,7 @@ class RunLactationPlot:
 
         self.df_weekly = self.TL.milking_wkly.iloc[:53, :].copy().dropna(axis=1, how='all')
         self.df_daily  = self.TL.milking_daily.iloc[:364, :].copy().dropna(axis=1, how='all')
-        self.df_id_list = self.df_weekly.columns.to_frame(index=False, name="WY_id")
+        self.df_id_list = self.df_weekly.columns.to_frame(index=False, name="wy_id")
         self.df_id_list.to_csv(os.path.join(self.output_folder, "cow_id_list.csv"), index=False)
 
         self.weekly_avg_all = self.df_weekly.mean(axis=1)
@@ -70,7 +70,7 @@ class RunLactationPlot:
                          marker='o',
                          markersize=1,
                          color='orange', 
-                         label=f'Cow WY_id {cow_id} (daily avg liters)', 
+                         label=f'Cow wy_id {cow_id} (daily avg liters)', 
                          alpha=0.7)
                 ax2.set_xlabel('Days Milking')
                 ax2.set_xlim(self.df_daily.index.min(), self.df_daily.index.max())
