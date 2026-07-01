@@ -7,27 +7,28 @@ from container import get_dependency
 import threading
 import webbrowser
 from dash import Dash, html, dash_table
+from dash.dash_table.Format import Format, Scheme
 import pandas as pd
-
 
 
 COLUMN_WIDTHS = {
     'wy_id': '90px',
+    'date': '90px',
     'avg': "80px",
     'AM': '50px',
     'PM': '50px',
     'pct chg from avg': '80px',
-    'days milking' : '90px',
-    'u_read' : "70px",
-    'expected bdate' : "200px",
+    'days milking': '90px',
+    'u_read': "70px",
+    'expected bdate': "200px",
     'i_date': '130px',
     'next ultra check date': '200px',
-    'model group' : "60px",
-    'whiteboard group' : "60px",
-    'comp':"40px",
+    'model group': "60px",
+    'whiteboard group': "60px",
+    'comp': "40px",
     # Add more as needed
 }
-  
+
 
 def get_panel_style():
     return {
@@ -71,7 +72,7 @@ def get_table_cell_style():
         'minHeight': '30px',
         'border': '1px solid #777878',
     }
-    
+
 def get_style_cell_conditional(table_columns):
     """Return style_cell_conditional list for the given columns based on COLUMN_WIDTHS."""
     return [
@@ -83,34 +84,67 @@ def get_style_cell_conditional(table_columns):
 def get_style_cell_conditional_for_tenday(table_columns):
     """Set width for first column as in COLUMN_WIDTHS, next 9 dynamic cols to 120px, rest use COLUMN_WIDTHS if defined."""
     style = []
-    # First column (usually wy_id)
     first_col = table_columns[0]
     if first_col in COLUMN_WIDTHS:
         style.append({'if': {'column_id': first_col}, 'width': COLUMN_WIDTHS[first_col]})
     else:
         style.append({'if': {'column_id': first_col}, 'width': '90px'})
-    # Next 9 columns (dynamic)
     for col in table_columns[1:11]:
         style.append({'if': {'column_id': col}, 'width': '40px'})
-    # Remaining columns, use COLUMN_WIDTHS if available
     for col in table_columns[11:]:
         if col in COLUMN_WIDTHS:
             style.append({'if': {'column_id': col}, 'width': COLUMN_WIDTHS[col]})
     return style
-      
-def run_milk_dash_app():        
-  
-    report  = get_dependency('report_milk')         #this calls MA WG MG and CompareGroups
-    # xl      = get_dependency('report_milk_xlsx')    #ignore pylint: this is enough to run the mod
+
+
+def prepare_fullday_table(fullday_df):
+    """Prepare the fullday matrix for display.
+
+    fullday's first column is the date axis (from MAB.fullday's index),
+    and the remaining columns are wy_id-keyed milk values — already
+    rounded to floats by report_milk.format_fullday_dataframe before
+    this ever lands in Neon. This function just:
+      - pulls the date out of the index if it's still there
+      - normalizes the first column's name to 'date'
+      - stringifies column ids (Dash requires string ids; wy_id columns
+        are likely ints)
+      - builds the matching column spec: 'date' as plain text, every
+        wy_id column as numeric with 1 decimal place fixed formatting
+
+    Returns (df, columns) ready to hand straight to dash_table.DataTable.
+    """
+    df = fullday_df.reset_index() if fullday_df.index.name else fullday_df.copy()
+
+    date_col = df.columns[0]
+    if date_col != 'date':
+        df = df.rename(columns={date_col: 'date'})
+
+    df.columns = [str(c) if c != 'date' else 'date' for c in df.columns]
+
+    columns = [{"name": "date", "id": "date"}]
+    for col in df.columns[1:]:
+        columns.append({
+            "name": col,
+            "id": col,
+            "type": "numeric",
+            "format": Format(precision=1, scheme=Scheme.fixed),
+        })
+
+    return df, columns
+
+
+def run_milk_dash_app():
+
+    report = get_dependency('report_milk')         # this calls MA WG MG and CompareGroups
+    # xl      = get_dependency('report_milk_xlsx')    # ignore pylint: this is enough to run the mod
     # plots   = get_dependency('lactation_plots')   # TODO: fix lactation_basics NoneType error
-    #running 'plots' also calls all the lactation related modules
+    # running 'plots' also calls all the lactation related modules
 
-    tenday_df  = report.tenday_formatted
-    halfday_df = report.halfday_formatted 
-    groups_df  =  report.WB_groups_formatted
+    tenday_df = report.tenday_formatted
+    halfday_df = report.halfday_formatted
+    fullday_df, fullday_columns = prepare_fullday_table(report.fullday_formatted)
+    groups_df = report.WB_groups_formatted
     # compare_groups_df = report.CompareGroups
-
-
 
     # Import NextUltraCheck and get the DataFrame
     from insem_functions.next_ultra_check import NextUltraCheck
@@ -130,7 +164,7 @@ def run_milk_dash_app():
             html.Div(
                 [
                     html.Div([
-                        html.H2("10-Day Summary", 
+                        html.H2("10-Day Summary",
                                 style={'textAlign': 'center', 'color': '#00bcd4'}),
                         dash_table.DataTable(
                             id='tenday-table',
@@ -157,7 +191,7 @@ def run_milk_dash_app():
                                         'filter_query': '{pct chg from avg} >= 0.15',
                                         'column_id': 'pct chg from avg'
                                     },
-                                    'backgroundColor': "#07f607", 
+                                    'backgroundColor': "#07f607",
                                     'color': 'black',
                                     'fontWeight': 'bold'
                                 },
@@ -166,7 +200,7 @@ def run_milk_dash_app():
                                         'filter_query': '{pct chg from avg} <= -0.15',
                                         'column_id': 'pct chg from avg'
                                     },
-                                    'backgroundColor': "#F8E004", 
+                                    'backgroundColor': "#F8E004",
                                     'color': 'black',
                                     'fontWeight': 'bold'
                                 },
@@ -174,16 +208,16 @@ def run_milk_dash_app():
                                     'if': {
                                         'column_id': 'avg'
                                     },
-                                    'backgroundColor': "#353B3B", 
+                                    'backgroundColor': "#353B3B",
                                     'color': '#cdfffd',
                                     'fontWeight': 'bold'
-                                },                               
+                                },
                             ],
                         ),
                     ], style=get_panel_style()),
 
                     html.Div([
-                        html.H2("Half-Day Summary", 
+                        html.H2("Half-Day Summary",
                                 style={'textAlign': 'center', 'color': '#00bcd4'}),
                         dash_table.DataTable(
                             id='halfday-table',
@@ -205,7 +239,7 @@ def run_milk_dash_app():
                     ], style=get_panel_style()),
 
                     html.Div([
-                        html.H2("Groups", 
+                        html.H2("Groups",
                                 style={'textAlign': 'center', 'color': '#00bcd4'}),
                         dash_table.DataTable(
                             id='groups-table',
@@ -237,7 +271,7 @@ def run_milk_dash_app():
                                         'filter_query': '{group} = "B"',
                                         'column_id': 'group'
                                     },
-                                    'backgroundColor': "#052F49", 
+                                    'backgroundColor': "#052F49",
                                     'color': "#CEE9F9",
                                     'fontWeight': 'bold',
                                 },
@@ -246,7 +280,7 @@ def run_milk_dash_app():
                                         'filter_query': '{group} = "C"',
                                         'column_id': 'group'
                                     },
-                                    'backgroundColor': "#39301E", 
+                                    'backgroundColor': "#39301E",
                                     'color': "#CEE9F9",
                                     'fontWeight': 'bold',
                                 },
@@ -255,7 +289,7 @@ def run_milk_dash_app():
                     ], style=get_panel_style()),
 
                     html.Div([
-                        html.H2("Next Ultra Check Dates", 
+                        html.H2("Next Ultra Check Dates",
                                 style={'textAlign': 'center', 'color': '#00bcd4'}),
                         dash_table.DataTable(
                             id='next-ultra-check-table',
@@ -264,7 +298,7 @@ def run_milk_dash_app():
                             style_table=get_table_style(),
                             style_header=get_table_header_style(),
                             style_cell={**get_table_cell_style(), 'whiteSpace': 'normal'},
-                            style_data={ 'whiteSpace': 'normal' },
+                            style_data={'whiteSpace': 'normal'},
                             cell_selectable=True,
                             style_cell_conditional=get_style_cell_conditional(next_ultra_check_df.columns),
                             style_data_conditional=[
@@ -276,11 +310,34 @@ def run_milk_dash_app():
                             ],
                         ),
                     ], style=get_panel_style()),
+
+                    # Full-Day Matrix panel
+                    html.Div([
+                        html.H2("Full-Day Matrix (All Cows)",
+                                style={'textAlign': 'center', 'color': '#00bcd4'}),
+                        dash_table.DataTable(
+                            id='fullday-table',
+                            data=fullday_df.to_dict('records'),
+                            columns=fullday_columns,
+                            style_table=get_table_style(),
+                            style_header={**get_table_header_style(), 'height': '60px'},
+                            style_cell=get_table_cell_style(),
+                            cell_selectable=True,
+                            style_cell_conditional=get_style_cell_conditional(fullday_df.columns),
+                            style_data_conditional=[
+                                {
+                                    'if': {'column_id': 'date'},
+                                    'textAlign': 'center',
+                                    'verticalAlign': 'middle',
+                                },
+                            ],
+                        ),
+                    ], style=get_panel_style()),
                 ],
                 style={
                     'display': 'flex',
                     'flexDirection': 'row',
-                    'justifyContent': 'flex-start', 
+                    'justifyContent': 'flex-start',
                     'alignItems': 'flex-start',
                     'gap': '10px',
                     'width': '100%',
@@ -290,8 +347,6 @@ def run_milk_dash_app():
         style={'backgroundColor': "#181616", 'padding': '20px'}
     )
     print("🔍 run_dash_app: Starting server...")
-
-
 
     def open_browser():
         url = "http://127.0.0.1:8051/"
@@ -308,7 +363,6 @@ def run_milk_dash_app():
                 r"C:\Program Files (x86)\Mozilla Firefox\firefox.exe",
             ]
             for browser in candidates:
-                # Absolute Windows paths: check existence; bare commands: let Popen find them
                 if os.sep == '\\' and browser.startswith('C:\\'):
                     if not os.path.exists(browser):
                         continue
@@ -319,7 +373,6 @@ def run_milk_dash_app():
                     return
                 except (FileNotFoundError, OSError):
                     continue
-            # Last resort — non-blocking on most platforms
             webbrowser.open_new_tab(url)
         except Exception as e:
             print(f"Could not open browser: {e}")
@@ -332,7 +385,6 @@ def run_milk_dash_app():
     threading.Timer(1.5, open_browser).start()
 
     if __name__ == "__main__":
-        # Block the main thread so the daemon server stays alive when run directly
         server_thread.join()
 
 if __name__ == "__main__":

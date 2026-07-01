@@ -132,7 +132,6 @@ class MilkAggregatesBasic:
         self.fullday.replace(0, np.nan, inplace=True)
         self.fullday.drop(self.fullday.iloc[:, 0:1], axis=1, inplace=True)
         self.fullday.index.name = 'datex'
-        # self.fullday.to_csv("/tmp/fullday.csv")
 
         self.fullday_lastdate = pd.DataFrame(
             index=[self.fullday.index[-1]], columns=['last_date'])

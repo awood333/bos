@@ -15,6 +15,7 @@ class LactationBasics:
     def load_and_process(self):
         self.MB  = get_dependency('milk_basics')
         self.MAB = get_dependency('milk_aggregates_basic')  # populates MB.data['milk'] with fresh fullday
+        #methods
         self.lactations_array, self.headers = self.create_lactation_basics()
 
     def create_lactation_basics(self):

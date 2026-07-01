@@ -61,16 +61,14 @@ class MilkAggregates:
         self.AM_liters        = self.MAB.AM_liters
 
 
-# methods
+        # methods
         self.halfday = self.halfday_AM_PM()
         self.tenday, self.tenday1 = self.ten_day()
 
         [self.monthly_summary, self.weekly_summary,
          self.start, self.stop,
          self.monthly_avg, self.weekly_avg] = self.create_monthly_weekly()
-
-        
-        
+       
     def halfday_AM_PM(self):
         lastday_AM = self.am.iloc[:,-1:]
         ldam=lastday_AM.loc[(lastday_AM.notna() ).any(axis=1),:].index.tolist()  
@@ -89,7 +87,6 @@ class MilkAggregates:
         self.halfday = self.halfday.reset_index()
             
         return  self.halfday
-
 
     def ten_day(self):
 
@@ -139,8 +136,6 @@ class MilkAggregates:
         # self.tenday.to_excel("/home/alanw/Documents/tenday.xlsx")
         return self.tenday, self.tenday1
     
-
-
     def create_monthly_weekly(self):
         
         def format_num(num):
@@ -176,9 +171,7 @@ class MilkAggregates:
         return [self.monthly_summary, self.weekly_summary, 
             self.start, self.stop,
             self.monthly_avg, self.weekly_avg]
-    
-     
-      
+
 if __name__ == '__main__':
     obj=MilkAggregates()
     obj.load_and_process()      
