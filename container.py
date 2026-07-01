@@ -100,7 +100,7 @@ class Container:
 
         # Report Milk
         self.register_singleton('create_report_milk',      self._create_report_milk)
-        # self.register_singleton('create_report_milk_xlsx', self._create_report_milk_xlsx)        
+        self.register_singleton('daily_milk_modal',        self._create_daily_milk_modal)        
         self.register_singleton('run_milk_dash_app',       self._create_run_milk_dash_app)        
 
 
@@ -355,9 +355,9 @@ class Container:
         from milk_functions.report_milk.Report_Milk import ReportMilk
         return ReportMilk()
 
-    # def _create_report_milk_xlsx(self):
-    #     from milk_functions.report_milk.report_milk_xlsx import ReportMilkXlsx
-    #     return ReportMilkXlsx()          
+    def _create_daily_milk_modal(self):
+        from milk_functions.report_milk.dailyMilk_Modal import DailyMilkModal
+        return DailyMilkModal()          
 
     def _create_run_milk_dash_app(self):
         from milk_functions.report_milk.milk_dash_app import run_milk_dash_app

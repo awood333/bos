@@ -310,38 +310,7 @@ def run_milk_dash_app():
                             ],
                         ),
                     ], style=get_panel_style()),
-
-                    # Full-Day Matrix panel
-                    html.Div([
-                        html.H2("Full-Day Matrix (All Cows)",
-                                style={'textAlign': 'center', 'color': '#00bcd4'}),
-                        dash_table.DataTable(
-                            id='fullday-table',
-                            data=fullday_df.to_dict('records'),
-                            columns=fullday_columns,
-                            style_table=get_table_style(),
-                            style_header={**get_table_header_style(), 'height': '60px'},
-                            style_cell=get_table_cell_style(),
-                            cell_selectable=True,
-                            style_cell_conditional=get_style_cell_conditional(fullday_df.columns),
-                            style_data_conditional=[
-                                {
-                                    'if': {'column_id': 'date'},
-                                    'textAlign': 'center',
-                                    'verticalAlign': 'middle',
-                                },
-                            ],
-                        ),
-                    ], style=get_panel_style()),
                 ],
-                style={
-                    'display': 'flex',
-                    'flexDirection': 'row',
-                    'justifyContent': 'flex-start',
-                    'alignItems': 'flex-start',
-                    'gap': '10px',
-                    'width': '100%',
-                }
             ),
         ],
         style={'backgroundColor': "#181616", 'padding': '20px'}
@@ -358,9 +327,6 @@ def run_milk_dash_app():
                 "google-chrome",
                 "chromium-browser",
                 "xdg-open",
-                # Windows
-                r"C:\Program Files\Mozilla Firefox\firefox.exe",
-                r"C:\Program Files (x86)\Mozilla Firefox\firefox.exe",
             ]
             for browser in candidates:
                 if os.sep == '\\' and browser.startswith('C:\\'):

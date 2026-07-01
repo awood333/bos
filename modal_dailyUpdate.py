@@ -68,7 +68,7 @@ def run_pipeline():
     print(f"\n=== BOS pipeline starting: {datetime.now()} ===\n")
 
     from container import get_dependency
-    report = get_dependency('report_milk')
+    report = get_dependency('daily_milk_modal')
 
     print(f"\n=== BOS pipeline complete: {datetime.now()} ===")
     print(f"    halfday rows : {report.halfday_formatted.shape}")
