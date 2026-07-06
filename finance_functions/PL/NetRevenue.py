@@ -36,7 +36,7 @@ class NetRevenue:
          self.feedcost_daily] = self.create_net_revenue()
 
         self.net_revenue_monthly = self.create_monthly_net()
-        self.write_to_csv()
+        # self.write_to_csv()
         
     
     def create_net_revenue(self):
@@ -77,13 +77,13 @@ class NetRevenue:
         return self.net_revenue_monthly
 
  
-    def write_to_csv(self):
+    # def write_to_csv(self):
         
-        # writing to D:\Cow_backup/finance_data
-        Path.home() / "cows_data" / "finance_data" / "PL_data".mkdir(parents=True, exist_ok=True)
-        self.net_revenue_daily_last .to_csv(Path.home() / "cows_data" / "finance_data" / "PL_data" / 'net_revenue_daily_last.csv')
-        self.net_revenue_daily      .to_csv(Path.home() / "cows_data" / "finance_data" / "PL_data" / 'net_revenue_daily.csv')
-        self.net_revenue_monthly    .to_csv(Path.home() / "cows_data" / "finance_data" / "PL_data" / 'net_revenue_monthly.csv')
+    #     # writing to D:\Cow_backup/finance_data
+    #     Path.home() / "cows_data" / "finance_data" / "PL_data".mkdir(parents=True, exist_ok=True)
+    #     self.net_revenue_daily_last .to_csv(Path.home() / "cows_data" / "finance_data" / "PL_data" / 'net_revenue_daily_last.csv')
+    #     self.net_revenue_daily      .to_csv(Path.home() / "cows_data" / "finance_data" / "PL_data" / 'net_revenue_daily.csv')
+    #     self.net_revenue_monthly    .to_csv(Path.home() / "cows_data" / "finance_data" / "PL_data" / 'net_revenue_monthly.csv')
         
         
         

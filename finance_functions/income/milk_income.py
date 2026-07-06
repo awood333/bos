@@ -12,8 +12,6 @@ class MilkIncome:
         self.FCB = None
         self.DR = None
         self.startdate = None
-        from pathlib import Path
-
         self.sahagon = None
         self.sahagon_liters = None
         self.income_data = None
@@ -27,51 +25,17 @@ class MilkIncome:
         self.FCB = get_dependency('feedcost_basics')
         self.DR  = get_dependency('date_range')
         self.startdate = self.DR.start_date()
-        self.sahagon = get_dependency('sahagon')
-        self.sahagon_liters = self.sahagon.dm_daily
 
         self.income_data = self.DataLoader()
         self.income = self.calcMilkIncome()
         
         self.income_monthly  = self.create_reindexed_daily_monthly()
-        self.write_to_csv()
         
     def DataLoader(self):  
 
         MAB = get_dependency('milk_aggregates_basic')
-        old_liters1 = MAB.fullday.copy()
+        liters1 = MAB.fullday.copy()
 
-        #create merged series of milk liters from pre-CP
-        #take the sum of all liters (ignore heldback - should ~make up from milkers biased readings)
-        old_total_liters2 = old_liters1.sum(axis=1)
-        sahagon_cutoff_date = '2025-09-20'
-        # Convert self.startdate (Timestamp) to string for robust date slicing
-        if isinstance(self.startdate, pd.Timestamp):
-            start_date_str = self.startdate.strftime('%Y-%m-%d')
-        else:
-            start_date_str = str(self.startdate)
-        old_liters_pre_cutoff = old_total_liters2.loc[start_date_str:sahagon_cutoff_date]
-
-        daily_milk_xlsx = Path.home() / "cows_data" / "milk_data" / 'daily_milk' / 'daily_milk.xlsx'
-        new_liters1 = pd.read_excel(daily_milk_xlsx, sheet_name='stats', header=0)
-        new_litersT = new_liters1.T.reset_index()
-        # If the first row is not a date, drop it (e.g., contains 'sale total', 'heldback AM', etc.)
-        try:
-            pd.to_datetime(new_litersT.loc[0, 'index'])
-        except Exception:
-            new_litersT = new_litersT.iloc[1:].reset_index(drop=True)
-        new_litersT['index'] = pd.to_datetime(new_litersT['index'])
-        # Filter using pd.Timestamp for comparison
-        new_liters2 = new_litersT[new_litersT['index'] > sahagon_cutoff_date]
-        # Set 'index' as the DataFrame index for clean summing and concatenation
-        new_liters2 = new_liters2.set_index('index')
-        new_liters2.index.name = 'datex'
-        # Only use the first column (0), which is the 'sale total' row from pre-transpose
-        new_liters4 = new_liters2.iloc[:, 0]
-        income_data1 = pd.concat([old_liters_pre_cutoff, new_liters4], axis=0)
-        income_data1 = income_data1.reset_index()
-        income_data1.columns = ['datex', 'liters']
-        self.income_data = income_data1
 
 
         return self.income_data
@@ -105,18 +69,18 @@ class MilkIncome:
     
     
     # BACKUP
-    def write_to_csv(self):
-        from pathlib import Path
-        milk_income_dir = Path.home() / "cows_data" / "finance_data" / "PL_data" / 'milk_income' / 'output'
-        milk_income_dir.mkdir(parents=True, exist_ok=True)
-        backup_dir = Path.home() / 'cows_data' / 'data_backup' / 'milk_income_backup'
-        backup_dir.mkdir(parents=True, exist_ok=True)
+    # def write_to_csv(self):
+    #     from pathlib import Path
+    #     milk_income_dir = Path.home() / "cows_data" / "finance_data" / "PL_data" / 'milk_income' / 'output'
+    #     milk_income_dir.mkdir(parents=True, exist_ok=True)
+    #     backup_dir = Path.home() / 'cows_data' / 'data_backup' / 'milk_income_backup'
+    #     backup_dir.mkdir(parents=True, exist_ok=True)
 
-        self.income.to_csv(milk_income_dir / 'milk_income_.csv')
-        self.income.to_csv(backup_dir / f'milk_income_{tdy}.csv')
-        self.income.to_csv(milk_income_dir / 'milk_income_daily.csv')
-        # self.income_daily_last.to_csv(milk_income_dir / 'milk_income_daily_last.csv')
-        self.income_monthly.to_csv(milk_income_dir / 'milk_income_monthly.csv')
+    #     self.income.to_csv(milk_income_dir / 'milk_income_.csv')
+    #     self.income.to_csv(backup_dir / f'milk_income_{tdy}.csv')
+    #     self.income.to_csv(milk_income_dir / 'milk_income_daily.csv')
+    #     # self.income_daily_last.to_csv(milk_income_dir / 'milk_income_daily_last.csv')
+    #     self.income_monthly.to_csv(milk_income_dir / 'milk_income_monthly.csv')
         
 
 if __name__ == '__main__':

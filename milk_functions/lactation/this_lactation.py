@@ -19,9 +19,7 @@ class ThisLactation():
         self.WD = get_dependency('wet_dry')
         # self.SD = get_dependency('status_data')
         self.milking_wkly, self.milking_daily,  = self.create_daily_weekly()
-        
-        self.create_write_to_csv()
-        
+                
 
     def create_daily_weekly(self):
         milking_daily = self.WD.milking_liters 
@@ -32,13 +30,7 @@ class ThisLactation():
         return self.milking_wkly, self.milking_daily
     
 
-    
-    def create_write_to_csv(self):
-        
-        Path.home() / "cows_data" / "milk_data" / "lactations" / "weekly".mkdir(parents=True, exist_ok=True)
-        self.milking_wkly.to_csv(Path.home() / "cows_data" / "milk_data" / "lactations" / "weekly" / "this_Lact_weekly.csv")
-        self.milking_daily.to_csv(Path.home() / "cows_data" / "milk_data" / "lactations" / "weekly" / "this_Lact_daily.csv")
-        
+   
 if __name__ == "__main__":
     obj = ThisLactation()
     obj.load_and_process()      

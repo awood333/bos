@@ -86,8 +86,8 @@ class Container:
         #groups and tests
         self.register_singleton('whiteboard_groups',    self._create_whiteboard_groups)     
         self.register_singleton('model_groups',         self._create_model_groups)     
-        self.register_singleton('compare_model_whiteboard_groups_last', self._create_compare_model_whiteboard_groups_last)     
         self.register_singleton('wet_dry_groups',       self._create_wet_dry_groups)
+        self.register_singleton('compare_model_whiteboard_groups_last', self._create_compare_model_whiteboard_groups_last)     
      
         # Lactation
         self.register_singleton('lactation_basics',     self._create_lactation_basics)
@@ -95,13 +95,13 @@ class Container:
         self.register_singleton('this_lactation',       self._create_this_lactation)
         self.register_singleton('weekly_lactations',    self._create_weekly_lactations)
         self.register_singleton('lactations',           self._create_lactations)        
+        self.register_singleton('lactation_plots',      self._create_lactation_plots)                                          
         self.register_singleton('lactations_log_standard',      self._create_lactations_log_standard)
-        self.register_singleton('lactation_plots', self._create_lactation_plots)                                          
 
         # Report Milk
-        self.register_singleton('create_report_milk',      self._create_report_milk)
-        self.register_singleton('daily_milk_modal',        self._create_daily_milk_modal)        
-        self.register_singleton('run_milk_dash_app',       self._create_run_milk_dash_app)        
+        self.register_singleton('report_milk',          self._create_report_milk)        
+        self.register_singleton('run_milk_dash_app',    self._create_run_milk_dash_app)        
+        self.register_singleton('daily_modal',          self._create_daily_modal)        
 
 
         # Finance
@@ -355,9 +355,9 @@ class Container:
         from milk_functions.report_milk.Report_Milk import ReportMilk
         return ReportMilk()
 
-    def _create_daily_milk_modal(self):
-        from milk_functions.report_milk.dailyMilk_Modal import DailyMilkModal
-        return DailyMilkModal()          
+    def _create_daily_modal(self):
+        from pipeline.modal.daily_modal import DailyModal
+        return DailyModal()
 
     def _create_run_milk_dash_app(self):
         from milk_functions.report_milk.milk_dash_app import run_milk_dash_app

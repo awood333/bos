@@ -11,6 +11,7 @@ class LactationBasics:
         self.MB = None
         self.lactations_array = None
         self.headers = None
+        self.lacts_str =None
 
     def load_and_process(self):
         self.MB  = get_dependency('milk_basics')
@@ -24,53 +25,39 @@ class LactationBasics:
         milk = milkx.reindex(ext_range)
         
         lastday = self.MB.data['lastday']
-        
-        lact_start1 = self.MB.data['lb'].loc[:,['wy_id', 'b_date', 'calf_num']]
-        lact_start1['b_date'] = pd.to_datetime(lact_start1['b_date'])
-        lact_start2 = lact_start1.pivot_table(
-            index   ='wy_id',
-            columns ='calf_num',
-            values  ='b_date',
-            aggfunc ='first'  
-        )
-        
-        lact_stop1 = self.MB.data['stop'].loc[:,['wy_id', 'stop_date', 'lact_num']]
-        lact_stop1['stop_date'] = pd.to_datetime(lact_stop1['stop_date'])        
-        lact_stop2 = lact_stop1.pivot_table(
-            index   ='wy_id',
-            columns ='lact_num',
-            values  ='stop_date',
-            aggfunc ='first'  
-        )
 
+        lact_start2 = self.MB.data['lact_start_pivot']        
+        lact_stop2  = self.MB.data['lact_stop_pivot']
         lact,  lactations = [],[]
         model = pd.DataFrame(index=range(0,999))
     
         WY_int = milkx.columns
-        # WY_str = [str(i) for i in WY_int]
-        lacts_str = [str(col) for col in lact_start2.columns]
-        lacts_int = [1,2,3,4,5,6]
+        WY_str = [str(i) for i in WY_int]
+        self.headers = WY_str
+        self.lacts_str = [str(col) for col in lact_start2.columns]
+        lacts_int = lact_start2.columns
 
-        milk3 = model
+        num_wy = len(WY_int)
 
-        for i in WY_int:   #iterates down the wy's in the pivot table
+        milk3 = model.copy()
+
+        for i in lacts_int:   #iterates down the lactations in the pivot table
             lact = {}
-            # milk3 = model
             
-            for j in lacts_int:
+            for j in WY_int: #get all the wy's for each lact then proceed to the next lact
                 start = np.nan
                 stop  = np.nan
                 missing = False
                 
                 #if wy_id is missing from livebirths
-                if i not in lact_start2.index or j not in lact_start2.columns:
+                if j not in lact_start2.index or i not in lact_start2.columns:
                     missing = True
                 #if wy_id is missing from stop_dates                    
-                if i not in lact_stop2.index or j not in lact_stop2.columns:
+                if j not in lact_stop2.index or i not in lact_stop2.columns:
                     missing = True
                 if not missing:
-                    start = lact_start2.loc[i, j]
-                    stop  = lact_stop2.loc[i, j]
+                    start = lact_start2.loc[j, i]
+                    stop  = lact_stop2.loc[j, i]
 
                 # If missing from one or both start/stop are NaN -> create blank (zero) column
                 if missing or (pd.isna(start) and pd.isna(stop)):
@@ -79,7 +66,7 @@ class LactationBasics:
                     milk2.name = j
                     milk3 = pd.concat([milk3, milk2], axis=1)
                     continue
-
+                    #if it exists
                 if not pd.isna(start) and pd.isna (stop):
                     stop = lastday
                     
@@ -93,33 +80,34 @@ class LactationBasics:
                         how='left')
                     milk2 = milk2.fillna(0).infer_objects() #temp var so no copy is more efficient
                     
-                elif  milk1.empty:
-                    milk2 = model
+                else:
+                    milk2 = model.copy()
+                    milk2[0] = 0.0   # ensure one column placeholder
                     
-                milk2.name = j
+                milk2.name = i
 
                 milk3  = pd.concat([milk3, milk2], axis=1)
                 milk2 = pd.Series()
-
+                
             if milk3.shape[1] > 0:
                 arr = np.array(milk3.fillna(0).infer_objects())
                 if arr.ndim == 1:
                     arr = arr.reshape(-1, 1)
-                # Target shape (1000, 6)
-                arr_target = np.zeros((1000, 6))
+                # Target shape (1000, num_wy) – use 1000 rows (padded/truncated)
+                # num_wy = len(WY_int)
+                arr_target = np.zeros((1000, num_wy))
                 rows = min(arr.shape[0], 1000)
-                cols = min(arr.shape[1], 6)
+                cols = min(arr.shape[1], num_wy)
                 arr_target[:rows, :cols] = arr[:rows, :cols]
                 arr = arr_target
                 lact[i] = arr
-                lactations.append(lact[i])
+                lactations.append(arr)
 
             #    reinitialize milk3
-            milk3 = pd.DataFrame(index=range(1,1000)).fillna(0).infer_objects()
+            milk3 = model.copy()
         
-        self.headers = lacts_str        
-        self.lactations_array = np.array(lactations).transpose(1,0,2) #the params are the axes
-        lactations_array2 = np.array(lactations).transpose(1,0,2)
+        self.lactations_array = np.dstack(lactations)#.transpose(1,2,0)
+
         
         print('lactations array',self.lactations_array.shape)
         return self.lactations_array, self.headers

@@ -1,4 +1,4 @@
-'''milk_functions/report_milk/dailyMilk_Modal.py
+'''milk_functions/report_milk/daily_modal_class.py
 
 Modal-facing version of the milk reporting pipeline. Pulls tenday, halfday,
 fullday, whiteboard groups, and next-ultra-check dependencies, applies only
@@ -8,16 +8,17 @@ writes typed tables to Neon. All display formatting (decimal places,
 colors, alignment) is left to bos_dashboard.
 '''
 
+
 import inspect
 import pandas as pd
 from container import get_dependency
 from insem_functions.next_ultra_check import NextUltraCheck
 
 
-class DailyMilkModal:
+class DailyModal:
     def __init__(self):
 
-        print(f"DailyMilkModal instantiated by: {inspect.stack()[1].filename}")
+        print(f"DailyModal instantiated by: {inspect.stack()[1].filename}")
 
         self.tenday_formatted = None
         self.halfday_formatted = None
@@ -192,5 +193,5 @@ class DailyMilkModal:
 
 
 if __name__ == "__main__":
-    obj = DailyMilkModal()
+    obj = DailyModal()
     obj.load_and_process()

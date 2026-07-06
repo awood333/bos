@@ -19,6 +19,8 @@ class MilkBasics:
         self.wy_id_list = None
         self.start = None
         self.stop = None
+        self.lact_start_pivot = None
+        self.lact_stop_pivot = None
 
     def load_and_process(self):
         self.data = self.dataLoader()
@@ -81,6 +83,30 @@ class MilkBasics:
         self.extended_date_range_milk = pd.date_range(
             start= start, end=self.lastday)
 
+
+
+
+        lact_start1 = self.lb.loc[:,['wy_id', 'b_date', 'calf_num']]
+        lact_start1['b_date'] = pd.to_datetime(lact_start1['b_date'], errors="coerce")
+        
+        self.lact_start_pivot = lact_start1.pivot_table(
+            index   ='wy_id',
+            columns ='calf_num',
+            values  ='b_date',
+            aggfunc ='first'  
+        )
+        
+        lact_stop1 = self.stop.loc[:,['wy_id', 'stop_date', 'lact_num']]
+        lact_stop1['stop_date'] = pd.to_datetime(lact_stop1['stop_date'], errors="coerce")        
+        self.lact_stop_pivot = lact_stop1.pivot_table(
+            index   ='wy_id',
+            columns ='lact_num',
+            values  ='stop_date',
+            aggfunc ='first'  
+        )
+
+
+
         self.data = {
             'datex'  : self.datex,
             'start'  : start,
@@ -92,6 +118,8 @@ class MilkBasics:
             'lastday': self.lastday,
             'wy_ids' : self.wy_id_list,
             'ext_rng': self.extended_date_range_milk,
+            'lact_start_pivot': self.lact_start_pivot,
+            'lact_stop_pivot': self.lact_stop_pivot
         }
         return self.data
 

@@ -44,7 +44,7 @@ class I_U_merge:
         i2['datex'] = pd.to_datetime(i2['datex']).dt.date
         i2['typex'] = 'insem'
         
-        s1 = self.data['stopx'].copy()
+        s1 = self.data['stop'].copy()
         s2 = s1.rename(columns={'lact_num': 'stop_num', 'stop': 'datex'})
         s2['datex'] = pd.to_datetime(s2['datex']).dt.date
 

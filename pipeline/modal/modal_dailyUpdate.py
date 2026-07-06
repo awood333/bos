@@ -4,7 +4,7 @@
 # First run:
 #   modal secret create neon-credentials "DATABASE_URL=postgresql://...full url..."
 #
-# NOTE: USE THIS ON COMMAND LINE   modal run modal_dailyUpdate.py
+# NOTE: USE THIS ON COMMAND LINE :::  modal run pipeline/modal/modal_dailyUpdate.py
 
 import modal
 
@@ -68,7 +68,7 @@ def run_pipeline():
     print(f"\n=== BOS pipeline starting: {datetime.now()} ===\n")
 
     from container import get_dependency
-    report = get_dependency('daily_milk_modal')
+    report = get_dependency('daily_modal')
 
     print(f"\n=== BOS pipeline complete: {datetime.now()} ===")
     print(f"    halfday rows : {report.halfday_formatted.shape}")

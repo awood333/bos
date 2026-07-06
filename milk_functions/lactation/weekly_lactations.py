@@ -32,7 +32,7 @@ class WeeklyLactations():
         self.SD     = get_dependency('status_data')
 
         self.data       = self.MB.data
-        self.alive_ids  = self.SD.alive_ids_last
+        self.alive_ids  = [str(i) for i in self.SD.alive_ids_last]
 
         (self.lact1, self.lact2, 
          self.lact3, self.lact4, 
@@ -47,7 +47,6 @@ class WeeklyLactations():
         self.max_liters_list2 = self.create_max_liters()
         self.max_df = self.unpack_max_liters()
         self.create_live_lactations()
-        self.write_to_csv()
 
 
     def create_308day(self):
@@ -134,21 +133,6 @@ class WeeklyLactations():
                 self.live_lact_wk_4, self.live_lact_wk_5]
               
 
-    def write_to_csv(self):
-        Path.home() / "cows_data" / "milk_data" / "lactations" / "weekly".mkdir(parents=True, exist_ok=True)
-        self.live_lact_wk_1.to_csv(Path.home() / "cows_data" / "milk_data" / "lactations" / "weekly" / "live_lact_wk_1.csv")
-        self.live_lact_wk_2.to_csv(Path.home() / "cows_data" / "milk_data" / "lactations" / "weekly" / "live_lact_wk_2.csv")
-        self.live_lact_wk_3.to_csv(Path.home() / "cows_data" / "milk_data" / "lactations" / "weekly" / "live_lact_wk_3.csv")
-        self.live_lact_wk_4.to_csv(Path.home() / "cows_data" / "milk_data" / "lactations" / "weekly" / "live_lact_wk_4.csv")
-        self.live_lact_wk_5.to_csv(Path.home() / "cows_data" / "milk_data" / "lactations" / "weekly" / "live_lact_wk_5.csv")
-        
-        # self.lactation_wk_1.to_csv('E:\\COWS\\data\\milk_data\\lactations\\weekly\\lactation_wk_1.csv')
-        # self.lactation_wk_2.to_csv('E:\\COWS\\data\\milk_data\\lactations\\weekly\\lactation_wk_2.csv')
-        # self.lactation_wk_3.to_csv('E:\\COWS\\data\\milk_data\\lactations\\weekly\\lactation_wk_3.csv')
-        # self.lactation_wk_4.to_csv('E:\\COWS\\data\\milk_data\\lactations\\weekly\\lactation_wk_4.csv')
-        # self.lactation_wk_5.to_csv('E:\\COWS\\data\\milk_data\\lactations\\weekly\\lactation_wk_5.csv')
-        
-        
 
 if __name__ == "__main__":
     obj = WeeklyLactations()
