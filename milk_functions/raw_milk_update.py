@@ -4,7 +4,6 @@ rawmilkupdate.py
 
 from datetime import datetime, timedelta
 import pandas as pd  
-from pyexcel_ods import get_data
 
 class HaltScriptException(Exception):
     pass
@@ -74,13 +73,16 @@ class RawMilkUpdate:
         self.write_to_csv()
 
 
-    def load_and_process(self):
+    def load(self):
+        self.process()
+        
+    def process(self):
         self.load_data()
         self.process_data()
 
     def load_data(self):
         # Load xlsx data
-        self.file_path = r"E:\COWS\data\milk_data\daily_milk\daily_milk.xlsx"
+        # self.file_path = r"E:\COWS\data\milk_data\daily_milk\daily_milk.xlsx"
         attr_map = {
             'AM_liters': 'AM_liters',
             'AM_wy': 'AM_wy',
@@ -186,8 +188,6 @@ class RawMilkUpdate:
 
 
 
-    def write_to_csv(self):
-        pass
         
 
 if __name__ =="__main__":

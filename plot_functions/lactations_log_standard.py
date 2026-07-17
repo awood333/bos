@@ -1,6 +1,5 @@
 '''milk_functions/lactation/lactations_log_standard.py'''
 import inspect
-import matplotlib.pyplot as plt
 from container import get_dependency
 
 import pandas as pd

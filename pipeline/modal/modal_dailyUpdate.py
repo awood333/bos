@@ -15,7 +15,7 @@ image = (
     modal.Image.debian_slim(python_version="3.11")
     .pip_install(
         "pandas==2.3.3",
-        "numpy==2.4.0",
+        "numpy==2.3.0",
         "sqlalchemy",
         "psycopg2-binary==2.9.11",
         "networkx==3.6.1",
@@ -28,6 +28,7 @@ image = (
         "pytz==2025.2",
         "openpyxl==3.1.5",
         "pyexcel-ods",
+        "matplotlib",
     )
     .add_local_dir(
         ".",

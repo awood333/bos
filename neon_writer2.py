@@ -1,5 +1,5 @@
 import os
-from typing import Dict, Type
+from typing import Dict
 import pandas as pd
 from sqlalchemy import create_engine, Engine
 from container import get_dependency

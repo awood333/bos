@@ -1,7 +1,6 @@
 import inspect
 import pandas as pd
 from container import get_dependency
-from insem_functions.next_ultra_check import NextUltraCheck
 
 
 class ReportMilk:
@@ -15,12 +14,15 @@ class ReportMilk:
         self.WB_groups_formatted = None
         self.next_ultra_check_formatted = None
 
-    def load_and_process(self):
+    def load(self):
 
         self.MA = get_dependency('milk_aggregates')
         self.MAB = get_dependency('milk_aggregates_basic')
         self.WG = get_dependency('whiteboard_groups')
         self.nuc = get_dependency('next_ultra_check')
+        self.process()
+        
+    def process(self):
 
         # methods
         (self.tenday_formatted, self.halfday_formatted,
@@ -172,4 +174,4 @@ class ReportMilk:
 
 if __name__ == "__main__":
     obj = ReportMilk()
-    obj.load_and_process()
+    obj.load()

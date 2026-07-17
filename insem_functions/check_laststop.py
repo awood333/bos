@@ -23,13 +23,16 @@ class CheckLastStop:
         self.last_start = None
         self.listx = None
 
-    def load_and_process(self):
+    def load(self):
         self.MB = get_dependency('milk_basics')
         self.DR = get_dependency('date_range')
         self.data = self.MB.data
         self.SD = get_dependency('status_data')
         self.IUB = get_dependency('Insem_ultra_basics')
         self.IUD = get_dependency('insem_ultra_data')
+        self.process()
+        
+    def process(self):
         self.allx = self.IUD.allx.iloc[:, :5].copy()
         self.status_col = self.SD.status_col
         self.last_stop = self.IUB.last_stop
@@ -41,15 +44,17 @@ class CheckLastStop:
         self.listx = self.create_list()
         print("✅ CheckLastStop: Complete!")
 
-# this is to identify missing last_stop dates. 
+
+
+        # this is to identify missing last_stop dates. 
         # cows that are alive and milking but the laststop date/calf_num is missing
         
-
     def create_list(self):
         self.listx = []
-        status = self.status_col.reset_index()['ids']
+                # status_col is a DataFrame with wy_id index and one dynamic column → extract as Series
+        status = self.status_col.iloc[:, 0]  # Series: index=wy_id, values=status
         
-        lstop = self.last_stop["last stop date"]
+        lstop  = self.last_stop["last stop date"]
         lstart = self.last_start["last calf bdate"]
         for i in status.index.tolist():
             if i in self.last_stop.index and i in self.last_start.index:
@@ -75,4 +80,4 @@ class CheckLastStop:
 
 if __name__ == "__main__":
     obj=CheckLastStop()
-    obj.load_and_process()  
+    obj.load()  

@@ -10,6 +10,9 @@ utilities/bos_service_account.json
 *.ipynb
 *.pyc
 .vs/
+*.html
+*.png
+*/__init__.py
 
 Pipfile
 Pipfile.lock

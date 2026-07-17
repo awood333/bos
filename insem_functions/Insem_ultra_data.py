@@ -2,7 +2,6 @@
 
 from    datetime import datetime, timedelta
 import  inspect
-from pathlib import Path
 import  pandas  as pd
 
 from container import get_dependency
@@ -12,13 +11,18 @@ class InsemUltraData:
         print(f"InsemUltraData instantiated by: {inspect.stack()[1].filename}")
         self.DR = None
         self.MB = None
-        self.data = None
+
         self.IUB = None
         self.SD = None
+        
+        #process
+        self.data = None
         self.status_col = None
         self.alive_mask = None
         self.date_format = '%m/%d/%Y'
         self.today = None
+        
+        #methods
         self.last_insem = None
         self.last_valid_insem = None
         self.last_invalid_insem = None
@@ -35,68 +39,78 @@ class InsemUltraData:
         self.not_preg = None
         self.no_insem = None
 
-    def load_and_process(self):
+    def load(self):
         # client = ContainerClient()
-        self.DR = get_dependency('date_range')
-        self.MB = get_dependency('milk_basics')
-        self.data = self.MB.data
-        self.IUB = get_dependency('Insem_ultra_basics')
-        self.SD = get_dependency('status_data')
+        self.DR     = get_dependency('date_range')
+        self.MB     = get_dependency('milk_basics')
+        self.SD     = get_dependency('status_data')
+        self.IUB    = get_dependency('Insem_ultra_basics')
+        self.process()
+        
+    def process(self):
+        self.data       = self.MB.data
         self.status_col = self.SD.status_col
         self.alive_mask = self.data['bd']['death_date'].isnull()
-        self.date_format = '%m/%d/%Y'
-        self.today = pd.Timestamp(datetime.today())
+        self.date_format= '%m/%d/%Y'
+        self.today      = pd.Timestamp(datetime.today())
 
-        self.last_insem = self.create_last_insem()
-        self.last_valid_insem = self.create_last_valid_insem()
+
+        #methods
+        self.last_insem         = self.create_last_insem()
+        self.last_valid_insem   = self.create_last_valid_insem()
         self.last_invalid_insem = self.create_last_invalid_insem()
-        self.last_ultra = self.create_last_ultra()
-        self.last_valid_ultra = self.create_last_valid_ultra()
+        self.last_ultra         = self.create_last_ultra()
+        self.last_valid_ultra   = self.create_last_valid_ultra()
         self.last_invalid_ultra = self.create_last_invalid_ultra()
-        self.df7 = self.create_df()
+        self.df7                = self.create_df()
         (self.allx, self.all_milking, 
         self.all_dry, self.all_preg, 
         self.all_not_preg, self.days_milking) = self.create_allx()
         self.not_preg, self.no_insem = self.create_not_preg_df()
-        self.create_write_to_neon()
         
         
     def create_last_insem(self):
         
         # get last insem event from 'i'
         i1 = self.data['i'].groupby('wy_id').last().reset_index()
+        
+        print("i1 columns:", i1.columns.tolist())
+        print("i1 sample:\n", i1.head(2))
         i2 = i1.rename(columns = {
             'calf_num'    : 'i_calf_num',
             'insem_date'   : 'i_date',
             'try_num'      : 'try#'
             })
         
-        #    merge last insem series with last calf series to set up comp below
-        self.last_insem = i2.merge(self.IUB.last_calf,
-                      on='wy_id',
-                      how = 'left')
-
-        return    self.last_insem        
+        # Convert to numeric, coerce errors to NaN
+        i2['i_calf_num'] = pd.to_numeric(i2['i_calf_num'], errors='coerce')
+        self.last_insem = i2.merge(self.IUB.last_calf, on='wy_id', how='left')
+        return self.last_insem
+  
 
     def create_last_valid_insem(self):
-        
-        i4 = self.last_insem.loc[(
-            self.last_insem['i_calf_num'] > self.last_insem['last calf_num']
-        )].reset_index(drop=True)
-  
+        print("Shape of last_insem:", self.last_insem.shape)
+        print("Null i_calf_num count:", self.last_insem['i_calf_num'].isna().sum())
+        print("Null last calf_num count:", self.last_insem['last calf_num'].isna().sum())
+        mask = (
+            self.last_insem['i_calf_num'].isna() |
+            (self.last_insem['i_calf_num'] > self.last_insem['last calf_num'])
+        )
+        print("Total True in mask:", mask.sum())
+        i4 = self.last_insem.loc[mask].reset_index(drop=True)
+        print("i4 shape after filter:", i4.shape)
         self.last_valid_insem = i4[['wy_id','i_calf_num', 'i_date' ,'last calf_num']]
-        
         return self.last_valid_insem
     
     
     
     def create_last_invalid_insem(self):
         
-        i4 = self.last_insem.loc[(
+        df = self.last_insem.loc[(
             self.last_insem['i_calf_num'] == self.last_insem['last calf_num']
         )].reset_index(drop=True)
   
-        self.last_invalid_insem = i4[['wy_id','i_calf_num', 'i_date' ,'last calf_num']]
+        self.last_invalid_insem = df[['wy_id','i_calf_num', 'i_date' ,'last calf_num']]
         
         return self.last_invalid_insem
 
@@ -140,6 +154,8 @@ class InsemUltraData:
                              how = 'left',
                              on = 'wy_id'
                              )
+        
+        valid_ultra2['expected bdate'] = pd.NaT 
         valid_ultra2.loc[
                 valid_ultra2['u_read'] == ( 'ok'),'expected bdate'
                 ] = valid_ultra2['i_date'] + pd.to_timedelta(282, unit='D')
@@ -178,19 +194,24 @@ class InsemUltraData:
                               how='left',
                               on='wy_id' )        
         
-        last_calf_cols = self.IUB.last_calf[['wy_id','last calf bdate', 'last calf age']]
+        last_calf_cols = self.IUB.last_calf[['last calf bdate', 'last calf age']]
         
-        df3a = df3 . merge( right = last_calf_cols,
-                           how = 'outer',
-                           on = 'wy_id'
-                           )
+        df3a = df3 . merge(
+            last_calf_cols,
+            left_on = 'wy_id',
+            right_index=True,
+            how='outer'
+            )
         
 
-        last_stop_cols = self.IUB.last_stop[['wy_id','stop calf_num','last stop date']]
+        last_stop_cols = self.IUB.last_stop[['stop calf_num','last stop date']]
         
-        df4 =       df3a.merge(right=last_stop_cols ,
-                              on='wy_id', 
-                              how='left' )  
+        # last_stop_cols index is wy_id, but df3a wy_id is 
+        df4 = df3a.merge(
+            last_stop_cols,
+            left_on='wy_id', 
+            right_index=True,
+            how='left' )  
         
         df4['age insem'] =  (self.today - df4['i_date']).dt.days
         df4['age ultra'] =  (self.today - df4['u_date']).dt.days
@@ -199,21 +220,15 @@ class InsemUltraData:
         df4['u_check1']  =  df4['u_calf_num'] - df4['last calf_num'] 
         df4['u_check2']  = (df4['u_date'] - df4['i_date']).dt.days
         
-        df5 = df4.rename(columns={'last calf age' : 'days milking'})
-        
-        df6 = df5.merge(right=self.status_col[['ids','status']], 
-                             left_on= 'wy_id', right_on ='ids',
-                             suffixes=('', 'R'))
-   
+        df5 = df4.rename(columns={'last calf age': 'days milking'}).reset_index(drop=True)
+        # Convert status_col (DataFrame with dynamic column name) to wy_id, status format
+        status_df = self.status_col.reset_index()
+        status_df.columns=['wy_id','status']
+        df5 = df5.merge(status_df, on='wy_id',how='left')
 
-        df6         = df6[df6['status'] != 'G']
-        df6         = df6.drop(columns=['ids'])
-        df6         = df6.reset_index(drop=True)
+        df6 = df5[(df5['status'].notna()) & (df5['status'] != 'gone')].copy()
         df6['exp drydate'] = df6['expected bdate'] - timedelta(days=61)
-        df6['wy_id'] = df6['wy_id'].astype(int)
-
         self.df7 = df6
-        
         return self.df7
 
     
@@ -243,8 +258,8 @@ class InsemUltraData:
             ]
         ]
         
-        self.all_milking = self.allx[self.allx['status'] == 'M']
-        self.all_dry     = self.allx[self.allx['status'] == 'D']
+        self.all_milking = self.allx[self.allx['status'] == 'milking']
+        self.all_dry     = self.allx[self.allx['status'] == 'dry']
         self.all_preg    = self.allx[self.allx['u_read'] == 'ok']
         self.all_not_preg = self.allx[ (self.allx['u_read'] != 'ok') ]
         self.days_milking = self.allx[['wy_id','days milking']]
@@ -299,37 +314,7 @@ class InsemUltraData:
 
 
 
-    
-    def create_write_to_neon(self):
-        pass
-              
-        # self.allx        .to_csv(r"Q:\My Drive\COWS\reports\allx.csv")
-        # self.all_milking .to_csv('E:\\COWS\\data\\insem_data\\all_milking.csv')
-        # self.all_dry     .to_csv('E:\\COWS\\data\\insem_data\\all_dry.csv')
-        # self.not_preg    .to_csv('E:\\COWS\\data\\insem_data\\not_preg.csv')
-        # self.no_insem    .to_csv('E:\\COWS\\data\\insem_data\\no_insem.csv')
-        # self.last_valid_ultra  .to_csv('E:\\COWS\\data\\insem_data\\last_valid_ultra.csv')
-
-        # date_cols = ['i_date', 'u_date', 'last stop date', 'last calf bdate', 'expected bdate', 'exp drydate']
-        # for col in date_cols:
-        #     if col in self.allx.columns:
-        #         self.allx[col] = self.allx[col].dt.strftime('%Y-%m-%d')
-        #     if col in self.not_preg.columns:
-        #         self.not_preg[col] = self.not_preg[col].dt.strftime('%Y-%m-%d')
-        #     if col in self.no_insem.columns:
-        #         self.no_insem[col] = self.no_insem[col].dt.strftime('%Y-%m-%d') 
-    
-        # with pd.ExcelWriter('E:\\COWS\\data\\insem_data\\insem_data.xlsx', engine='xlsxwriter') as writer:
-        #     self.allx.to_excel(writer,      sheet_name='allx', index=False)
-            # self.not_preg.to_excel(writer,  sheet_name='not_preg', index=False)
-            # self.no_insem.to_excel(writer,  sheet_name='no_insem', index=False)
-       
-        # Path.home() / "cows_data" / "reports".mkdir(parents=True, exist_ok=True)
-        # with pd.ExcelWriter(Path.home() / "cows_data" / "reports" / "insem_data.xlsx", engine='xlsxwriter') as writer:
-        #     self.allx.to_excel(writer,      sheet_name='allx', index=False)
-        #     # self.not_preg.to_excel(writer,  sheet_name='not_preg', index=False)
-            # self.no_insem.to_excel(writer,  sheet_name='no_insem', index=False)
-
 if __name__ == "__main__":
     obj = InsemUltraData()
-    obj.load_and_process() 
+    obj.load()
+    

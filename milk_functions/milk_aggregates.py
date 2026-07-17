@@ -43,15 +43,18 @@ class MilkAggregates:
         self.start = None
         self.stop = None
 
-    def load_and_process(self):
+    def load(self):
         self.MAB  = get_dependency('milk_aggregates_basic')
         self.MB   = get_dependency('milk_basics')
         self.data = self.MB.data
         self.DR   = get_dependency('date_range')
         self.IUB  = get_dependency('Insem_ultra_basics')
         self.IUD  = get_dependency('insem_ultra_data')
-        self.allx = self.IUD.allx
+        self.process()
 
+        
+    def process(self):
+        self.allx = self.IUD.allx
         # Pull computed results from MAB
         self.am               = self.MAB.am
         self.pm               = self.MAB.pm
@@ -67,7 +70,8 @@ class MilkAggregates:
 
         [self.monthly_summary, self.weekly_summary,
          self.start, self.stop,
-         self.monthly_avg, self.weekly_avg] = self.create_monthly_weekly()
+         self.monthly_avg, self.weekly_avg,
+         self.weekly_average_date] = self.create_monthly_weekly()
        
     def halfday_AM_PM(self):
         lastday_AM = self.am.iloc[:,-1:]
@@ -164,14 +168,23 @@ class MilkAggregates:
 
         self.weekly_summary =   milk.groupby(['year','month', 'week'],as_index=False).agg({'sum': 'sum', 'count':'mean'})
         self.weekly_avg     = milk.groupby(['year','month', 'week'],as_index=False).agg('mean')
-
+        self.weekly_average_date = (
+            milk.drop(columns=['sum','count','year','month','week'], errors='ignore')
+                .resample('W')
+                .mean()
+                )
+        
         self.monthly_summary[['count', 'sum']] = self.monthly_summary[['count', 'sum']].map(format_num)
         self.weekly_summary [['count', 'sum']] = self.weekly_summary [['count', 'sum']].map(format_num)
 
         return [self.monthly_summary, self.weekly_summary, 
             self.start, self.stop,
-            self.monthly_avg, self.weekly_avg]
+            self.monthly_avg, self.weekly_avg,
+            self.weekly_average_date]
+        
+        
+
 
 if __name__ == '__main__':
     obj=MilkAggregates()
-    obj.load_and_process()      
+    obj.load()      

@@ -5,7 +5,7 @@ from typing import Dict, Any, Optional, Callable, TypeVar, Type
 import threading
 from datetime import datetime
 import networkx as nx
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 T = TypeVar('T')
 
@@ -55,10 +55,10 @@ class Container:
         
         # Status
         self.register_singleton('status_data',          self._create_status_data)
-        self.register_singleton('wet_dry',             self._create_wet_dry)
-        self.register_singleton('model_groups',        self._create_model_groups)
-        self.register_singleton('whiteboard_groups',   self._create_whiteboard_groups)        
-        self.register_singleton('model_groups_tenday', self._create_model_groups)        
+        self.register_singleton('wet_dry',              self._create_wet_dry)
+        self.register_singleton('whiteboard_groups',    self._create_whiteboard_groups)
+        self.register_singleton('model_groups_tenday',  self._create_model_groups)
+        self.register_singleton('bos_state_orchestrator',self._create_bos_state_orchestrator)   
         
         # Insem
         self.register_singleton('Insem_ultra_basics',   self._create_insem_ultra_basics)
@@ -67,13 +67,16 @@ class Container:
         self.register_singleton('i_u_merge',            self._create_i_u_merge)
         self.register_singleton('ipiv',                 self._create_ipiv)
         self.register_singleton('next_ultra_check',     self._create_next_ultra_check)
+        self.register_singleton('is_pregnant',          self._create_is_pregnant)
         
         # Feed
         self.register_singleton('feedcost_basics',      self._create_feedcost_basics)
         self.register_singleton('feedcost_total',       self._create_feedcost_total)
         self.register_singleton('feedcost_data',        self._create_feedcost_data)
-
+        self.register_singleton('feedcost_data_loader', self._create_feedcost_data_loader)
+        self.register_singleton('feedcost_data_processor', self._create_feedcost_data_processor)
       
+
         # milk_functions
         self.register_singleton('milk_aggregates_basic', self._create_milk_aggregates_basic)
         self.register_singleton('milk_aggregates',      self._create_milk_aggregates)
@@ -86,7 +89,6 @@ class Container:
         #groups and tests
         self.register_singleton('whiteboard_groups',    self._create_whiteboard_groups)     
         self.register_singleton('model_groups',         self._create_model_groups)     
-        self.register_singleton('wet_dry_groups',       self._create_wet_dry_groups)
         self.register_singleton('compare_model_whiteboard_groups_last', self._create_compare_model_whiteboard_groups_last)     
      
         # Lactation
@@ -130,17 +132,22 @@ class Container:
     def get(self, name: str) -> Any:
         """Get a dependency by name, ensuring it is fully initialized (including load_and_process)."""
         with self._lock:
+            if not hasattr(self, '_creation_order'):
+                self._creation_order = []
+
+            # Record edge every time - regardless of cache hit - so the graph
+            # reflects every caller->dependency relationship, not just first discovery
+            if self._creation_order:
+                self._dependency_graph.add_edge(self._creation_order[-1], name)
+
             # Return existing singleton if already created
             if name in self._singletons:
                 return self._singletons[name]
 
             # Check if it's a registered singleton factory
             if name in self._factories:
-                # Circular dependency detection and dependency graph tracking
                 if not hasattr(self, '_creating'):
                     self._creating = set()
-                if not hasattr(self, '_creation_order'):
-                    self._creation_order = []
 
                 if name in self._creating:
                     print("CIRCULAR DEPENDENCY DETECTED!")
@@ -149,24 +156,14 @@ class Container:
                 self._creating.add(name)
                 self._creation_order.append(name)
 
-                parent = self._creation_order[-2] if len(self._creation_order) > 1 else None
-                if parent:
-                    self._dependency_graph.add_edge(parent, name)
-
                 try:
                     instance = self._factories[name]()
-                    # Call load_and_process() if it exists and hasn't been called yet
-                    load_proc = getattr(instance, "load_and_process", None)
+                    load_proc = getattr(instance, "load_and_process", None) or getattr(instance, "load", None)
                     if callable(load_proc):
-                        # Use a flag to avoid double-calling
                         if not hasattr(instance, "_load_and_process_called"):
                             load_proc()
                             setattr(instance, "_load_and_process_called", True)
                     self._singletons[name] = instance
-#dependency graph
-                    # self.show_dependency_graph() 
-                    
-                    
                     return instance
                 finally:
                     self._creating.remove(name)
@@ -209,14 +206,18 @@ class Container:
     
         # Visualization of dependencies
     def show_dependency_graph(self):
-        """Visualize the dependency graph and save as image  IN CURRENT WORKING DIR"""
-        nx.draw(self._dependency_graph, with_labels=True, node_color='lightblue', edge_color='gray')
-        plt.savefig("dependency_graph.png", bbox_inches='tight')
-        print("Dependency graph saved as dependency_graph.png")
-        plt.show()
+        from pyvis.network import Network
+
+        net = Network(height='800px', width='100%', directed=True, notebook=False)
+        net.from_nx(self._dependency_graph)
+        net.show_buttons(filter_=['physics'])  # lets you tune layout live in-browser
+        net.save_graph("dependency_graph.html")
+        print("Open dependency_graph.html in a browser")
+
+
 
     
-    # Factory methods for creating dependencies 
+    # general functions 
     def _create_milk_basics(self):
         from milk_basics import MilkBasics
         return MilkBasics()
@@ -224,6 +225,8 @@ class Container:
     def _create_date_range(self):
         from date_range import DateRange
         return DateRange()
+    
+    
     
     # Status functions
     def _create_status_data(self):
@@ -233,6 +236,13 @@ class Container:
     def _create_wet_dry(self):
         from status_functions.wet_dry import WetDry
         return WetDry()
+    
+    def _create_bos_state_orchestrator(self):
+        from status_functions.bos_state_orchestrator import BosStateOrchestrator
+        return BosStateOrchestrator()
+    
+    
+    
     
     # Insem functions
     def _create_insem_ultra_basics(self):
@@ -259,15 +269,18 @@ class Container:
         from insem_functions.next_ultra_check import NextUltraCheck
         return NextUltraCheck()
     
+    def _create_is_pregnant(self):
+        from insem_functions.is_pregnant import IsPregnant
+        return IsPregnant()
+    
 
 
 
     # Feed functions 
     def _create_feedcost_basics(self):
-        from feed_functions.feedcost_basics import Feedcost_basics
-        return Feedcost_basics()
+        from feed_functions.feedcost_basics import FeedcostBasics
+        return FeedcostBasics()
     
-
     def _create_feedcost_total(self):
         from feed_functions.feedcost_total import Feedcost_total
         return Feedcost_total()
@@ -276,7 +289,17 @@ class Container:
         from feed_functions.feedcost_data import FeedcostData
         return FeedcostData()
     
-
+    def _create_feedcost_data_loader(self):
+        from feed_functions.feedcost_data_loader import FeedCostDataLoader
+        return FeedCostDataLoader()
+    
+    def _create_feedcost_data_processor(self):
+        from feed_functions.feedcost_data_loader import FeedCostDataProcessor
+        loader = self.get("feedcost_data_loader") 
+        return FeedCostDataProcessor(loader)
+    
+    
+    
 
     # Milk functions
     def _create_milk_aggregates_basic(self):
@@ -290,6 +313,8 @@ class Container:
     def _create_raw_milk_update(self):
         from milk_functions.raw_milk_update import RawMilkUpdate
         return RawMilkUpdate()
+    
+    
     
     # plot functions
     def _create_plot_net_revenue_model(self):
@@ -316,10 +341,6 @@ class Container:
         from groups_and_tests.compare_model_whiteboard_groups_last import CompareModelWhiteboardGroups_Last
         return CompareModelWhiteboardGroups_Last()
 
-    def _create_wet_dry_groups(self):
-        from groups_and_tests.wet_dry_groups import WetDryGroups
-        return WetDryGroups()
-
 
     # Lactation functions 
     def _create_lactation_basics(self):
@@ -339,13 +360,14 @@ class Container:
         return WeeklyLactations()
     
     
+    
     # Lactation measurements
     def _create_lactations_log_standard(self):
-        from groups_and_tests.lactation_measurements.lactations_log_standard import LactationsLogStandard
+        from plot_functions.lactations_log_standard import LactationsLogStandard
         return LactationsLogStandard()
     
     def _create_lactation_plots(self):
-        from groups_and_tests.lactation_measurements.lactation_plots import LactationPlots
+        from plot_functions.lactation_plots import LactationPlots
         return LactationPlots()        
     
 

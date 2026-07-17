@@ -1,6 +1,5 @@
 '''finance_functions.PL.depreciation.py'''
 import inspect
-from datetime import datetime as dt
 from pathlib import Path
 import pandas as pd
 from container import get_dependency

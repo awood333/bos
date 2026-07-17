@@ -17,11 +17,14 @@ class Lactations:
         self.L1 = self.L2 = self.L3 = self.L4 = self.L5 = self.L6 = None
         self.live_L1 = self.live_L2 = self.live_L3 = self.live_L4 = self.live_L5 = self.live_L6 = None
 
-    def load_and_process(self):
+    def load(self):
 
         self.Lacts  = get_dependency('lactation_basics')
         self.MB     = get_dependency('milk_basics')
         self.SD     = get_dependency('status_data')
+        self.process()
+        
+    def process(self):
 
         self.headers = self.Lacts.headers
         self.alive_ids_int  = self.SD.alive_ids_last
@@ -62,4 +65,4 @@ class Lactations:
 
 if __name__ == "__main__":
     obj=Lactations()
-    obj.load_and_process()     
+    obj.load()     

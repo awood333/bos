@@ -21,8 +21,8 @@ class PlotNetRevenueModel:
         self.output_folder = None
 
     def load_and_process(self):
-        wdg = get_dependency('wet_dry_groups')
-        self.df = wdg.net_revenue_wet_dry_df.copy()
+        mg = get_dependency('model_groups')
+        self.df = mg.net_revenue_wet_dry_df.copy()
         LLS = get_dependency('lactations_log_standard')
         self.date_of_change1 = pd.to_datetime(getattr(LLS, 'date_of_change1', None))
         self.date_of_change2 = pd.to_datetime(getattr(LLS, 'date_of_change2', None))

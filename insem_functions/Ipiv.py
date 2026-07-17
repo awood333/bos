@@ -15,12 +15,13 @@ class Ipiv:
         self.ipiv_milking = None
         self.ipiv_milkers = None
 
-    def load_and_process(self):
+    def load(self):
         self.MB = get_dependency('milk_basics')
         self.DR = get_dependency('date_range')
         self.IUB = get_dependency('Insem_ultra_basics')
         self.IUD = get_dependency('insem_ultra_data')
-
+        
+    def process(self):
         self.insem = self.IUB.data['i']
         alive_ids1 = self.IUB.data['bd'].loc[self.IUB.data['bd']['death_date'].isnull()]
         alive_ids2 = alive_ids1.reset_index()
@@ -98,4 +99,4 @@ class Ipiv:
     
 if __name__ == "__main__":
     obj=Ipiv()
-    obj.load_and_process()     
+    obj.load()     

@@ -2,16 +2,14 @@
 groups_and_tests.model_groups_each_cow_each_day
 '''
 
-import json
 import pandas as pd
-from datetime import datetime
 from container import get_dependency
 
 class ModelGroupsEachCowEachDay:
 	def __init__(self):
-		self.DateRange   = get_dependency('date_range')
-		self.MB          = get_dependency('milk_basics')
-		self.json_path   = r"E:\\COWS\\data\\status\\model_groups_ids_dict.json"
+		self.DateRange  = get_dependency('date_range')
+		self.MB         = get_dependency('milk_basics')
+		self.MG 		= get_dependency('model_groups')
 		self.model_groups_dict = None
 		self.df = None
 
@@ -23,10 +21,7 @@ class ModelGroupsEachCowEachDay:
 		startdate 	= pd.to_datetime(self.DateRange.startdate)
 		lastday 	= pd.to_datetime(self.MB.lastday)
 		wy_ids 		= self.MB.wy_ids
-	
-		# Load the JSON data
-		with open(self.json_path, "r", encoding="utf-8") as f:
-			self.model_groups_dict = json.load(f)
+
 
 		# Prepare wy_id columns (1-311 as strings)
 		# wy_ids = [str(i) for i in range(1, 312)]
@@ -66,12 +61,11 @@ class ModelGroupsEachCowEachDay:
 		self.df = result_df
 		return self.df
 
-	def save_to_csv(self):
-		self.df.to_csv("E:\\COWS\\data\\status\\model_groups_each_cow_each_day.csv")
+
 
 
 # Example usage
 if __name__ == "__main__":
 	mg = ModelGroupsEachCowEachDay()
 	df = mg.load_and_process()
-	mg.save_to_csv()
+ 

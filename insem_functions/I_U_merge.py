@@ -1,5 +1,4 @@
 import inspect
-from pathlib import Path
 import pandas as pd
 from container import get_dependency
 
@@ -10,8 +9,10 @@ class I_U_merge:
         self.data = None
         self.iu = None
 
-    def load_and_process(self):
+    def load(self):
         self.MB = get_dependency('milk_basics')
+        
+    def process(self):
         self.data = self.MB.data
         self.iu = self.create_basics()
         
@@ -29,7 +30,6 @@ class I_U_merge:
         d2['typex'] = 'cow_death'
         
         lb1 = self.data['lb'].copy()
-        lb1 = lb1.drop(columns=(['try_num']))
         lb2 = lb1.rename(columns={'b_date': 'datex'})
         lb2['datex'] = pd.to_datetime(lb2['datex']).dt.date
         lb2['typex'] = 'calf_birth'
@@ -56,4 +56,4 @@ class I_U_merge:
         
 if __name__ == '__main__':
     obj = I_U_merge()
-    obj.load_and_process()
+    obj.load()

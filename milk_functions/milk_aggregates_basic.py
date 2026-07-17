@@ -5,14 +5,13 @@ and injects MB.data['milk'] with the freshly computed fullday.
 No insem dependency — safe to load before status_data.
 '''
 
-import sys
-import os
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# import sys
+# import os
+# sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import inspect
 import pandas as pd
 import numpy as np
-from sqlalchemy import text
 
 from container import get_dependency
 from sql_db_related.neon_connect import get_engine
@@ -34,26 +33,36 @@ class MilkAggregatesBasic:
         self.liters_pm_np = None
         self.am = None
         self.pm = None
-        self.fullday = None
+        self.fullday_preClean = None
         self.fullday_lastdate = None
         self.AM_liters = None
         self.AM_wy = None
         self.PM_liters = None
         self.PM_wy = None
         self.datex = None
+        self.start_pivot = None
+        self.stop_pivot = None
 
-    def load_and_process(self):
+    def load(self):
         self.MB   = get_dependency('milk_basics')
+        self.process()
+        
+    def process(self):
+        
         self.data = self.MB.data
+        self.start_pivot = self.MB.data['start_pivot']
+        self.stop_pivot  = self.MB.data['stop_pivot']
 
         [self.maxcols, self.idx_am, self.idx_pm,
          self.wy_am_np, self.wy_pm_np,
          self.liters_am_np, self.liters_pm_np] = self.basics()
 
-        [self.am, self.pm, self.fullday,
+        [self.am, self.pm, self.fullday_preClean,
          self.fullday_lastdate] = self.fullday_calc()
+        
+        self.fullday = self.fullday_interpolation()
 
-        self.MB.data['milk'] = self.fullday
+        self.MB.data['milk'] = self.fullday_preClean
 
     def basics(self):
         # Read milk_transpose from Neon — four targeted queries
@@ -127,18 +136,64 @@ class MilkAggregatesBasic:
         fullday2['datex'] = self.datex
         fullday2.set_index('datex', inplace=True)
 
-        self.fullday = fullday2
-        self.fullday.index = pd.to_datetime(self.fullday.index, errors='coerce')  # ISO format from Neon
-        self.fullday.replace(0, np.nan, inplace=True)
-        self.fullday.drop(self.fullday.iloc[:, 0:1], axis=1, inplace=True)
-        self.fullday.index.name = 'datex'
+        fullday2.index = pd.to_datetime(fullday2.index, errors='coerce')  # ISO format from Neon
+        fullday2.replace(0, np.nan, inplace=True)
+        fullday2.drop(fullday2.iloc[:, 0:1], axis=1, inplace=True)
+        fullday2.index.name = 'datex'
 
         self.fullday_lastdate = pd.DataFrame(
-            index=[self.fullday.index[-1]], columns=['last_date'])
+            index=[fullday2.index[-1]], columns=['last_date'])
+        
+        self.fullday_preClean = fullday2
+        return [self.am, self.pm, self.fullday_preClean, self.fullday_lastdate]
 
-        return [self.am, self.pm, self.fullday, self.fullday_lastdate]
+
+
+
+
+    def fullday_interpolation(self):
+ 
+        
+        if 'wy_id' in self.start_pivot.columns:
+            start_pivot = self.start_pivot.set_index('wy_id')
+        else: 
+            self.start_pivot
+            
+        if 'wy_id' in self.stop_pivot.columns:
+            stop_pivot  = self.stop_pivot.set_index('wy_id')  
+        else: self.stop_pivot
+
+        lac_cols = [c for c in self.start_pivot.columns if c in self.stop_pivot.columns]
+
+        dates = self.fullday_preClean.index.values.astype('datetime64[ns]')          # (D,)
+        wy_ids = self.fullday_preClean.columns                                        # (W,)
+        last_date = dates.max()
+
+        starts_mat = self.start_pivot.reindex(wy_ids)[lac_cols].values            # (W, L)
+        stops_mat  = self.stop_pivot .reindex(wy_ids)[lac_cols].values             # (W, L)
+        stops_mat  = np.where(pd.isna(stops_mat), last_date, stops_mat)      # open lactations -> last_date
+
+        wet_mask = np.zeros((len(dates), len(wy_ids)), dtype=bool)           # (D, W)
+
+        for i in range(len(lac_cols)):
+            starts = starts_mat[:, i].astype('datetime64[ns]')               # (W,)
+            stops  = stops_mat[:, i].astype('datetime64[ns]')                # (W,)
+            valid  = ~pd.isna(starts)
+            window = (dates[:, None] >= starts[None, :]) & (dates[:, None] <= stops[None, :])
+            wet_mask |= window & valid[None, :]
+
+        fullday_wet_mask = pd.DataFrame(wet_mask, index=self.fullday_preClean.index, columns=self.fullday_preClean.columns)
+
+        # interpolate the whole grid, then only KEEP the fill where it falls inside a real lactation window
+        interpolated = self.fullday_preClean.interpolate(method='linear', limit_area='inside', axis=0)
+
+        fullday_imputed_mask = self.fullday_preClean.isna() & fullday_wet_mask & interpolated.notna()
+        fullday_clean = self.fullday_preClean.where(~fullday_wet_mask, interpolated)
+        self.fullday = fullday_clean
+
+        return self.fullday
 
 
 if __name__ == '__main__':
     obj = MilkAggregatesBasic()
-    obj.load_and_process()
+    obj.load()

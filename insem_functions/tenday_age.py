@@ -12,9 +12,12 @@ class TendayMilkingDays:
         self.preg = None
         self.td2 = None
 
-    def load_and_process(self):
+    def load(self):
         self.IUD = get_dependency('insem_ultra_data')
         self.MA  = get_dependency('milk_aggregates')
+        self.process()
+        
+    def process(self):
         self.days= self.IUD.allx.loc[:, ['wy_id', 'days milking']]
         self.preg= self.IUD.allx.loc[:, ['wy_id', 'u_read', 'expected bdate']]
         self.td2 = self.tenday_days()
@@ -27,4 +30,4 @@ class TendayMilkingDays:
         
 if __name__ ==     "__main__"    :
     obj = TendayMilkingDays()
-    obj.load_and_process()      
+    obj.load()      

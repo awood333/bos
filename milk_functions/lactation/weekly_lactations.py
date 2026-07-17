@@ -1,6 +1,5 @@
 '''WeeklyLactations.py'''
 import inspect
-from pathlib import Path
 import pandas as pd
 from container import get_dependency
 
@@ -25,11 +24,14 @@ class WeeklyLactations():
         self.max_liters_list2 = None
         self.max_df = None
 
-    def load_and_process(self):
+    def load(self):
         self.MB     = get_dependency('milk_basics')
         self.DR     = get_dependency('date_range')
         self.L      = get_dependency('lactations')
         self.SD     = get_dependency('status_data')
+        self.process()
+        
+    def process(self):
 
         self.data       = self.MB.data
         self.alive_ids  = [str(i) for i in self.SD.alive_ids_last]
@@ -136,4 +138,4 @@ class WeeklyLactations():
 
 if __name__ == "__main__":
     obj = WeeklyLactations()
-    obj.load_and_process()
+    obj.load()

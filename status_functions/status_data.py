@@ -2,7 +2,7 @@
 status_functions.status_data
 '''
 import inspect
-from pathlib import Path
+# from pathlib import Path
 import pandas as pd
 from container import get_dependency
 
@@ -10,172 +10,116 @@ from container import get_dependency
 class status_data:
     def __init__(self):
         print(f"status_data instantiated by: {inspect.stack()[1].filename}")
-        # Data dependencies
+        # load
         self.MB = None
         self.DR = None
+        self.MAB= None
+        self.WD = None 
+        
+        #process
         self.startdate = None
         self.enddate_daily = None
-        self.f = None
-        self.maxdate = None
-        self.stopdate = None
-        self.bd1 = None
-        self.bdmax = None
-        self.wy_series = None
-        self.milker_ids = None
-        self.dry_ids = None
-        self.alive_ids = None
-        self.gone_ids = None
-        self.milkers_ids = None
-        self.dry_ids_last = None
-        self.alive_count = None
-        self.gone_count = None
-        self.milker_count = None
-        self.dry_count = None
-        self.milker_ids_df = None
-        self.dry_ids_df = None
-        self.herd_daily = None
-        self.herd_monthly = None
+        self.bd = None
+        self.lb = None
+        # self.maxdate = None
+        # self.stopdate = None
+
+        # self.bdmax = None
+        # self.wy_series = None
+        # self.milker_ids = None
+        # self.dry_ids = None
+        # self.alive_ids = None
+        # self.gone_ids = None
+        # # self.milkers_ids = None
+        # self.dry_ids_last = None
+        # self.alive_count = None
+        # self.gone_count = None
+        # self.milker_count = None
+        # self.dry_count = None
+        # self.milker_ids_df = None
+        # self.dry_ids_df = None
+        # self.herd_daily = None
+        # self.herd_monthly = None
+        
+        #methods
         self.status_col = None
+        self.status_col_all = None
 
-    def load_and_process(self):
+    def load(self):
         self.MB = get_dependency('milk_basics')
-        get_dependency('milk_aggregates_basic')  # populates MB.data['milk'] with fresh fullday
         self.DR = get_dependency('date_range')
+        self.MAB= get_dependency('milk_aggregates_basic')
+        self.WD = get_dependency('wet_dry')
+        self.process()
+        
+    def process(self):        
+
         self.startdate = self.DR.startdate
-        self.enddate_daily = getattr(self.DR, 'enddate_daily', None)
-        mab = get_dependency('milk_aggregates_basic')  # ensures fullday is computed
-        f1 = mab.fullday
-        self.f = f1.loc[pd.Timestamp(self.startdate):, :].copy()
-        self.maxdate = self.f.index.max()
-        self.stopdate = self.maxdate
-        self.bd1 = self.MB.data['bd']
-        self.bdmax = len(self.bd1)
-        self.wy_series = pd.Series(list(range(1, self.bdmax + 1)), name='wy_id', index=range(1, self.bdmax + 1))
-        # Per-date lists
-        [self.milker_ids, self.dry_ids, self.alive_ids,
-         self.alive_count, self.milker_count, self.dry_count] = self.create_milking_list()
-        self.milker_ids_df, self.dry_ids_df = self.create_df()
-        self.herd_daily = self.create_herd_daily()
-        self.herd_monthly = self.create_herd_monthly()
-        # Simple snapshot (last day)
-        self.create_status_col()
-        self.create_write_to_csv()
+        self.enddate_daily = getattr(self.DR, 'enddate_daily', None)        
+        self.lb = self.MB.data['lb']
+        self.bd = self.MB.data['bd']
+        print(f"status_data.process() called, instance id: {id(self)}")
+             
+          #methods
+        self.status_col, self.status_col_all = self.create_status()
+        
+        
+        
+              
+    def create_status(self):
+        ''' uses weekly data from milk_basics to determine milking groups - for the 'model_groups'''
+        bd_1 = self.bd.set_index('wy_id')
+        lb_1 = self.lb[['wy_id', 'b_date', 'calf_num' ]].set_index('wy_id')
+        wyids = bd_1.index.to_list()
+        f_1 = self.MAB.fullday
+     
+        wetdry_period   = self.WD.wet_dry_period_weekly
+        wetdry_days     = self.WD.wet_dry_days_weekly
+        
+        fullday = f_1.loc[pd.Timestamp(self.startdate):, :].copy()        
+        date_index = fullday.index
+        status_col_1 = pd.DataFrame(index=date_index, columns=wyids, dtype='object')
+        
+        #df with the wy_id, b_dates and calf_num (all '1') for all cows that had a first calf
+        lb_1_first_df = lb_1[lb_1['calf_num'] == 1 & lb_1['b_date'].notna()]  # removes duplicate wy_ids if any
 
-    def create_milking_list(self):
-        # Prepare lists to collect per-date data
-        milker_ids_list, dry_ids_list, alive_ids_list = [], [], []
-        alive_count, milker_count, dry_count = [], [], []
-        datex = self.f.index
-        bd = self.bd1['b_date']
-        bd.index += 1
-        bd.index = bd.index.astype(str)
-        dd = self.bd1['death_date']
-        dd.index += 1
-        dd.index = dd.index.astype(str)
-        for date in datex:
-            alive_mask = []
-            for i in self.f.columns:
-                alive1 = date > bd.loc[str(i)] and (date < dd.loc[str(i)] or pd.isna(dd.loc[str(i)]))
-                alive_mask.append(alive1)
-            alive_series = self.f.loc[date, alive_mask].copy()
-            milking_mask = alive_series > 0
-            dry_mask = pd.isna(alive_series)
-            milker1 = list(alive_series.index[milking_mask])
-            dry1 = list(alive_series.index[dry_mask])
-            alive1 = list(alive_series.index)
-            milker_ids_list.append(milker1)
-            dry_ids_list.append(dry1)
-            alive_ids_list.append(alive1)
-            alive_count.append(len(alive1))
-            milker_count.append(len(milker1))
-            dry_count.append(len(dry1))
-        # Convert lists of lists to DataFrames, padding with None for unequal lengths
-        milker_ids = pd.DataFrame(milker_ids_list, index=datex)
-        dry_ids = pd.DataFrame(dry_ids_list, index=datex)
-        alive_ids = pd.DataFrame(alive_ids_list, index=datex)
-        return [milker_ids, dry_ids, alive_ids, alive_count, milker_count, dry_count]
+        # Precompute first_calf mask aligned with all wyids (True if wy in lb_1 with calf_num == 1)
+        first_calf_list = lb_1_first_df.index.to_list()
+        first_calf_bdate_series = lb_1_first_df['b_date']        
 
-    def create_df(self):
-        df = pd.DataFrame(self.milker_ids)
-        milker_ids_df = df.set_index(self.f.index)
-        df2 = pd.DataFrame(self.dry_ids)
-        dry_ids_df = df2.set_index(self.f.index)
-        return milker_ids_df, dry_ids_df
 
-    def create_herd_daily(self):
-        data = {
-            'alive': self.alive_count,
-            'milkers': self.milker_count,
-            'dry': self.dry_count
-        }
-        herd1 = pd.DataFrame(data, index=self.f.index)
-        herd1['dry_15pct'] = (herd1['milkers'] * .15).to_frame(name='dry 15pct')
-        self.herd_daily = herd1
-        return self.herd_daily
+        #.loc returns a Series (or DataFrame slice) when the index has duplicate labels or when you pass a list/slice. It can also access multiple elements.
+        #.at always returns a scalar (single value) and only works with a single row/column pair. It's faster and safer when you know you have a unique index.                             
+        for wy in wyids:
+            b_date = bd_1.at[wy, 'b_date']   # scalar Timestamp
+            d_date = bd_1.at[wy, 'death_date']
+            first_calf_bdate = first_calf_bdate_series.get(wy, pd.NaT)              
+            
+            for date in date_index:
 
-    def create_herd_monthly(self):
-        hm = self.herd_daily.groupby(pd.Grouper(freq='ME')).mean()
-        hm['year'] = hm.index.year
-        hm['month'] = hm.index.month
-        hm.set_index(['year', 'month'], inplace=True)
-        self.herd_monthly = hm
-        return self.herd_monthly
-
-    def create_status_col(self):
-        # All snapshot logic handled here
-        mab = get_dependency('milk_aggregates_basic')  # ensures fullday is available
-        bd = self.MB.data['bd'].reset_index(drop=True)
-        alive_mask = bd['death_date'].isnull()
-        gone_mask = bd['death_date'].notnull()
-        alive_ids_last = bd.loc[alive_mask, 'wy_id'].to_list()
-        gone_ids = bd.loc[gone_mask, 'wy_id'].to_list()
-        last_milking = mab.fullday.iloc[-1:, :]
-        milkers_mask = mab.fullday.iloc[-1, :] > 0
-        milkers_ids = last_milking.columns[milkers_mask].astype(int).tolist()
-        dry_ids_last = [id for id in alive_ids_last if id not in milkers_ids]
-        dry_last = pd.DataFrame(dry_ids_last, columns=['ids']).reset_index(drop=True)
-        dry_last['status'] = 'D'
-        milkers_last = pd.DataFrame(milkers_ids, columns=['ids']).reset_index(drop=True)
-        milkers_last['status'] = 'M'
-        goners_last = pd.DataFrame(gone_ids, columns=['ids']).reset_index(drop=True)
-        goners_last['status'] = 'G'
-        alive_count_last = len(alive_ids_last)
-        gone_count = len(gone_ids)
-        milkers_count_last = len(milkers_ids)
-        dry_count_last = len(dry_ids_last)
-
-        # Store as self attributes if needed elsewhere
-        self.alive_ids_last = alive_ids_last
-        self.gone_ids = gone_ids
-        self.milkers_ids = milkers_ids
-        self.dry_ids_last = dry_ids_last
-        self.dry_last = dry_last
-        self.milkers_last = milkers_last
-        self.goners_last = goners_last
-        self.alive_count_last = alive_count_last
-        self.gone_count = gone_count
-        self.milkers_count_last = milkers_count_last
-        self.dry_count_last = dry_count_last
-
-        # Build status_col
-        status_col1 = pd.concat([milkers_last, goners_last, dry_last], axis=0)
-        status_col2 = status_col1.sort_values(by='ids')
-        status_col3 = status_col2.reset_index(drop=True)
-        self.status_col = status_col3
-        return self.status_col
-
-    def create_write_to_csv(self):
-        pass
-        # STATUS refers to the status_stuff here --- correct in config_path
-        # Path.home() / "cows_data" / "status".mkdir(parents=True, exist_ok=True)
-        # self.milker_ids_df .to_csv(Path.home() / "cows_data" / "status" / "milker_ids.csv")
-        # self.dry_ids_df    .to_csv(Path.home() / "cows_data" / "status" / "dry_ids.csv")
-        # self.herd_daily    .to_csv(Path.home() / "cows_data" / "status" / "herd_daily.csv")
-        # self.herd_monthly  .to_csv(Path.home() / "cows_data" / "status" / "herd_monthly.csv")
-        # pd.DataFrame(self.milkers_ids,  columns=['ids']).to_csv(Path.home() / "cows_data" / "status" / "milkers_ids_last.csv")
-        # pd.DataFrame(self.dry_ids_last, columns=['ids']).to_csv(Path.home() / "cows_data" / "status" / "dry_ids_last.csv")
-        # self.status_col    .to_csv(Path.home() / "cows_data" / "status" / "status_col.csv")
-
+                
+                if date < b_date:
+                    status_col_1.at[date, wy] = 'nby'
+                    
+                elif fullday.at[date,wy] > 0:
+                    status_col_1.at[date, wy] = 'milking'
+                    
+                elif first_calf_list and pd.notna(first_calf_bdate) and date < first_calf_bdate:
+                    status_col_1.at[date, wy] = 'heifer'
+                                                           
+                elif pd.notnull(d_date) and date>=d_date:
+                    status_col_1.at[date, wy] = 'gone'
+                    
+                else: # Not milking, not nby, not gone, not heifer => dry
+                    status_col_1.at[date, wy] = 'dry'
+        
+        self.status_col_all = status_col_1
+        self.status_col = status_col_1.iloc[-1:,:].T
+            
+        return self.status_col, self.status_col_all
+    
+    
 if __name__ == "__main__":
     obj = status_data()
-    obj.load_and_process()
+    obj.load()
+

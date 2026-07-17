@@ -1,7 +1,7 @@
 '''Run_feedcost_functions.py'''
 
 
-from feed_functions.feedcost_basics import Feedcost_basics
+from feed_functions.feedcost_basics import FeedcostBasics
 from feed_functions.feedcost_data   import FeedcostData
 from feed_functions.feedcost_total  import Feedcost_total
 # from feed_functions.heifer_cost_model import HeiferCostModel
@@ -11,7 +11,7 @@ from feed_functions.feedcost_total  import Feedcost_total
 class RunFeedcostFunctions:
     def __init__(self):
 
-        self.feedcost_basics    = Feedcost_basics()
+        self.feedcost_basics    = FeedcostBasics()
         self.feedcost_data      = FeedcostData()
         self.feedcost_total     = Feedcost_total()
         # self.heifer_cost_model = HeiferCostModel()

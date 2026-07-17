@@ -6,7 +6,6 @@ import pandas as pd
 import numpy as np
 
 from container import get_dependency
-from utilities.gdrive_loader import gdrive_read_sheet_tab
 
 class FeedcostData:
     def __init__(self):

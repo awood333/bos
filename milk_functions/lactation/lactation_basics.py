@@ -13,9 +13,12 @@ class LactationBasics:
         self.headers = None
         self.lacts_str =None
 
-    def load_and_process(self):
+    def load(self):
         self.MB  = get_dependency('milk_basics')
-        self.MAB = get_dependency('milk_aggregates_basic')  # populates MB.data['milk'] with fresh fullday
+        self.MAB = get_dependency('milk_aggregates_basic')  
+        self.process()
+        
+    def process(self):
         #methods
         self.lactations_array, self.headers = self.create_lactation_basics()
 
@@ -114,4 +117,4 @@ class LactationBasics:
 
 if __name__ == "__main__":
     obj = LactationBasics()
-    obj.load_and_process()    
+    obj.load()    

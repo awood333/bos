@@ -1,8 +1,6 @@
 '''remote  filesave_utils.py'''
 
 import subprocess
-from concurrent.futures import ThreadPoolExecutor
-import os
 
 class RemoteFilesaveUtils:
     

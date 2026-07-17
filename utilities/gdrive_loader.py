@@ -23,7 +23,6 @@ import io
 import pandas as pd
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload, MediaIoBaseUpload
-from googleapiclient.errors import HttpError
 
 import sys
 import os
@@ -206,7 +205,7 @@ def _download_file_bytes(file_id, mime_type):
     done = False
     while not done:
         _, done = downloader.next_chunk()
-    print(f"  [gdrive] Download complete.", flush=True)
+    print("  [gdrive] Download complete.", flush=True)
     buffer.seek(0)
     return buffer
 

@@ -18,7 +18,10 @@ class NextUltraCheck:
         self.next_ultra_check = None
         self.create_get_next_ultra_check = None
 
-    def load_and_process(self):
+    def load(self):
+        self.process()
+        
+    def process(self):
         # Register the method for creating next ultra check DataFrame
         self.create_get_next_ultra_check = self._create_get_next_ultra_check
         self.next_ultra_check = self.create_get_next_ultra_check()
@@ -49,5 +52,4 @@ class NextUltraCheck:
 
 if __name__ == "__main__":
     obj = NextUltraCheck()
-    obj.load_and_process()
-    print(obj.get_next_ultra_check())
+    obj.load_()

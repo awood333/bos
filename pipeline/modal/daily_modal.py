@@ -12,7 +12,6 @@ colors, alignment) is left to bos_dashboard.
 import inspect
 import pandas as pd
 from container import get_dependency
-from insem_functions.next_ultra_check import NextUltraCheck
 
 
 class DailyModal:
