@@ -7,12 +7,12 @@ utilities/token.pickle
 utilities/client_secret_*.json
 # Ignore service account key (contains private key, do not share)
 utilities/bos_service_account.json
-*.ipynb
-*.pyc
+.ipynb
+.pyc
 .vs/
-*.html
-*.png
-*/__init__.py
+.html
+.png
+__init__.py
 
 Pipfile
 Pipfile.lock
@@ -32,7 +32,11 @@ RunMilkUpdate.py
 insem_functions/Insem_ultra_basics.py
 utilities/rclone_gdrive_aws.sh
 utilities/rclone_gdrive_aws.bat
+dependency_graph.html
+dependency_graph.png
 node_modules/
 
 *accessKeys*
 *.csv
+__pycache__/
+lib/

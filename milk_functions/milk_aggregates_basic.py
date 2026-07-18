@@ -109,11 +109,15 @@ class MilkAggregatesBasic:
             target1[index2] = value2
             target_am.append(target1)
         am1 = pd.DataFrame(target_am)
-
+        
         self.am = am1.T
-        self.am.columns = self.AM_liters.columns
+        # self.am.columns = self.AM_liters.columns
+        self.am.columns = pd.to_datetime(self.AM_liters.columns, errors='coerce')
         self.am.replace(0, np.nan, inplace=True)
         self.am.drop(self.am.columns[0], axis=1, inplace=True)
+        am_test = self.am.loc[94,'2025-05-01':].copy()
+        
+        
 
         # PM calc
         target_pm = []
@@ -143,6 +147,10 @@ class MilkAggregatesBasic:
 
         self.fullday_lastdate = pd.DataFrame(
             index=[fullday2.index[-1]], columns=['last_date'])
+        
+        fullday2_test = fullday2.loc['2025-05-01':,94].copy()
+        
+        
         
         self.fullday_preClean = fullday2
         return [self.am, self.pm, self.fullday_preClean, self.fullday_lastdate]
@@ -190,6 +198,8 @@ class MilkAggregatesBasic:
         fullday_imputed_mask = self.fullday_preClean.isna() & fullday_wet_mask & interpolated.notna()
         fullday_clean = self.fullday_preClean.where(~fullday_wet_mask, interpolated)
         self.fullday = fullday_clean
+
+
 
         return self.fullday
 

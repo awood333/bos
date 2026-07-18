@@ -78,7 +78,7 @@ class WetDry:
         lastday = self.MB.data['lastday']
 
         n_rows  = len(idx)
-        out     = np.zeros((n_rows, len(wy_ids)))
+        day_num_array     = np.zeros((n_rows, len(wy_ids)))
         labels  = np.full((n_rows, len(wy_ids)), '', dtype=object)
 
         for col, wy_id in enumerate(wy_ids):
@@ -146,7 +146,7 @@ class WetDry:
                         if dry_start <= dry_end:
                             n_dry = (dry_end - dry_start).days + 1
                             blocks.append(np.arange(1, n_dry + 1).reshape(-1, 1))
-                            label_blocks.append(np.full((n_dry, 1), f'D{prev_lact + 1}', dtype=object))
+                            label_blocks.append(np.full((n_dry, 1), f'D{prev_lact}', dtype=object))
                     # Gone period (zero days)
                     if death_date_val < lastday:
                         gone_start = death_date_val + pd.Timedelta(days=1)
@@ -161,7 +161,7 @@ class WetDry:
                     if block_start <= block_end:
                         n_dry = (block_end - block_start).days + 1
                         blocks.append(np.arange(1, n_dry + 1).reshape(-1, 1))
-                        label_blocks.append(np.full((n_dry, 1), f'D{prev_lact + 1}', dtype=object))
+                        label_blocks.append(np.full((n_dry, 1), f'D{prev_lact}', dtype=object))
             
             
             # --- heifer period from birth to first_start-1 (cows with lactations) ---
@@ -211,10 +211,10 @@ class WetDry:
 
             n = stacked.shape[0]
             rows_to_fill = min(n, n_rows - row_offset)
-            out[row_offset:row_offset + rows_to_fill, col] = stacked[:rows_to_fill, 0]
+            day_num_array[row_offset:row_offset + rows_to_fill, col] = stacked[:rows_to_fill, 0]
             labels[row_offset:row_offset + rows_to_fill, col] = stacked_labels[:rows_to_fill, 0]
 
-        wet_dry_table1      = pd.DataFrame(out, index=idx, columns=wy_ids)
+        wet_dry_table1      = pd.DataFrame(day_num_array, index=idx, columns=wy_ids)
         self.wet_dry_days  = wet_dry_table1.loc[self.startdate: , :]
         period_df1          = pd.DataFrame(labels, index=idx, columns=wy_ids).copy()
         self.period_df      = period_df1.loc[self.startdate :, :].copy()

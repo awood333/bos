@@ -21,29 +21,13 @@ class status_data:
         self.enddate_daily = None
         self.bd = None
         self.lb = None
-        # self.maxdate = None
-        # self.stopdate = None
 
-        # self.bdmax = None
-        # self.wy_series = None
-        # self.milker_ids = None
-        # self.dry_ids = None
-        # self.alive_ids = None
-        # self.gone_ids = None
-        # # self.milkers_ids = None
-        # self.dry_ids_last = None
-        # self.alive_count = None
-        # self.gone_count = None
-        # self.milker_count = None
-        # self.dry_count = None
-        # self.milker_ids_df = None
-        # self.dry_ids_df = None
-        # self.herd_daily = None
-        # self.herd_monthly = None
         
         #methods
         self.status_col = None
         self.status_col_all = None
+        self.alive_ids_today = None
+              
 
     def load(self):
         self.MB = get_dependency('milk_basics')
@@ -61,7 +45,9 @@ class status_data:
         print(f"status_data.process() called, instance id: {id(self)}")
              
           #methods
-        self.status_col, self.status_col_all = self.create_status()
+        [self.status_col, 
+         self.status_col_all,
+        self.alive_ids_today]       = self.create_status()
         
         
         
@@ -115,11 +101,13 @@ class status_data:
         
         self.status_col_all = status_col_1
         self.status_col = status_col_1.iloc[-1:,:].T
+        self.alive_ids_today = self.status_col[~self.status_col.isin(['gone', 'nby'])].index
             
-        return self.status_col, self.status_col_all
+        return self.status_col, self.status_col_all, self.alive_ids_today
     
     
 if __name__ == "__main__":
     obj = status_data()
     obj.load()
 
+        

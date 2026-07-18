@@ -12,12 +12,15 @@ class DateRange:
         self.enddate_daily = None
         self.date_range_daily = None
         self.date_range_monthly_data = None
+        self.date_range_monthly = None
+        self.date_range_monthly2 = None
 
     def load_and_process(self):
-        self.startdate = self.start_date()
-        self.enddate_monthly = self.end_date_monthly()
-        self.enddate_daily = self.end_date_daily()
-        self.date_range_daily = self.create_date_range_daily()
+        self.startdate          = self.start_date()
+        self.enddate_monthly    = self.end_date_monthly()
+        self.enddate_daily      = self.end_date_daily()
+        self.date_range_daily   = self.create_date_range_daily()
+        self.date_range_weekly  = self.create_date_range_weekly()
         self.date_range_monthly_data = self.create_date_range_monthly()
         
     def start_date(self):
@@ -42,9 +45,14 @@ class DateRange:
         
         
     def create_date_range_daily(self):
-        self.date_range_daily = pd.date_range(start=self.startdate, end=self.enddate_daily, freq='D')
-        
+        self.date_range_daily = pd.date_range(start=self.startdate, 
+                end=self.enddate_daily, freq='D')
         return self.date_range_daily
+    
+    def create_date_range_weekly(self):
+        self.date_range_weekly = pd.date_range(start=self.startdate, 
+                end=self.enddate_daily, freq='W')
+        return self.date_range_weekly
     
     def create_date_range_monthly(self):
  
@@ -53,9 +61,9 @@ class DateRange:
         drm = pd.date_range(start=start, end=end, freq='ME')
         self.date_range_monthly1 = drm
         
-        year = drm.year # ignore the squiggles
+        year  = drm.year # ignore the squiggles
         month = drm.month
-        day = drm.days_in_month
+        day   = drm.days_in_month
         
         self.date_range_monthly = pd.MultiIndex.from_arrays([year, month], names=['year','month'])
         self.date_range_monthly2 =pd.MultiIndex.from_arrays([year, month, day], names=['year','month','days'])

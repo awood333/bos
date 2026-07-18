@@ -75,6 +75,7 @@ class Container:
         self.register_singleton('feedcost_data',        self._create_feedcost_data)
         self.register_singleton('feedcost_data_loader', self._create_feedcost_data_loader)
         self.register_singleton('feedcost_data_processor', self._create_feedcost_data_processor)
+        self.register_singleton('feedcost_by_group',    self._create_feedcost_by_group)
       
 
         # milk_functions
@@ -212,7 +213,7 @@ class Container:
         net.from_nx(self._dependency_graph)
         net.show_buttons(filter_=['physics'])  # lets you tune layout live in-browser
         net.save_graph("dependency_graph.html")
-        print("Open dependency_graph.html in a browser")
+        print("Open dependency_graph.html by clicking the Go Live button on bottom activity bar")
 
 
 
@@ -298,6 +299,9 @@ class Container:
         loader = self.get("feedcost_data_loader") 
         return FeedCostDataProcessor(loader)
     
+    def _create_feedcost_by_group(self):
+        from feed_functions.feedcost_by_group import FeedCostByGroup
+        return FeedCostByGroup()
     
     
 

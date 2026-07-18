@@ -74,8 +74,8 @@ class InsemUltraData:
         # get last insem event from 'i'
         i1 = self.data['i'].groupby('wy_id').last().reset_index()
         
-        print("i1 columns:", i1.columns.tolist())
-        print("i1 sample:\n", i1.head(2))
+        # print("i1 columns:", i1.columns.tolist())
+        # print("i1 sample:\n", i1.head(2))
         i2 = i1.rename(columns = {
             'calf_num'    : 'i_calf_num',
             'insem_date'   : 'i_date',
@@ -89,16 +89,16 @@ class InsemUltraData:
   
 
     def create_last_valid_insem(self):
-        print("Shape of last_insem:", self.last_insem.shape)
-        print("Null i_calf_num count:", self.last_insem['i_calf_num'].isna().sum())
-        print("Null last calf_num count:", self.last_insem['last calf_num'].isna().sum())
+        # print("Shape of last_insem:", self.last_insem.shape)
+        # print("Null i_calf_num count:", self.last_insem['i_calf_num'].isna().sum())
+        # print("Null last calf_num count:", self.last_insem['last calf_num'].isna().sum())
         mask = (
             self.last_insem['i_calf_num'].isna() |
             (self.last_insem['i_calf_num'] > self.last_insem['last calf_num'])
         )
-        print("Total True in mask:", mask.sum())
+        # print("Total True in mask:", mask.sum())
         i4 = self.last_insem.loc[mask].reset_index(drop=True)
-        print("i4 shape after filter:", i4.shape)
+        # print("i4 shape after filter:", i4.shape)
         self.last_valid_insem = i4[['wy_id','i_calf_num', 'i_date' ,'last calf_num']]
         return self.last_valid_insem
     

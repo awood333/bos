@@ -50,11 +50,12 @@ class FeedcostBasics:
         self.feed_types = list(self.price_sequence_dict.keys())
         
         #methods
+        [self.feedcost_F_df, self.feedcost_A_df,
+         self.feedcost_B_df, self.feedcost_C_df,
+         self.feedcost_D_df]                        = self._calculate_all_group_costs()
 
-        self._calculate_all_group_costs()
 
-
-        # Accumulate daily total cost per group across all feeds
+    # Accumulate daily total cost per group across all feeds
     def _calculate_all_group_costs(self):
         group_cols = ['fresh_kg', 'group_a_kg', 'group_b_kg', 'group_c_kg', 'dry_kg']
         group_prefixes = ['fresh', 'a', 'b', 'c', 'd']
@@ -90,6 +91,8 @@ class FeedcostBasics:
         self.feedcost_B_df = pd.DataFrame({'totalcostB': group_totals['b']}, index=self.rng_daily)
         self.feedcost_C_df = pd.DataFrame({'totalcostC': group_totals['c']}, index=self.rng_daily)
         self.feedcost_D_df = pd.DataFrame({'totalcostD': group_totals['d']}, index=self.rng_daily)
+        return self.feedcost_F_df, self.feedcost_A_df, self.feedcost_B_df, self.feedcost_C_df, self.feedcost_D_df 
+    
 
     # Optionally store per-feed breakdowns if needed later
     # self.feedcost_detail = ...

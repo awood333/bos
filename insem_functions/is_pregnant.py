@@ -28,6 +28,12 @@ class IsPregnant:
         self.ultra_pivot = None
         self.wet_dry_letters = None
         self.wd_lact_num = None
+        self.daynums = None
+        self.liters_T = None
+        self.period = None
+        self.start_lact = None
+        self.stop_lact = None
+        self.as_of_date = None
         
         #methods
         self.wet = None
@@ -44,13 +50,15 @@ class IsPregnant:
         self.MB = get_dependency('milk_basics')
         self.DR = get_dependency('date_range')        
         self.MA = get_dependency('milk_aggregates')
-        self.BSO= get_dependency('bos_state_orchestrator')
         self.process()
         
     def process(self):
         self.startdate  = self.DR.startdate
         self.lastday    = self.MB.lastday
-        self.alive_ids  = self.BSO.alive_ids
+        
+        #alive_ids includes heifers, milking and dry
+        self.alive_ids  = self.SD.alive_ids_today
+        
         self.fullday    = self.MA.weekly_average_date[self.MA.weekly_average_date.index >= pd.to_datetime(self.startdate)]
         
         self.wet_dry_days_weekly  = self.WD.wet_dry_days_weekly[
@@ -93,12 +101,19 @@ class IsPregnant:
     def create_ultra_ok_all_dates(self):
 
         ultra_1 = self.MB.data['u'].loc[:,['wy_id','ultra_date','calf_num','readex']].copy()
-        ultra_1a= ultra_1.loc[(ultra_1['wy_id'])==94,:]
+        # ultra_1a= ultra_1.loc[(ultra_1['wy_id'])==94,:]
         ultra_2 = ultra_1.loc[(ultra_1['readex'] == 'ok')].reset_index(drop=True)
         ultra_3 = ultra_2[ultra_2['wy_id'].isin(self.alive_ids)].reset_index(drop=True)
-        #idxmax() returns the index label of the first occurrence of the maximum value for each group.
-        idx     = ultra_3.groupby(['wy_id', 'calf_num'])['ultra_date'].idxmax() 
-        self.ultra_4 = ultra_3.loc[idx].reset_index(drop=True)
+        # #idxmax() returns the index label of the first occurrence of the maximum value for each group.
+        # idx     = ultra_3.groupby(['wy_id', 'calf_num'])['ultra_date'].idxmax() 
+        
+        self.ultra_4 = (
+            ultra_3.sort_values('ultra_date')
+            .groupby(['wy_id', 'calf_num'],sort=False)
+            .last()
+            .reset_index()
+            )
+        
         ultra_5 = pd.pivot_table(self.ultra_4,
                                 index = 'wy_id',
                                 columns= 'calf_num',
@@ -108,36 +123,35 @@ class IsPregnant:
     
     def create_preg_df(self):
         wyids = self.liters_T.index
-        dates = self.liters_T.columns #liters is transposed
-        preg_df = pd.DataFrame(index=dates)
+        dates = self.liters_T.columns
+        results = {}  # collect columns as series
         
         for i in wyids:
-            
-            preg1 = {}  # reset for each wy_id
+            preg1 = {}
             for date in dates:
                 wd_lact_num = self.wd_lact_num.loc[i, date]
-                
                 
                 if pd.isna(wd_lact_num):
                     preg1[date] = None
                 else:
-                    start_date_date = self.start_lact.loc[i, wd_lact_num]
+                    try:
+                        start_date_date = self.start_lact.loc[i, wd_lact_num]
+                    except KeyError:
+                        print(f"Missing lact column for wy_id {i}: wd_lact_num = {wd_lact_num}")
+                        preg1[date] = None
+                        continue
                     try:
                         ultra_date = self.ultra_pivot.loc[i, wd_lact_num]
-                        if( pd.notna(ultra_date)
-                            and ultra_date < start_date_date
-                            ):
-                             preg1[date] = 'preg'
-                           
+                        if pd.notna(ultra_date) and ultra_date < start_date_date:
+                            preg1[date] = 'preg'
                         else:
                             preg1[date] = 'not_preg'
                     except KeyError:
                         preg1[date] = None
-                        
-                # Assign the dict as a column to preg_df
-            preg_df[i] = pd.Series(preg1)
+            
+            results[i] = pd.Series(preg1)
         
-        self.preg_df = preg_df
+        self.preg_df = pd.DataFrame(results)
         return self.preg_df
          
 if __name__ == "__main__":
