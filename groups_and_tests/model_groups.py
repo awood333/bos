@@ -60,7 +60,8 @@ class ModelGroups:
         self.lastday  = self.MB.lastday
 
         self.alive_ids  = self.SD.alive_ids_today
-        self.fullday    = self.MA.weekly_average_date[self.MA.weekly_average_date.index >= pd.to_datetime(self.startdate)]
+        self.fullday    = self.MA.weekly_average_date[self.MA.weekly_average_date.
+                        index >= pd.to_datetime(self.startdate)]
         
         self.wet_dry_days_weekly  = self.WD.wet_dry_days_weekly[
             self.WD.wet_dry_days_weekly.index >= pd.to_datetime(self.startdate)]\
@@ -94,9 +95,9 @@ class ModelGroups:
         liters = self.liters_T
         wyids = liters.index
         dates = liters.columns
-        wetdry = self.wet_dry_days_weekly
+        # wetdry = self.wet_dry_days_weekly
         day_num = self.daynums
-        period = self.period
+        # period = self.period
         pregnant   = self.pregnant
         
         group_df = pd.DataFrame(index=dates)
@@ -136,7 +137,5 @@ class ModelGroups:
          
 if __name__ == "__main__":
     model_groups = ModelGroups()
-    model_groups.load()    
-    
-    
+    model_groups.load()
     

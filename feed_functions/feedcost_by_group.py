@@ -6,6 +6,8 @@ from container import get_dependency
 
 class FeedCostByGroup:
     def __init__(self):
+        print(f"FeedCostByGroup instantiated by: {inspect.stack()[1].filename}")
+        
         self.BD = None
         self.DR = None
         self.MG = None
@@ -21,7 +23,7 @@ class FeedCostByGroup:
         self.cost_b = None
         self.cost_c = None
         self.cost_d = None
-        self.cost_by_group_df = None
+        self.cost_by_group_by_day_df = None
         
     def load(self):
         self.MB = get_dependency('milk_basics')
@@ -46,7 +48,7 @@ class FeedCostByGroup:
             
             
     def create_feedcost_by_group(self):
-        dates = pd.to_datetime(self.dates).normalize()
+        # dates = pd.to_datetime(self.dates).normalize()
         groups = self.groups.copy()
 
 
@@ -62,7 +64,7 @@ class FeedCostByGroup:
         long = groups.stack(dropna=False).rename('group').reset_index()
         long.columns = ['date', 'wy_id',  'group']
 
-        #squees each cost fram down to a Series before concat
+        #squeeze each cost frame down to a Series before concat
         cost_series = {}
         for group, df in cost_map.items():
             series = df.iloc[:, 0] if isinstance(df, pd.DataFrame) else df   # totalcostF -> plain Series
@@ -82,13 +84,9 @@ class FeedCostByGroup:
         merged = long.merge(cost_long, on=['date', 'group'], how='left')
 
         cost_by_group_df = merged.pivot(index='date', columns='wy_id', values='cost')
-        self.cost_by_group_df = cost_by_group_df
+        self.cost_by_group_by_day_df = cost_by_group_df
         return self.cost_by_group_by_day_df
             
 if __name__ == "__main__":
     obj = FeedCostByGroup()
-    obj.load()       
-        
-        
-        
-    
+    obj.load()
