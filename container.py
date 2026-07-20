@@ -75,7 +75,7 @@ class Container:
         self.register_singleton('feedcost_data',        self._create_feedcost_data)
         self.register_singleton('feedcost_data_loader', self._create_feedcost_data_loader)
         self.register_singleton('feedcost_data_processor', self._create_feedcost_data_processor)
-        self.register_singleton('feedcost_by_group',    self._create_feedcost_by_group)
+        self.register_singleton('feedcost_by_group_by_day',    self._create_feedcost_by_group)
       
 
         # milk_functions
@@ -300,8 +300,8 @@ class Container:
         return FeedCostDataProcessor(loader)
     
     def _create_feedcost_by_group(self):
-        from feed_functions.feedcost_by_group import FeedCostByGroup
-        return FeedCostByGroup()
+        from feed_functions.feedcost_by_group_by_day import FeedCostByGroupByDay
+        return FeedCostByGroupByDay()
     
     
 

@@ -59,7 +59,7 @@ class status_data:
         wyids = bd_1.index.to_list()
         f_1 = self.MAB.fullday
      
-        wetdry_period   = self.WD.wet_dry_period_weekly
+        wetdry_period   = self.WD.period_weekly
         wetdry_days     = self.WD.wet_dry_days_weekly
         
         fullday = f_1.loc[pd.Timestamp(self.startdate):, :].copy()        

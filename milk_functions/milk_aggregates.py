@@ -39,7 +39,10 @@ class MilkAggregates:
         self.monthly_summary = None
         self.weekly_summary = None
         self.monthly_avg = None
+        self.monthly_total = None
         self.weekly_avg = None
+        self.weekly_total = None
+        self.weekly_average_date = None
         self.start = None
         self.stop = None
 
@@ -64,14 +67,15 @@ class MilkAggregates:
         self.AM_liters        = self.MAB.AM_liters
 
 
+
         # methods
         self.halfday = self.halfday_AM_PM()
         self.tenday, self.tenday1 = self.ten_day()
 
         [self.monthly_summary, self.weekly_summary,
          self.start, self.stop,
-         self.monthly_avg, self.weekly_avg,
-         self.weekly_average_date] = self.create_monthly_weekly()
+         self.monthly_avg, self.monthly_total, self.weekly_avg,
+         self.weekly_total, self.weekly_average_date] = self.create_monthly_weekly()
        
     def halfday_AM_PM(self):
         lastday_AM = self.am.iloc[:,-1:]
@@ -165,9 +169,35 @@ class MilkAggregates:
         
         self.monthly_summary=   milk.groupby(['year','month'],as_index=False).agg({'sum': 'sum', 'count':'mean'})
         self.monthly_avg    =   milk.groupby(['year','month'],as_index=False).agg('mean')
+        self.monthly_total  =   milk.groupby(['year','month'],as_index=False).agg('sum')
 
-        self.weekly_summary =   milk.groupby(['year','month', 'week'],as_index=False).agg({'sum': 'sum', 'count':'mean'})
-        self.weekly_avg     = milk.groupby(['year','month', 'week'],as_index=False).agg('mean')
+        # Add date column based on month (first day)
+        self.monthly_total['datex'] = pd.to_datetime(
+            self.monthly_total['year'].astype(str) + '-' +
+            self.monthly_total['month'].astype(str) + '-01',
+            format='%Y-%m-%d'
+        )
+        self.monthly_total.set_index('datex', inplace=True)
+        self.monthly_total.sort_index(inplace=True)
+        self.monthly_total.drop(columns=['year', 'month'], inplace=True)
+
+
+        self.weekly_summary     =   milk.groupby(['year','month', 'week'],as_index=False).agg({'sum': 'sum', 'count':'mean'})
+        self.weekly_avg         = milk.groupby(['year','month', 'week'],as_index=False).agg('mean')
+        
+        self.weekly_total       = milk.groupby(['year','month', 'week'],as_index=False).agg('sum')
+        # Add date column based on ISO week (Monday-start)
+        self.weekly_total['datex'] = pd.to_datetime(
+            self.weekly_total['year'].astype(str) + '-W' +
+            self.weekly_total['week'].astype(str) + '-1',
+            format='%Y-W%W-%w'
+            )
+        self.weekly_total.set_index('datex', inplace=True)
+        self.weekly_total.sort_index(inplace=True)
+        self.weekly_total.drop(columns=['year', 'month', 'week'], inplace=True)
+        
+        
+        
         self.weekly_average_date = (
             milk.drop(columns=['sum','count','year','month','week'], errors='ignore')
                 .resample('W')
@@ -179,8 +209,8 @@ class MilkAggregates:
 
         return [self.monthly_summary, self.weekly_summary, 
             self.start, self.stop,
-            self.monthly_avg, self.weekly_avg,
-            self.weekly_average_date]
+            self.monthly_avg, self.monthly_total, self.weekly_avg,
+            self.weekly_total, self.weekly_average_date]
         
         
 

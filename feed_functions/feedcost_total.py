@@ -57,8 +57,7 @@ class Feedcost_total:
         self.total_feedcost_monthly = self.create_monthly_from_dict()
         self.total_feedcost_weekly = self.create_weekly_from_dict()
         self.total_feedcost_monthly_from_df = self.create_total_feedcost_monthly_from_df()
-        self.write_to_csv()
-
+ 
     def build_amt_and_price_dfs(self):
         """
         Build amt_df and price_df from self.feedcost_data.results.
@@ -196,15 +195,6 @@ class Feedcost_total:
 
         return self.total_feedcost_monthly_from_df
 
-
-    def write_to_csv(self):
-        Path.home() / "cows_data" / "feed_data" / "feedcost_by_group".mkdir(parents=True, exist_ok=True)
-        self.feedcost                   .to_csv(Path.home() / "cows_data" / "feed_data" / "feedcost_by_group" / 'feedcost.csv')
-        self.total_feedcost_details_last.to_csv(Path.home() / "cows_data" / "feed_data" / "feedcost_by_group" / 'total_feedcost_details_last.csv')
-        self.total_feedcost_monthly     .to_csv(Path.home() / "cows_data" / "feed_data" / "feedcost_by_group" / 'total_feedcost_monthly.csv')
-        self.total_feedcost_weekly      .to_csv(Path.home() / "cows_data" / "feed_data" / "feedcost_by_group" / 'total_feedcost_weekly.csv')
-        self.total_feedcost_monthly_from_df.to_csv(Path.home() / "cows_data" / "feed_data" / "feedcost_by_group" / 'total_feedcost_monthly_from_df.csv')
-        self.feedcost_from_df_details   .to_csv(Path.home() / "cows_data" / "feed_data" / "feedcost_by_group" / 'feedcost_from_df_details.csv')
 
 
 

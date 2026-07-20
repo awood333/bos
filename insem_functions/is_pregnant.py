@@ -22,11 +22,11 @@ class IsPregnant:
         self.lastday  = None
         self.fullday = None
         self.wet_dry_days_weekly = None
-        self.wet_period_weekly = None
+        self.period_weekly = None
         self.alive_ids = None
         self.ultra_4 = None
         self.ultra_pivot = None
-        self.wet_dry_letters = None
+        self.wd_letters = None
         self.wd_lact_num = None
         self.daynums = None
         self.liters_T = None
@@ -65,13 +65,13 @@ class IsPregnant:
             self.WD.wet_dry_days_weekly.index >= pd.to_datetime(self.startdate)]\
             .reset_index().rename(columns={'index': 'date'}).set_index('date')
             
-        self.wet_period_weekly = self.WD.wet_dry_period_weekly[
-            self.WD.wet_dry_period_weekly.index  >= pd.to_datetime(self.startdate)]\
+        self.period_weekly = self.WD.period_weekly[
+            self.WD.period_weekly.index  >= pd.to_datetime(self.startdate)]\
             .reset_index().rename(columns={'index': 'date'}).set_index('date')
             
         self.daynums = self.wet_dry_days_weekly[self.alive_ids].T
         self.liters_T  = self.fullday[self.alive_ids].T
-        self.period  = self.wet_period_weekly[self.alive_ids].T
+        self.period  = self.period_weekly[self.alive_ids].T
         
         start_lact_1 = self.MB.data['start_pivot']
         self.start_lact = start_lact_1.loc[self.alive_ids, :] #cols are lact nums, rows are wy
@@ -81,7 +81,7 @@ class IsPregnant:
         
    
         #methods
-        self.wet_dry_letters, self.wd_lact_num = self.reform_period()
+        self.wd_letters, self.wd_lact_num = self.reform_period()
         self.ultra_4, self.ultra_pivot = self.create_ultra_ok_all_dates()
         self.create_preg_df()
   
@@ -93,14 +93,15 @@ class IsPregnant:
         regex_pattern = r'([A-Za-z]+)(\d+)'
         #([A-Za-z]+) captures one or more letters (the W, D, whatever prefix)
         #(\d+) captures one or more digits (the number)
-        self.wet_dry_letters  = df.apply(lambda col: col.str.extract(regex_pattern)[0])
+        self.wd_letters  = df.apply(lambda col: col.str.extract(regex_pattern)[0])
         self.wd_lact_num = df.apply(lambda col: col.str.extract(regex_pattern)[1]).astype(float)
-        return self.wet_dry_letters, self.wd_lact_num
+        return self.wd_letters, self.wd_lact_num
         
 
     def create_ultra_ok_all_dates(self):
 
         ultra_1 = self.MB.data['u'].loc[:,['wy_id','ultra_date','calf_num','readex']].copy()
+        
         # ultra_1a= ultra_1.loc[(ultra_1['wy_id'])==94,:]
         ultra_2 = ultra_1.loc[(ultra_1['readex'] == 'ok')].reset_index(drop=True)
         ultra_3 = ultra_2[ultra_2['wy_id'].isin(self.alive_ids)].reset_index(drop=True)
@@ -137,7 +138,7 @@ class IsPregnant:
                     try:
                         start_date_date = self.start_lact.loc[i, wd_lact_num]
                     except KeyError:
-                        print(f"Missing lact column for wy_id {i}: wd_lact_num = {wd_lact_num}")
+                        # print(f"Missing lact column for wy_id {i}: wd_lact_num = {wd_lact_num}")
                         preg1[date] = None
                         continue
                     try:

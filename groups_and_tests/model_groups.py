@@ -1,6 +1,7 @@
 '''milk_functions\\model_groups.py'''
 import inspect
 import pandas as pd
+import numpy as np
 from container import get_dependency
 
 class ModelGroups:
@@ -31,7 +32,7 @@ class ModelGroups:
         self.ultra_pivot = None
         self.wet_dry_letters = None
         self.wd_lact_num = None
-        self.daynums = None
+        self.weeknums = None
         self.liters_T = None
         self.period = None
         self.start_lact = None
@@ -67,11 +68,11 @@ class ModelGroups:
             self.WD.wet_dry_days_weekly.index >= pd.to_datetime(self.startdate)]\
             .reset_index().rename(columns={'index': 'date'}).set_index('date')
             
-        self.wet_period_weekly = self.WD.wet_dry_period_weekly[
-            self.WD.wet_dry_period_weekly.index  >= pd.to_datetime(self.startdate)]\
+        self.wet_period_weekly = self.WD.period_weekly[
+            self.WD.period_weekly.index  >= pd.to_datetime(self.startdate)]\
             .reset_index().rename(columns={'index': 'date'}).set_index('date')
             
-        self.daynums = self.wet_dry_days_weekly[self.alive_ids].T
+        self.weeknums = self.wet_dry_days_weekly[self.alive_ids].T
         self.liters_T  = self.fullday[self.alive_ids].T
         self.period  = self.wet_period_weekly[self.alive_ids].T
         
@@ -88,47 +89,50 @@ class ModelGroups:
         self.group_df = self.create_model_groups()
        
 
+    
+    def create_model_groups(self):
+        liters   = self.liters_T
+        week_num  = self.weeknums
+        pregnant = self.pregnant
+
+        # explicit alignment guard: if these three ever drift out of sync
+        # (different wy_id/date coverage), this catches it instead of
+        # silently misaligning cells the way three independent .at[] calls could
+
+        liters_a, week_num_a = liters.align(week_num, join='inner')
+        liters_a, pregnant_a = liters_a.align(pregnant, join='inner')
+        week_num_a = week_num_a.reindex_like(liters_a)
+        pregnant_a = pregnant_a.reindex_like(liters_a)
         
 
-    def create_model_groups (self):
-
-        liters = self.liters_T
-        wyids = liters.index
-        dates = liters.columns
-        # wetdry = self.wet_dry_days_weekly
-        day_num = self.daynums
-        # period = self.period
-        pregnant   = self.pregnant
         
-        group_df = pd.DataFrame(index=dates)
 
-        for wy in wyids:
-            
-            group_1 = {}  # reset for each wy_id
-            for date in dates:
-                
-                liters_1    = liters .at[wy, date]
-                day_num_1   = day_num.at[wy, date]
-                preg_1      = pregnant.at[wy, date]
-
-
-                if pd.isna(day_num_1) or pd.isna(liters_1):
-                    group_1[date] = None
-                if day_num_1 < 21:
-                    group_1[date] ='F'
-                elif day_num_1 >= 21 and liters_1 >= 15:
-                    group_1[date] ='A'
-                elif day_num_1 >= 21 and 0 < liters_1 < 15:
-                    if preg_1 == 'pregnant':
-                        group_1[date] = 'C'
-                    else:
-                        group_1[date] =  'B'
-                elif liters_1 == 0:
-                    group_1[date] = 'D'
-
-
-            group_df[wy] = pd.Series(group_1)
+        missing = week_num_a.isna() | liters_a.isna()
+        is_preg = pregnant_a == 'preg'
         
+        # check alignment
+        # print('liters_a: '  ,liters_a .iloc[94,-1])
+        # print('week_num_a: ' ,week_num_a.iloc[94,-1])
+        print('94 is_preg - pregnant   :' ,pregnant.loc[94].iloc[-5:-1])
+        print('94 is_preg - pregnant_a :' ,pregnant_a.loc[94,] .iloc[-5:-1])
+        
+        conditions = [
+            missing, # highest priority. np.select locks in None for any missing-data cell and never 
+                        #evaluates the later conditions for that cell
+            week_num_a < 21,
+            (week_num_a >= 21) & (liters_a >= 15),
+            (week_num_a >= 21) & (liters_a > 0) & (liters_a < 15) & is_preg,
+            (week_num_a >= 21) & (liters_a > 0) & (liters_a < 15) & ~is_preg,
+            liters_a == 0,
+        ]
+        choices = [None, 'F', 'A', 'C', 'B', 'D']
+
+        group_arr = np.select(conditions, choices, default=None) 
+            #group_arr is computed as one full 2D array in a single np.select call, 
+            # #and pd.DataFrame(group_arr, ...) constructs the whole frame in one allocation
+        group_df = pd.DataFrame(group_arr, index=liters_a.index, columns=liters_a.columns).T
+        # .T at the end: index=wy_id/columns=date -> index=date/columns=wy_id, matching original shape
+
         self.group_df = group_df
         return self.group_df
 

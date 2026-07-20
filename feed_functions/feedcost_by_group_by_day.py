@@ -1,12 +1,12 @@
-"""feed_functions\\feedcost_by_group.py"""
+"""feed_functions\\feedcost_by_group_by_day.py"""
 
 import inspect
 import pandas as pd
 from container import get_dependency
 
-class FeedCostByGroup:
+class FeedCostByGroupByDay:
     def __init__(self):
-        print(f"FeedCostByGroup instantiated by: {inspect.stack()[1].filename}")
+        print(f"FeedCostByGroupByDay instantiated by: {inspect.stack()[1].filename}")
         
         self.BD = None
         self.DR = None
@@ -60,8 +60,19 @@ class FeedCostByGroup:
         'D': self.cost_d,
         }
 
+
+        # df.stack ---- Returns a reshaped DataFrame or Series having a multi-level index 
+        # with one or more new inner-most levels compared to the current DataFrame.
+         
+        # The new inner-most levels are created by pivoting the columns of the current dataframe:
+        # if the columns have a single level, the output is a Series;
+        # if the columns have multiple levels, the new index level(s) is (are) taken 
+        # from the prescribed level(s) and the output is a DataFrame.
+        
+        #.stack() flattens that entire grid into one long column in a single C-level operation
+
         # long format: one row per (wy_id, date) -> group letter
-        long = groups.stack(dropna=False).rename('group').reset_index()
+        long = groups.stack(future_stack=True).rename('group').reset_index()
         long.columns = ['date', 'wy_id',  'group']
 
         #squeeze each cost frame down to a Series before concat
@@ -74,11 +85,11 @@ class FeedCostByGroup:
 
         # build a single date x feed-type cost table, then long-ify it
         cost_wide = pd.concat(cost_series, axis=1)          # columns: F, A, B, C, D (single level)
-        cost_long = cost_wide.stack().rename('cost').reset_index()
+        cost_long = cost_wide.stack(future_stack=True).rename('cost').reset_index()
         cost_long.columns = ['date', 'group', 'cost']
         
         cost_wide.index = pd.to_datetime(cost_wide.index).normalize()
-        cost_long = cost_wide.stack().rename('cost').reset_index()
+        cost_long = cost_wide.stack(future_stack=True).rename('cost').reset_index()
         cost_long.columns = ['date', 'group', 'cost']
 
         merged = long.merge(cost_long, on=['date', 'group'], how='left')
@@ -88,5 +99,5 @@ class FeedCostByGroup:
         return self.cost_by_group_by_day_df
             
 if __name__ == "__main__":
-    obj = FeedCostByGroup()
+    obj = FeedCostByGroupByDay()
     obj.load()

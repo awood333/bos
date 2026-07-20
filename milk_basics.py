@@ -96,6 +96,14 @@ class MilkBasics:
                                       values=   'stop_date',
                                       aggfunc=  'first'
                                       ).reindex(self.wy_id_list)
+        
+        ultra1 = self.u[['wy_id', 'ultra_date', 'calf_num']].copy()
+        self.ultra_pivot = pd.pivot_table( ultra1,
+                                      index=    'wy_id',
+                                      columns=  'calf_num',
+                                      values=   'ultra_date',
+                                      aggfunc=  'last'
+                                      ).reindex(self.wy_id_list)
 
 
 
@@ -109,6 +117,7 @@ class MilkBasics:
             'lb'     : self.lb,
             'i'      : self.i,
             'u'      : self.u,
+            'ultra_pivot': self.ultra_pivot,
             'lastday': self.lastday,
             'wy_ids' : self.wy_id_list,
             'ext_rng': self.extended_date_range_milk

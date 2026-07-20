@@ -33,8 +33,9 @@ class WetDry:
         
         #methods
         self.period_df = None
-        self.wet_dry_period_weekly = None
+        self.period_weekly = None
         self.wet_dry_days_weekly = None
+        self.wet_dry_days = None
 
         
     def load(self):
@@ -67,7 +68,7 @@ class WetDry:
 
         #methods
         self.wet_dry_days, self.period_df   = self.create_wet_dry_table()
-        self.wet_dry_period_weekly  = self.create_period_weekly()
+        self.period_weekly  = self.create_period_weekly()
         self.wet_dry_days_weekly = self.create_wet_dry_weekly()
         
           
@@ -152,8 +153,8 @@ class WetDry:
                         gone_start = death_date_val + pd.Timedelta(days=1)
                         gone_end   = lastday
                         n_gone = (gone_end - gone_start).days + 1
-                        blocks.append(np.zeros((n_gone, 1)))          # day numbers = 0
-                        label_blocks.append(np.full((n_gone, 1), 'gone', dtype=object))
+                        blocks.append(np.zeros((n_gone, 1)))          # keep as a placeholder
+                        label_blocks.append(np.full((n_gone, 1), '', dtype=object))  #no more 'gone'
                 else:
                     # Alive – dry block to lastday
                     block_start = prev_stop + pd.Timedelta(days=1)
@@ -163,7 +164,7 @@ class WetDry:
                         blocks.append(np.arange(1, n_dry + 1).reshape(-1, 1))
                         label_blocks.append(np.full((n_dry, 1), f'D{prev_lact}', dtype=object))
             
-            
+     
             # --- heifer period from birth to first_start-1 (cows with lactations) ---
             if not pd.isna(b_date) and first_start is not None and b_date < first_start:
                 heifer_end = first_start - pd.Timedelta(days=1)
@@ -173,13 +174,14 @@ class WetDry:
                 if heifer_start <= heifer_end:
                     n_heifer = (heifer_end - heifer_start).days + 1
                     blocks.insert(0, np.arange(1, n_heifer + 1).reshape(-1, 1))
-                    label_blocks.insert(0, np.full((n_heifer, 1), 'H', dtype=object))
+                    label_blocks.insert(0, np.full((n_heifer, 1), 'H0', dtype=object))
                     earliest_date = heifer_start
                 else:
                     print(f"wy_id {wy_id}: heifer period out of range "
                           f"(b_date={b_date}, first_start={first_start})")
                     earliest_date = first_start
             elif not pd.isna(b_date) and first_start is None:
+                
                 # --- heifer period for cows with no lactations ---
                 heifer_start = max(b_date, idx.min())
                 if pd.notna(death_date_val):
@@ -189,7 +191,7 @@ class WetDry:
                 if heifer_start <= heifer_end:
                     n_heifer = (heifer_end - heifer_start).days + 1
                     blocks.append(np.arange(1, n_heifer + 1).reshape(-1, 1))
-                    label_blocks.append(np.full((n_heifer, 1), 'H', dtype=object))
+                    label_blocks.append(np.full((n_heifer, 1), 'H0', dtype=object))
                     earliest_date = heifer_start
                 else:
                     print(f"wy_id {wy_id}: heifer period out of range "
@@ -223,12 +225,14 @@ class WetDry:
 
 
     def create_period_weekly(self, freq='W'):
-        self.wet_dry_period_weekly = self.period_df.resample(freq).last()
-        return self.wet_dry_period_weekly
+        self.period_weekly = self.period_df.resample(freq).last()
+        return self.period_weekly
   
     def create_wet_dry_weekly(self, freq='W'):
         '''Weekly aggregation of wet_dry_days (numeric) using last value.'''
-        self.wet_dry_days_weekly = self.wet_dry_days.resample(freq).last()
+        weekly_last = self.wet_dry_days.resample(freq).last()
+        self.wet_dry_days_weekly = weekly_last.apply(
+            lambda col: col.map(lambda x: 0 if x == 0 else (x - 1) // 7 + 1))
         return self.wet_dry_days_weekly
 
 
