@@ -11,6 +11,7 @@ class I_U_merge:
 
     def load(self):
         self.MB = get_dependency('milk_basics')
+        self.process()
         
     def process(self):
         self.data = self.MB.data

@@ -117,6 +117,7 @@ protobuf==7.35.1
     #   google-api-core
     #   googleapis-common-protos
     #   proto-plus
+psycopg2-binary==2.9.12    
 pyasn1==0.6.3
     # via pyasn1-modules
 pyasn1-modules==0.4.2
@@ -141,6 +142,8 @@ python-dateutil==2.9.0.post0
     #   pandas
 python-dotenv==1.2.2
     # via bos (pyproject.toml)
+pyvis==0.3.2
+    #for dependency plot in container    
 requests==2.34.2
     # via
     #   dash
@@ -156,6 +159,7 @@ setuptools==82.0.1
     # via dash
 six==1.17.0
     # via python-dateutil
+sqlalchemy==2.0.51    
 typing-extensions==4.15.0
     # via
     #   dash

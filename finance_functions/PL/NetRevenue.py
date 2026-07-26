@@ -2,91 +2,78 @@
 import inspect
 import pandas as pd
 from container import get_dependency
-# from date_range import DateRange
-
 
 class NetRevenue:
     def __init__(self):
         print(f"NetRevenue instantiated by: {inspect.stack()[1].filename}")
         self.DR = None
-        self.startdate = None
         self.MI = None
-        self.sahagon = None
-        self.TF = None
-        self.feedcost1 = None
-        self.net_revenue_daily = None
-        self.net_revenue_daily_last = None
-        self.feedcost_daily = None
-        self.test_daily_net = None
+        self.FCBD = None
+        
+        
+        self.startdate = None        
+        self.feedcost_weekly = None
+        self.feedcost_monthly  = None
+        self.income_weekly = None
+        self.income_monthly = None
+        self.net_revenue_weekly  = None
         self.net_revenue_monthly = None
 
-    def load_and_process(self):
-        self.DR = get_dependency('date_range')
-        self.startdate = self.DR.start_date()
-        self.MI = get_dependency('milk_income')
-        self.sahagon = get_dependency('sahagon')
-        self.TF = get_dependency('feedcost_total')
+    def load(self):
+        self.DR   = get_dependency('date_range')
+        self.MI   = get_dependency('milk_income')
+        self.FCBD = get_dependency('feedcost_by_group_by_day')
+        self.process()
 
-        self.feedcost1 = self.TF.feedcost
-        self.feedcost1.index = pd.to_datetime(self.feedcost1.index, errors='coerce')
+    def process(self):
+        self.startdate  = self.DR.startdate        
+        self.feedcost_weekly   = self.FCBD.feedcost_by_group_by_week_df
+        self.feedcost_monthly   = self.FCBD.feedcost_by_group_by_month_df
 
-        [self.net_revenue_daily,
-         self.net_revenue_daily_last,
-         self.feedcost_daily] = self.create_net_revenue()
+        self.income_weekly  = self.MI.income_weekly.copy()
+        self.income_monthly  = self.MI.income_monthly.copy()
+              
+            
+        #methhods
 
-        self.net_revenue_monthly = self.create_monthly_net()
-        # self.write_to_csv()
+        self.net_revenue_weekly  = self.create_net_revenue_weekly()
+        self.net_revenue_monthly = self.create_net_revenue_monthly()
         
     
-    def create_net_revenue(self):
-        
-        income1 = self.MI.income.copy()
-        income1['datex'] = pd.to_datetime(income1['datex'])
-        income1 = income1.set_index('datex')
-        income2 = income1.loc[self.startdate:]
-        # Keep 'baht' and 'avg_liters' columns
-        income3 = income2[['baht', 'avg_liters']].copy()
-        income3 = income3.rename(columns={'avg_liters': 'liters'})
+    def create_net_revenue_weekly(self):
+        income1 = self.income_weekly
+        cost1 = self.feedcost_weekly
 
-        feedcost2 = self.feedcost1.loc[self.startdate:,:]
-        feedcost3 = feedcost2['total feedcost'].copy()
-        feedcost3.index = pd.to_datetime(feedcost3.index, errors='coerce')
+        # explicit alignment guard, same reasoning as model_groups.py:
+        # equal shape doesn't guarantee equal index/columns
+        income_a, cost_a = income1.align(cost1, join='inner')
+        if income_a.shape != income1.shape or cost_a.shape != cost1.shape:
+            print(f"WARNING: net_revenue_weekly alignment dropped cells — "
+                f"income {income1.shape} -> {income_a.shape}, "
+                f"cost {cost1.shape} -> {cost_a.shape}")
 
-        netrev1 = pd.concat((income3, feedcost3), axis=1)
-        netrev1['net revenue'] = netrev1['baht'] - netrev1['total feedcost']
+        net_revenue = income_a.sub(cost_a, fill_value=0)
+        self.net_revenue_weekly = net_revenue
+        return self.net_revenue_weekly
 
-        self.net_revenue_daily = netrev1
-        self.net_revenue_daily_last = self.net_revenue_daily.iloc[-5:, :]
-        self.feedcost_daily = feedcost3
 
-        return self.net_revenue_daily, self.net_revenue_daily_last, self.feedcost_daily
+
     
-    def create_monthly_net(self):
-        nrm1 = self.net_revenue_daily.copy()
-        nrm1['year'] = nrm1.index.year
-        nrm1['month'] = nrm1.index.month
-        # Aggregate sum for all columns, but mean for avg_liters
-        monthly_sum = nrm1.groupby(['year', 'month']).sum()
-        monthly_mean_liters = nrm1.groupby(['year', 'month'])['liters'].mean()
-        monthly_mean_liters = pd.to_numeric(monthly_mean_liters, errors='coerce')
-        monthly_sum['daily liters'] = monthly_mean_liters.round(0)
-        # Round all columns to 0 decimals
-        monthly_sum = monthly_sum.round(0)
-        self.net_revenue_monthly = monthly_sum
+    def create_net_revenue_monthly(self):
+        income1 = self.income_monthly
+        cost1 = self.feedcost_monthly
+
+        income_a, cost_a = income1.align(cost1, join='inner')
+        if income_a.shape != income1.shape or cost_a.shape != cost1.shape:
+            print(f"WARNING: net_revenue_monthly alignment dropped cells — "
+                f"income {income1.shape} -> {income_a.shape}, "
+                f"cost {cost1.shape} -> {cost_a.shape}")
+
+        net_revenue = income_a.sub(cost_a, fill_value=0)
+        self.net_revenue_monthly = net_revenue
         return self.net_revenue_monthly
 
  
-    # def write_to_csv(self):
-        
-    #     # writing to D:\Cow_backup/finance_data
-    #     Path.home() / "cows_data" / "finance_data" / "PL_data".mkdir(parents=True, exist_ok=True)
-    #     self.net_revenue_daily_last .to_csv(Path.home() / "cows_data" / "finance_data" / "PL_data" / 'net_revenue_daily_last.csv')
-    #     self.net_revenue_daily      .to_csv(Path.home() / "cows_data" / "finance_data" / "PL_data" / 'net_revenue_daily.csv')
-    #     self.net_revenue_monthly    .to_csv(Path.home() / "cows_data" / "finance_data" / "PL_data" / 'net_revenue_monthly.csv')
-        
-        
-        
-        
 if __name__ == "__main__":
     obj=NetRevenue()            
-    obj.load_and_process()     
+    obj.load()     

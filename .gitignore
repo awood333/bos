@@ -38,5 +38,6 @@ node_modules/
 
 *accessKeys*
 *.csv
+*.log
 __pycache__/
 lib/

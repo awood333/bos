@@ -23,13 +23,16 @@ class FeedCostByGroupByDay:
         self.cost_b = None
         self.cost_c = None
         self.cost_d = None
-        self.cost_by_group_by_day_df = None
+        self.cost_h = None
+        self.feedcost_by_group_by_day_df = None
+        self.feedcost_by_group_by_week_df = None
         
     def load(self):
         self.MB = get_dependency('milk_basics')
         self.DR = get_dependency('date_range')
         self.MG = get_dependency('model_groups')
         self.FB = get_dependency('feedcost_basics')
+        self.WD = get_dependency('wet_dry')
         self.process()
         
     def process(self):
@@ -41,13 +44,15 @@ class FeedCostByGroupByDay:
         self.cost_b = self.FB.feedcost_B_df
         self.cost_c = self.FB.feedcost_C_df
         self.cost_d = self.FB.feedcost_D_df
-        # self.cost_h = self.FB.feedcost_H_df
+        self.cost_h = self.FB.feedcost_H_df
 
      #methods
-        self.cost_by_group_by_day_df = self.create_feedcost_by_group()
+        self.feedcost_by_group_by_day_df   = self.create_feedcost_by_group_by_day()
+        self.feedcost_by_group_by_week_df  = self.create_feedcost_by_group_by_week()
+        self.feedcost_by_group_by_month_df = self.create_feedcost_by_group_by_month()
             
             
-    def create_feedcost_by_group(self):
+    def create_feedcost_by_group_by_day(self):
         # dates = pd.to_datetime(self.dates).normalize()
         groups = self.groups.copy()
 
@@ -58,6 +63,7 @@ class FeedCostByGroupByDay:
         'B': self.cost_b,
         'C': self.cost_c,
         'D': self.cost_d,
+        'H': self.cost_h,
         }
 
 
@@ -97,6 +103,78 @@ class FeedCostByGroupByDay:
         cost_by_group_df = merged.pivot(index='date', columns='wy_id', values='cost')
         self.cost_by_group_by_day_df = cost_by_group_df
         return self.cost_by_group_by_day_df
+        
+        
+    def create_feedcost_by_group_by_week(self):
+        groups = self.groups.copy()  # already weekly, W-SUN anchored, from model_groups
+
+        cost_map = {
+            'F': self.cost_f,
+            'A': self.cost_a,
+            'B': self.cost_b,
+            'C': self.cost_c,
+            'D': self.cost_d,
+            'H': self.cost_h,
+        }
+
+        # long format: one row per (week, wy_id) -> group letter
+        long = groups.stack(future_stack=True).rename('group').reset_index()
+        long.columns = ['date', 'wy_id', 'group']
+
+        # squeeze each daily cost frame to a Series, normalize, then resample to
+        # weekly totals on the SAME anchor as groups/period_weekly/wet_dry_days_weekly.
+        # min_count=1: a week with zero logged days should read NaN, not a false 0.0
+        cost_series = {}
+        for group, df in cost_map.items():
+            series = df.iloc[:, 0] if isinstance(df, pd.DataFrame) else df
+            series.index = pd.to_datetime(series.index).normalize()
+            cost_series[group] = series.resample('W').sum(min_count=1)
+
+        cost_wide = pd.concat(cost_series, axis=1)  # weekly date x {F,A,B,C,D,H}
+        cost_long = cost_wide.stack(future_stack=True).rename('cost').reset_index()
+        cost_long.columns = ['date', 'group', 'cost']
+
+        merged = long.merge(cost_long, on=['date', 'group'], how='left')
+
+        cost_by_group_by_week_df = merged.pivot(index='date', columns='wy_id', values='cost')
+        self.feedcost_by_group_by_week_df = cost_by_group_by_week_df
+        return self.feedcost_by_group_by_week_df
+            
+    def create_feedcost_by_group_by_month(self):
+        groups = self.groups.copy()  # must be MS-anchored monthly group labels, matching monthly_avg
+
+        cost_map = {
+            'F': self.cost_f,
+            'A': self.cost_a,
+            'B': self.cost_b,
+            'C': self.cost_c,
+            'D': self.cost_d,
+            'H': self.cost_h,
+        }
+
+        # long format: one row per (month, wy_id) -> group letter
+        long = groups.stack(future_stack=True).rename('group').reset_index()
+        long.columns = ['date', 'wy_id', 'group']
+
+        # squeeze each daily cost frame to a Series, normalize, then resample to
+        # monthly totals on the SAME anchor as groups ('MS' = month-start label).
+        # min_count=1: a month with zero logged days should read NaN, not a false 0.0
+        cost_series = {}
+        for group, df in cost_map.items():
+            series = df.iloc[:, 0] if isinstance(df, pd.DataFrame) else df
+            series.index = pd.to_datetime(series.index).normalize()
+            cost_series[group] = series.resample('MS').sum(min_count=1)
+
+        cost_wide = pd.concat(cost_series, axis=1)  # monthly date x {F,A,B,C,D,H}
+        cost_long = cost_wide.stack(future_stack=True).rename('cost').reset_index()
+        cost_long.columns = ['date', 'group', 'cost']
+
+        merged = long.merge(cost_long, on=['date', 'group'], how='left')
+
+        cost_by_group_by_month_df = merged.pivot(index='date', columns='wy_id', values='cost')
+        self.feedcost_by_group_by_month_df = cost_by_group_by_month_df
+        return self.feedcost_by_group_by_month_df
+        
             
 if __name__ == "__main__":
     obj = FeedCostByGroupByDay()

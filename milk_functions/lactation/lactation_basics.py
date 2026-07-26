@@ -29,8 +29,8 @@ class LactationBasics:
         
         lastday = self.MB.data['lastday']
 
-        lact_start2 = self.MB.data['lact_start_pivot']        
-        lact_stop2  = self.MB.data['lact_stop_pivot']
+        lact_start2 = self.MB.data['start_pivot']        
+        lact_stop2  = self.MB.data['stop_pivot']
         lact,  lactations = [],[]
         model = pd.DataFrame(index=range(0,999))
     

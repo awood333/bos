@@ -11,11 +11,17 @@ class MilkIncome:
         print(f"MilkIncome instantiated by: {inspect.stack()[1].filename}")
         self.FCBD = None
         self.DR = None
+        self.MA = None
+        
+        #methods
         self.startdate = None
+        self.milk_weekly_total  = None
+        self.milk_monthly_total = None
+       
         self.income = None
         self.income_daily = None
+        self.income_weekly = None
         self.income_monthly = None
-        self.income_daily_last = None
 
 
     def load(self):
@@ -27,29 +33,27 @@ class MilkIncome:
         
     def process(self):
         
-        self.feedcost   = self.FCBD.cost_by_group_by_day_df
-        self.startdate  = self.DR.startdate
-        self.weekly_total  = self.MA.weekly_total
-        self.monthly_total = self.MA.monthly_total
+
+        self.startdate    = self.DR.startdate
+        self.milk_weekly_total  = self.MA.weekly_total
+        self.milk_monthly_total = self.MA.monthly_total
  
         self.income_weekly  = self.create_income_weekly()
         self.income_monthly = self.create_income_monthly()
         
+        
     
     def create_income_weekly(self):
-        income_1 = self.weekly_total.copy()
-        income_2 = income_1.drop(columns=['count'])
-        income_3 = income_2.loc[self.startdate:, [income_2.columns[-1]]]
-        income_4 = income_3['sum'] * 22
-        self.income_weekly = pd.DataFrame(income_4, columns=['sum'])
+
+        income_1 = self.milk_weekly_total.copy()
+        income_2 = income_1 * 22
+        self.income_weekly = pd.DataFrame(income_2)
         return self.income_weekly
     
     def create_income_monthly(self):
-        income_1 = self.monthly_total.copy()
-        income_2 = income_1.drop(columns=['count', 'week'])
-        income_3 = income_2.loc[self.startdate:, [income_2.columns[-1]]]
-        income_4 = income_3['sum'] * 22
-        self.income_monthly = pd.DataFrame(income_4, columns=['sum'])
+        income_1 = self.milk_monthly_total.copy()
+        income_2 = income_1* 22
+        self.income_monthly = pd.DataFrame(income_2)
         return self.income_monthly
 
 if __name__ == '__main__':

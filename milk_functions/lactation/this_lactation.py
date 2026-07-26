@@ -22,11 +22,11 @@ class ThisLactation():
         
 
     def create_daily_weekly(self):
-        this_lact_daily = self.WD.this_lact_liters 
-        # this_lact_liters is an ongoing lact (in WD)-- there can only be one....
-        grouping_key  = this_lact_daily.index //7 +1
-        self.this_lact_wkly  = this_lact_daily.groupby(grouping_key).mean()
-        self.this_lact_daily = this_lact_daily
+        # this_lact_daily = self.WD.this_lact_liters 
+        # # this_lact_liters is an ongoing lact (in WD)-- there can only be one....
+        # grouping_key  = this_lact_daily.index //7 +1
+        # self.this_lact_wkly  = this_lact_daily.groupby(grouping_key).mean()
+        # self.this_lact_daily = this_lact_daily
         return self.this_lact_wkly, self.this_lact_daily
     
 

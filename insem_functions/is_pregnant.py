@@ -20,7 +20,7 @@ class IsPregnant:
         #process
         self.startdate = None
         self.lastday  = None
-        self.fullday = None
+        self.milk = None
         self.wet_dry_days_weekly = None
         self.period_weekly = None
         self.alive_ids = None
@@ -59,7 +59,7 @@ class IsPregnant:
         #alive_ids includes heifers, milking and dry
         self.alive_ids  = self.SD.alive_ids_today
         
-        self.fullday    = self.MA.weekly_average_date[self.MA.weekly_average_date.index >= pd.to_datetime(self.startdate)]
+        self.milk    = self.MA.weekly_avg.copy()
         
         self.wet_dry_days_weekly  = self.WD.wet_dry_days_weekly[
             self.WD.wet_dry_days_weekly.index >= pd.to_datetime(self.startdate)]\
@@ -70,9 +70,15 @@ class IsPregnant:
             .reset_index().rename(columns={'index': 'date'}).set_index('date')
             
         self.daynums = self.wet_dry_days_weekly[self.alive_ids].T
-        self.liters_T  = self.fullday[self.alive_ids].T
+        self.liters_T  = self.milk[self.alive_ids].T
         self.period  = self.period_weekly[self.alive_ids].T
         
+        # Convert (year, month, week) to Monday of that ISO week
+        if isinstance(self.liters_T.columns, pd.MultiIndex):
+            self.liters_T.columns = pd.to_datetime(
+                self.liters_T.columns.map(lambda x: f"{x[0]}-W{x[2]:02d}-1"),
+                format='%G-W%V-%u'
+            )        
         start_lact_1 = self.MB.data['start_pivot']
         self.start_lact = start_lact_1.loc[self.alive_ids, :] #cols are lact nums, rows are wy
         
@@ -123,8 +129,8 @@ class IsPregnant:
         return self.ultra_4, self.ultra_pivot
     
     def create_preg_df(self):
-        wyids = self.liters_T.index
-        dates = self.liters_T.columns
+        wyids = self.wd_lact_num.index 
+        dates = self.wd_lact_num.columns
         results = {}  # collect columns as series
         
         for i in wyids:
@@ -156,5 +162,5 @@ class IsPregnant:
         return self.preg_df
          
 if __name__ == "__main__":
-    model_groups = IsPregnant()
-    model_groups.load()    
+    obj = IsPregnant()
+    obj.load()    

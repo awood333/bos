@@ -61,8 +61,7 @@ class ModelGroups:
         self.lastday  = self.MB.lastday
 
         self.alive_ids  = self.SD.alive_ids_today
-        self.fullday    = self.MA.weekly_average_date[self.MA.weekly_average_date.
-                        index >= pd.to_datetime(self.startdate)]
+        self.fullday    = self.MA.weekly_avg
         
         self.wet_dry_days_weekly  = self.WD.wet_dry_days_weekly[
             self.WD.wet_dry_days_weekly.index >= pd.to_datetime(self.startdate)]\
@@ -94,6 +93,7 @@ class ModelGroups:
         liters   = self.liters_T
         week_num  = self.weeknums
         pregnant = self.pregnant
+        period   = self.period  # weekly period labels: W1, D2, H0, etc.
 
         # explicit alignment guard: if these three ever drift out of sync
         # (different wy_id/date coverage), this catches it instead of
@@ -101,14 +101,18 @@ class ModelGroups:
 
         liters_a, week_num_a = liters.align(week_num, join='inner')
         liters_a, pregnant_a = liters_a.align(pregnant, join='inner')
+        liters_a, period_a   = liters_a.align(period, join='inner')
         week_num_a = week_num_a.reindex_like(liters_a)
         pregnant_a = pregnant_a.reindex_like(liters_a)
-        
+        period_a   = period_a.reindex_like(liters_a)
 
-        
+            
+        # pull the letter off the period label ('H0' -> 'H', 'D2' -> 'D', 'W1' -> 'W')
+        period_letter = period_a.apply(lambda col: col.str.extract(r'([A-Za-z]+)')[0])
+        is_heifer = period_letter == 'H'
 
-        missing = week_num_a.isna() | liters_a.isna()
         is_preg = pregnant_a == 'preg'
+        missing = (week_num_a.isna() | liters_a.isna()) & ~is_heifer
         
         # check alignment
         # print('liters_a: '  ,liters_a .iloc[94,-1])
@@ -117,15 +121,16 @@ class ModelGroups:
         print('94 is_preg - pregnant_a :' ,pregnant_a.loc[94,] .iloc[-5:-1])
         
         conditions = [
-            missing, # highest priority. np.select locks in None for any missing-data cell and never 
+            is_heifer, # highest priority. np.select locks in None for any missing-data cell and never 
                         #evaluates the later conditions for that cell
+            missing, 
             week_num_a < 21,
             (week_num_a >= 21) & (liters_a >= 15),
             (week_num_a >= 21) & (liters_a > 0) & (liters_a < 15) & is_preg,
             (week_num_a >= 21) & (liters_a > 0) & (liters_a < 15) & ~is_preg,
             liters_a == 0,
         ]
-        choices = [None, 'F', 'A', 'C', 'B', 'D']
+        choices = ['H', None, 'F', 'A', 'C', 'B', 'D' ]
 
         group_arr = np.select(conditions, choices, default=None) 
             #group_arr is computed as one full 2D array in a single np.select call, 
@@ -140,6 +145,6 @@ class ModelGroups:
 
          
 if __name__ == "__main__":
-    model_groups = ModelGroups()
-    model_groups.load()
+    obj = ModelGroups()
+    obj.load()
     

@@ -11,20 +11,21 @@ class DateRange:
         self.enddate_monthly = None
         self.enddate_daily = None
         self.date_range_daily = None
-        self.date_range_monthly_data = None
-        self.date_range_monthly = None
-        self.date_range_monthly2 = None
+        self.date_range_weekly = None
+        self.date_range_monthly1 = None
+        self.date_range_monthly2 = None        
 
     def load_and_process(self):
         self.startdate          = self.start_date()
-        self.enddate_monthly    = self.end_date_monthly()
         self.enddate_daily      = self.end_date_daily()
         self.date_range_daily   = self.create_date_range_daily()
         self.date_range_weekly  = self.create_date_range_weekly()
-        self.date_range_monthly_data = self.create_date_range_monthly()
+        self.enddate_monthly    = self.end_date_monthly()
+        [self.date_range_monthly1,
+        self.date_range_monthly1]= self.create_date_range_monthly()
         
     def start_date(self):
-        self.startdate = pd.to_datetime("2024-02-01")  #timestamp
+        self.startdate = pd.to_datetime("2025-06-01")  #timestamp
         return self.startdate
     
     def end_date_monthly(self):
@@ -59,21 +60,15 @@ class DateRange:
         start           = self.startdate
         end             = self.enddate_monthly
         drm = pd.date_range(start=start, end=end, freq='ME')
-        self.date_range_monthly1 = drm
-        
+
         year  = drm.year # ignore the squiggles
         month = drm.month
         day   = drm.days_in_month
         
-        self.date_range_monthly = pd.MultiIndex.from_arrays([year, month], names=['year','month'])
-        self.date_range_monthly2 =pd.MultiIndex.from_arrays([year, month, day], names=['year','month','days'])
+        self.date_range_monthly1 = pd.MultiIndex.from_arrays([year, month], names=['year','month'])
+        self.date_range_monthly2 = pd.MultiIndex.from_arrays([year, month, day], names=['year','month','days'])
         
-        self.date_range_monthly_data = [
-            self.date_range_monthly, 
-            self.date_range_monthly1, 
-            self.date_range_monthly2]
-    
-        return self.date_range_monthly_data
+        return  self.date_range_monthly1, self.date_range_monthly2
     
 
 if __name__ == "__main__":

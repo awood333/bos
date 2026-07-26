@@ -27,8 +27,8 @@ class Lactations:
     def process(self):
 
         self.headers = self.Lacts.headers
-        self.alive_ids_int  = self.SD.alive_ids_last
-        self.alive_ids_str  = [str(i) for i in self.SD.alive_ids_last]
+        self.alive_ids_int  = self.SD.alive_ids_today
+        self.alive_ids_str  = [str(i) for i in self.SD.alive_ids_today]
         self.create_separate_lactations()
         self.create_live_lactations()
         

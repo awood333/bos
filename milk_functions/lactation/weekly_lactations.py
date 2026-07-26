@@ -34,7 +34,7 @@ class WeeklyLactations():
     def process(self):
 
         self.data       = self.MB.data
-        self.alive_ids  = [str(i) for i in self.SD.alive_ids_last]
+        self.alive_ids  = [str(i) for i in self.SD.alive_ids_today]
 
         (self.lact1, self.lact2, 
          self.lact3, self.lact4, 

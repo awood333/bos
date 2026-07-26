@@ -99,13 +99,11 @@ class Container:
         self.register_singleton('weekly_lactations',    self._create_weekly_lactations)
         self.register_singleton('lactations',           self._create_lactations)        
         self.register_singleton('lactation_plots',      self._create_lactation_plots)                                          
-        self.register_singleton('lactations_log_standard',      self._create_lactations_log_standard)
 
         # Report Milk
         self.register_singleton('report_milk',          self._create_report_milk)        
-        self.register_singleton('run_milk_dash_app',    self._create_run_milk_dash_app)        
-        self.register_singleton('daily_modal',          self._create_daily_modal)        
-
+        self.register_singleton('run_milk_dash_app',    self._create_run_milk_dash_app)
+      
 
         # Finance
         self.register_singleton('finance_basics',       self._create_finance_basics)
@@ -118,9 +116,12 @@ class Container:
         self.register_singleton('net_revenue',          self._create_net_revenue)
         self.register_singleton('sahagon',              self._create_sahagon)
 
-        # Report/Dashboard dependencies
-        self.register_singleton('report_milk',          self._create_report_milk)
-        # self.register_singleton('report_milk_xlsx',     self._create_report_milk_xlsx)
+        # pipeline dependencies
+        self.register_singleton('format_for_neon',      self._create_format_for_neon)
+        self.register_singleton('daily_modal_data',     self._create_daily_modal_data)    
+        
+        
+        
 
     def register_singleton(self, name: str, factory: Callable[[], Any]):
         """Register a singleton dependency"""
@@ -227,8 +228,7 @@ class Container:
         from date_range import DateRange
         return DateRange()
     
-    
-    
+
     # Status functions
     def _create_status_data(self):
         from status_functions.status_data import status_data
@@ -241,7 +241,6 @@ class Container:
     def _create_bos_state_orchestrator(self):
         from status_functions.bos_state_orchestrator import BosStateOrchestrator
         return BosStateOrchestrator()
-    
     
     
     
@@ -366,24 +365,25 @@ class Container:
     
     
     # Lactation measurements
-    def _create_lactations_log_standard(self):
-        from plot_functions.lactations_log_standard import LactationsLogStandard
-        return LactationsLogStandard()
-    
+
     def _create_lactation_plots(self):
         from plot_functions.lactation_plots import LactationPlots
         return LactationPlots()        
     
 
 
-    #Report_Milk
+    # Pipeline
     def _create_report_milk(self):
         from milk_functions.report_milk.Report_Milk import ReportMilk
         return ReportMilk()
 
-    def _create_daily_modal(self):
-        from pipeline.modal.daily_modal import DailyModal
+    def _create_daily_modal_data(self):
+        from pipeline.modal.daily_modal_data import DailyModal
         return DailyModal()
+    
+    def _create_format_for_neon(self):
+        from pipeline.neon.format_for_neon import FormatForNeon
+        return FormatForNeon()    
 
     def _create_run_milk_dash_app(self):
         from milk_functions.report_milk.milk_dash_app import run_milk_dash_app
@@ -418,10 +418,6 @@ class Container:
     def _create_net_revenue(self):
         from finance_functions.PL.NetRevenue import NetRevenue
         return NetRevenue()
-    
-    # def _create_cow_pl(self):
-    #     from finance_functions.PL.cow_PL import CowPL
-    #     return CowPL()
         
     def _create_sahagon(self):
         from finance_functions.income.sahagon import sahagon

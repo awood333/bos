@@ -29,6 +29,7 @@ class FeedcostBasics:
         self.feedcost_B_df = None
         self.feedcost_C_df = None
         self.feedcost_D_df = None
+        self.feedcost_H_df = None
 
         self.iu_merge_df = None
 
@@ -52,13 +53,13 @@ class FeedcostBasics:
         #methods
         [self.feedcost_F_df, self.feedcost_A_df,
          self.feedcost_B_df, self.feedcost_C_df,
-         self.feedcost_D_df]                        = self._calculate_all_group_costs()
+         self.feedcost_D_df, self.feedcost_H_df]                        = self._calculate_all_group_costs()
 
 
     # Accumulate daily total cost per group across all feeds
     def _calculate_all_group_costs(self):
-        group_cols = ['fresh_kg', 'group_a_kg', 'group_b_kg', 'group_c_kg', 'dry_kg']
-        group_prefixes = ['fresh', 'a', 'b', 'c', 'd']
+        group_cols = ['fresh_kg', 'group_a_kg', 'group_b_kg', 'group_c_kg', 'dry_kg', 'heifer_kg']
+        group_prefixes = ['fresh', 'a', 'b', 'c', 'd', 'h']
         group_totals = {prefix: None for prefix in group_prefixes}
 
         for feed in self.feed_types:
@@ -91,7 +92,9 @@ class FeedcostBasics:
         self.feedcost_B_df = pd.DataFrame({'totalcostB': group_totals['b']}, index=self.rng_daily)
         self.feedcost_C_df = pd.DataFrame({'totalcostC': group_totals['c']}, index=self.rng_daily)
         self.feedcost_D_df = pd.DataFrame({'totalcostD': group_totals['d']}, index=self.rng_daily)
-        return self.feedcost_F_df, self.feedcost_A_df, self.feedcost_B_df, self.feedcost_C_df, self.feedcost_D_df 
+        self.feedcost_H_df = pd.DataFrame({'totalcostH': group_totals['h']}, index=self.rng_daily)
+        
+        return self.feedcost_F_df, self.feedcost_A_df, self.feedcost_B_df, self.feedcost_C_df, self.feedcost_D_df, self.feedcost_H_df 
     
 
     # Optionally store per-feed breakdowns if needed later

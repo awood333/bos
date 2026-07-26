@@ -6,6 +6,9 @@
 #
 # NOTE: USE THIS ON COMMAND LINE :::  modal run pipeline/modal/modal_dailyUpdate.py
 
+import sys
+from datetime import datetime
+from container import get_dependency
 import modal
 
 # ── Image ─────────────────────────────────────────────────────────────────────
@@ -61,18 +64,15 @@ app = modal.App("bos_backend")
     timeout=600,
 )
 def run_pipeline():
-    import sys
-    from datetime import datetime
 
     sys.path.insert(0, "/root/bos")
 
     print(f"\n=== BOS pipeline starting: {datetime.now()} ===\n")
 
-    from container import get_dependency
-    report = get_dependency('daily_modal')
+    _ = get_dependency('daily_modal_data')
+    # triggers the load_and_process in daily_modal_data
 
     print(f"\n=== BOS pipeline complete: {datetime.now()} ===")
-    print(f"    halfday rows : {report.halfday_formatted.shape}")
 
 
 # ── Local entrypoint ──────────────────────────────────────────────────────────
