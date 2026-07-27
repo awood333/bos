@@ -82,8 +82,8 @@ class ReportMilk:
             'PM': '{:.1f}',
             'wy_id': '{:.0f}',
             'milking days': '{:.0f}',
-            'days milking': '{:.0f}',
-            'expected bdate': 'iso8601',
+            'days_milking': '{:.0f}',
+            'expected_bdate': 'iso8601',
             'whiteboard group': 'text',
             'model group': 'text',
             'comp': 'text'

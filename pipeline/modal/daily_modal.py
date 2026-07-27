@@ -1,5 +1,11 @@
 '''milk_functions/report_milk/daily_modal_data.py'''
 
+
+import sys
+from pathlib import Path
+# Add project root (bos_backend/) to sys.path so container module is found
+project_root = Path(__file__).resolve().parent.parent.parent
+sys.path.insert(0, str(project_root))
 import inspect
 import pandas as pd
 from container import get_dependency
@@ -35,8 +41,8 @@ class DailyModal:
             schema={
                 "wy_id": "int",
                 "milking days": "int",
-                "days milking": "int",
-                "expected bdate": "date",
+                "days_milking": "int",
+                "expected_bdate": "date",
             },
             positional_rules=[(1, 11, "int")],  # dynamic 10-day columns
         )
@@ -63,7 +69,7 @@ class DailyModal:
                 "ultra": "text",
                 "group": "text",
                 "wy_id": "int",
-                "expected bdate": "date",
+                "expected_bdate": "date",
             },
         )
         self.ium_fmt = FormatForNeon(
@@ -74,6 +80,9 @@ class DailyModal:
         
         self.allx_fmt = FormatForNeon(
             schema={
+                "wy_id": "int",
+                "status": "text",
+                "last_stop_date": "date",
                 "stop_calf_num": "int",
                 "last_calf_bdate": "date",
                 "last_calf_num": "int",
@@ -90,6 +99,7 @@ class DailyModal:
                 "i_check": "int",
                 "u_check1": "int",
                 "u_check2": "int",
+                "updated" : 'date',
             }
         )
         

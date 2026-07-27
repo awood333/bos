@@ -91,15 +91,15 @@ class InsemUltraData:
     def create_last_valid_insem(self):
         # print("Shape of last_insem:", self.last_insem.shape)
         # print("Null i_calf_num count:", self.last_insem['i_calf_num'].isna().sum())
-        # print("Null last calf_num count:", self.last_insem['last calf_num'].isna().sum())
+        # print("Null last_calf_num count:", self.last_insem['last_calf_num'].isna().sum())
         mask = (
             self.last_insem['i_calf_num'].isna() |
-            (self.last_insem['i_calf_num'] > self.last_insem['last calf_num'])
+            (self.last_insem['i_calf_num'] > self.last_insem['last_calf_num'])
         )
         # print("Total True in mask:", mask.sum())
         i4 = self.last_insem.loc[mask].reset_index(drop=True)
         # print("i4 shape after filter:", i4.shape)
-        self.last_valid_insem = i4[['wy_id','i_calf_num', 'i_date' ,'last calf_num']]
+        self.last_valid_insem = i4[['wy_id','i_calf_num', 'i_date' ,'last_calf_num']]
         return self.last_valid_insem
     
     
@@ -107,10 +107,10 @@ class InsemUltraData:
     def create_last_invalid_insem(self):
         
         df = self.last_insem.loc[(
-            self.last_insem['i_calf_num'] == self.last_insem['last calf_num']
+            self.last_insem['i_calf_num'] == self.last_insem['last_calf_num']
         )].reset_index(drop=True)
   
-        self.last_invalid_insem = df[['wy_id','i_calf_num', 'i_date' ,'last calf_num']]
+        self.last_invalid_insem = df[['wy_id','i_calf_num', 'i_date' ,'last_calf_num']]
         
         return self.last_invalid_insem
 
@@ -155,17 +155,17 @@ class InsemUltraData:
                              on = 'wy_id'
                              )
         
-        valid_ultra2['expected bdate'] = pd.NaT 
+        valid_ultra2['expected_bdate'] = pd.NaT 
         valid_ultra2.loc[
-                valid_ultra2['u_read'] == ( 'ok'),'expected bdate'
+                valid_ultra2['u_read'] == ( 'ok'),'expected_bdate'
                 ] = valid_ultra2['i_date'] + pd.to_timedelta(282, unit='D')
             
         valid_ultra2.loc[
-                valid_ultra2['u_read'] == ( 'x'),'expected bdate'
+                valid_ultra2['u_read'] == ( 'x'),'expected_bdate'
                 ] = ''
 
    
-        self.last_valid_ultra = valid_ultra2.drop(columns =  ['last calf_num','i_date'])
+        self.last_valid_ultra = valid_ultra2.drop(columns =  ['last_calf_num','i_date'])
         
         return self.last_valid_ultra
         
@@ -194,7 +194,7 @@ class InsemUltraData:
                               how='left',
                               on='wy_id' )        
         
-        last_calf_cols = self.IUB.last_calf[['last calf bdate', 'last calf age']]
+        last_calf_cols = self.IUB.last_calf[['last_calf_bdate', 'last_calf_age']]
         
         df3a = df3 . merge(
             last_calf_cols,
@@ -204,7 +204,7 @@ class InsemUltraData:
             )
         
 
-        last_stop_cols = self.IUB.last_stop[['stop calf_num','last stop date']]
+        last_stop_cols = self.IUB.last_stop[['stop_calf_num','last_stop_date']]
         
         # last_stop_cols index is wy_id, but df3a wy_id is 
         df4 = df3a.merge(
@@ -213,21 +213,21 @@ class InsemUltraData:
             right_index=True,
             how='left' )  
         
-        df4['age insem'] =  (self.today - df4['i_date']).dt.days
-        df4['age ultra'] =  (self.today - df4['u_date']).dt.days
-        df4['i_check']    = df4['i_calf_num'] - df4['last calf_num']
+        df4['age_insem'] =  (self.today - df4['i_date']).dt.days
+        df4['age_ultra'] =  (self.today - df4['u_date']).dt.days
+        df4['i_check']    = df4['i_calf_num'] - df4['last_calf_num']
 
-        df4['u_check1']  =  df4['u_calf_num'] - df4['last calf_num'] 
+        df4['u_check1']  =  df4['u_calf_num'] - df4['last_calf_num'] 
         df4['u_check2']  = (df4['u_date'] - df4['i_date']).dt.days
         
-        df5 = df4.rename(columns={'last calf age': 'days milking'}).reset_index(drop=True)
+        df5 = df4.rename(columns={'last_calf_age': 'days_milking'}).reset_index(drop=True)
         # Convert status_col (DataFrame with dynamic column name) to wy_id, status format
         status_df = self.status_col.reset_index()
         status_df.columns=['wy_id','status']
         df5 = df5.merge(status_df, on='wy_id',how='left')
 
         df6 = df5[(df5['status'].notna()) & (df5['status'] != 'gone')].copy()
-        df6['exp drydate'] = df6['expected bdate'] - timedelta(days=61)
+        df6['exp_drydate'] = df6['expected_bdate'] - timedelta(days=61)
         self.df7 = df6
         return self.df7
 
@@ -238,23 +238,24 @@ class InsemUltraData:
             [
             'wy_id',
             'status',
-            'last stop date',
-            'stop calf_num',
-            'last calf bdate',
-            'last calf_num',
-            'days milking',
+            'last_stop_date',
+            'stop_calf_num',
+            'last_calf_bdate',
+            'last_calf_num',
+            'days_milking',
             'i_calf_num',
             'i_date',
-            'age insem',
+            'age_insem',
             'u_calf_num',
             'u_date',
             'u_read',
-            'age ultra',
-            'expected bdate',
-            'exp drydate',
+            'age_ultra',
+            'expected_bdate',
+            'exp_drydate',
             'i_check',
             'u_check1',
             'u_check2'
+            # 'updated'
             ]
         ]
         
@@ -262,7 +263,7 @@ class InsemUltraData:
         self.all_dry     = self.allx[self.allx['status'] == 'dry']
         self.all_preg    = self.allx[self.allx['u_read'] == 'ok']
         self.all_not_preg = self.allx[ (self.allx['u_read'] != 'ok') ]
-        self.days_milking = self.allx[['wy_id','days milking']]
+        self.days_milking = self.allx[['wy_id','days_milking']]
         
         return (self.allx, self.all_milking, 
                 self.all_dry, self.all_preg, 
@@ -272,8 +273,8 @@ class InsemUltraData:
     def create_not_preg_df(self):
         notpreg1 = self.all_not_preg.loc[
             (
-                (self.all_not_preg['age insem'] >= 40)
-            & (self.all_not_preg['age insem'] .notnull())
+                (self.all_not_preg['age_insem'] >= 40)
+            & (self.all_not_preg['age_insem'] .notnull())
             )
             |
             self.all_not_preg['i_date'] .isnull()
@@ -286,14 +287,14 @@ class InsemUltraData:
             [
             'wy_id',
             'status',
-            'days milking',
+            'days_milking',
             'i_calf_num',
             'i_date',
-            'age insem',
+            'age_insem',
             'u_calf_num',
             'u_date',
             'u_read',
-            'age ultra',
+            'age_ultra',
             'u_check2'
             ]
         ]
@@ -306,7 +307,7 @@ class InsemUltraData:
 
         self.no_insem = notpreg3.loc[
             notpreg3['i_date'] .isna()
-        ].sort_values('days milking', ascending=False).reset_index(drop=True)
+        ].sort_values('days_milking', ascending=False).reset_index(drop=True)
 
 
 

@@ -18,11 +18,11 @@ COLUMN_WIDTHS = {
     'AM': '50px',
     'PM': '50px',
     'pct chg from avg': '80px',
-    'days milking': '90px',
+    'days_milking': '90px',
     'u_read': "70px",
-    'expected bdate': "200px",
+    'expected_bdate': "200px",
     'i_date': '130px',
-    'next ultra check date': '200px',
+    'next_ultra_check_date': '200px',
     'model group': "60px",
     'whiteboard group': "60px",
     'comp': "40px",
@@ -289,7 +289,7 @@ def run_milk_dash_app():
                     ], style=get_panel_style()),
 
                     html.Div([
-                        html.H2("Next Ultra Check Dates",
+                        html.H2("next_ultra_check_dates",
                                 style={'textAlign': 'center', 'color': '#00bcd4'}),
                         dash_table.DataTable(
                             id='next-ultra-check-table',

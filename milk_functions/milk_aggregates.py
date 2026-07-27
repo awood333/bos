@@ -127,7 +127,7 @@ class MilkAggregates:
         tendayT['avg']=avg.round(1).astype(float)
         tendayT.index.name='wy_id'
  
-        days1 = pd.DataFrame(self.allx.loc[:,['wy_id','days milking', 'u_read', 'expected bdate']])
+        days1 = pd.DataFrame(self.allx.loc[:,['wy_id','days_milking', 'u_read', 'expected_bdate']])
         days = days1.set_index('wy_id')
 
         tenday2 = tendayT.merge(days, 

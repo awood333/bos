@@ -1,8 +1,8 @@
 """
 insem_functions\next_ultra_check.py
-Class to create a DataFrame for next ultra check dates.
+Class to create a DataFrame for next_ultra_check_dates.
 Fields: wy_id, i_date, age_insem, next_ultra_check_date
-Logic: If 'age insem' is not null and 'u_date' is null, next_ultra_check_date = i_date + 40 days
+Logic: If 'age_insem' is not null and 'u_date' is null, next_ultra_check_date = i_date + 40 days
 Uses: get_dependency from container.py and allx from insem_ultra_data.py
 """
 
@@ -27,24 +27,28 @@ class NextUltraCheck:
         self.next_ultra_check = self.create_get_next_ultra_check()
 
     def _create_get_next_ultra_check(self):
-        # Filter rows where 'age insem' is not null and 'u_date' is null
+        # Filter rows where 'age_insem' is not null and 'u_date' is null
+
         mask = (
-            self.allx['age insem'].notnull()
+            self.allx['wy_id'].notnull()
+            & self.allx['age_insem'].notnull()
             & self.allx['u_date'].isnull()
-            & (self.allx['status'] == 'M')
+            & (self.allx['status'] == 'milking')
         )
-        next_ultra_check = self.allx.loc[mask, ['wy_id', 'i_date', 'age insem']].copy()
+        next_ultra_check = self.allx.loc[mask, ['wy_id', 'i_date', 'age_insem']].copy()
         # Calculate estimated ultra check date: i_date + 40 days
-        next_ultra_check['i_date'] = pd.to_datetime(next_ultra_check['i_date'], errors='coerce').dt.date
-        next_ultra_check['next ultra check date'] = (
-            pd.to_datetime(next_ultra_check['i_date'], errors='coerce') + pd.to_timedelta(40, unit='D')
-        ).dt.date
+        # next_ultra_check['i_date'] = pd.to_datetime(next_ultra_check['i_date'], errors='coerce').dt.date
+        next_ultra_check['next_ultra_check_date'] = next_ultra_check['i_date'] + pd.to_timedelta(40, unit='D')
+            
         # Ensure column is datetime64 for sorting
-        next_ultra_check['next ultra check date'] = pd.to_datetime(next_ultra_check['next ultra check date'], errors='coerce')
-        next_ultra_check = next_ultra_check.loc[next_ultra_check['next ultra check date'].sort_values(ascending=True).index].reset_index(drop=True)
+        next_ultra_check['next_ultra_check_date'] = pd.to_datetime(next_ultra_check['next_ultra_check_date'], errors='coerce')
+        next_ultra_check = next_ultra_check.loc[next_ultra_check['next_ultra_check_date'].sort_values(ascending=True).index].reset_index(drop=True)
+        
+        
         # Convert back to string date format for display
         next_ultra_check['i_date'] = next_ultra_check['i_date'].astype(str)
-        next_ultra_check['next ultra check date'] = next_ultra_check['next ultra check date'].dt.date.astype(str)
+        next_ultra_check['next_ultra_check_date'] = next_ultra_check['next_ultra_check_date'].dt.date.astype(str)
+        
         return next_ultra_check
 
     def get_next_ultra_check(self):
@@ -52,4 +56,4 @@ class NextUltraCheck:
 
 if __name__ == "__main__":
     obj = NextUltraCheck()
-    obj.load_()
+    obj.load()

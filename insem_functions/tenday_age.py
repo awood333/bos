@@ -18,8 +18,8 @@ class TendayMilkingDays:
         self.process()
         
     def process(self):
-        self.days= self.IUD.allx.loc[:, ['wy_id', 'days milking']]
-        self.preg= self.IUD.allx.loc[:, ['wy_id', 'u_read', 'expected bdate']]
+        self.days= self.IUD.allx.loc[:, ['wy_id', 'days_milking']]
+        self.preg= self.IUD.allx.loc[:, ['wy_id', 'u_read', 'expected_bdate']]
         self.td2 = self.tenday_days()
 
     def tenday_days(self):

@@ -54,8 +54,8 @@ class CheckLastStop:
                 # status_col is a DataFrame with wy_id index and one dynamic column → extract as Series
         status = self.status_col.iloc[:, 0]  # Series: index=wy_id, values=status
         
-        lstop  = self.last_stop["last stop date"]
-        lstart = self.last_start["last calf bdate"]
+        lstop  = self.last_stop["last_stop_date"]
+        lstart = self.last_start["last_calf_bdate"]
         for i in status.index.tolist():
             if i in self.last_stop.index and i in self.last_start.index:
                 a = lstop[i]
