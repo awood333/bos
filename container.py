@@ -100,10 +100,6 @@ class Container:
         self.register_singleton('weekly_lactations',    self._create_weekly_lactations)
         self.register_singleton('lactations',           self._create_lactations)        
         self.register_singleton('lactation_plots',      self._create_lactation_plots)                                          
-
-        # Report Milk
-        self.register_singleton('report_milk',          self._create_report_milk)        
-        self.register_singleton('run_milk_dash_app',    self._create_run_milk_dash_app)
       
 
         # Finance
@@ -120,8 +116,10 @@ class Container:
         # pipeline dependencies
         self.register_singleton('format_for_neon',      self._create_format_for_neon)
         self.register_singleton('daily_modal_data',     self._create_daily_modal_data)    
-        
-        
+        # self.register_singleton('occasional_modal_stage1', self._create_occasional_modal_stage1)
+        # self.register_singleton('occasional_modal_stage2', self._create_occasional_modal_stage2)
+        # self.register_singleton('modal_orchestrator',   self._create_modal_orchestrator)
+
         
 
     def register_singleton(self, name: str, factory: Callable[[], Any]):
@@ -378,22 +376,26 @@ class Container:
 
 
     # Pipeline
-    def _create_report_milk(self):
-        from milk_functions.report_milk.Report_Milk import ReportMilk
-        return ReportMilk()
-
-    def _create_daily_modal_data(self):
-        from pipeline.modal.daily_modal_data import DailyModal
-        return DailyModal()
-    
     def _create_format_for_neon(self):
         from pipeline.neon.format_for_neon import FormatForNeon
-        return FormatForNeon()    
+        return FormatForNeon()  
+    
+    def _create_daily_modal_data(self):
+        from pipeline.modal.daily_modal import DailyModal
+        return DailyModal()
+    
+    # def _create_occasional_modal_stage1(self):
+    #     from pipeline.modal.occasional_modal_stage1 import OccasionalModalStage1
+    #     return OccasionalModalStage1()
+  
+    # def _create_occasional_modal_stage2(self):
+    #     from pipeline.modal.occasional_modal_stage2 import OccasionalModalStage2
+    #     return OccasionalModalStage2()
 
-    def _create_run_milk_dash_app(self):
-        from milk_functions.report_milk.milk_dash_app import run_milk_dash_app
-        return run_milk_dash_app  # <-- Do NOT call the function here! <--- returns the function, not the result of calling it
-            # lazy loading - the function will be called in the app module
+    # def _create_modal_orchestrator(self):
+    #     from pipeline.modal.modal_orchestrator import ModalOrchestrator
+    #     return ModalOrchestrator()
+
 
     # Finance functions 
     def _create_finance_basics(self):

@@ -10,12 +10,14 @@ class IpivPivotTable:
     def __init__(self):
         print(f"ipiv_pivot_table instantiated by: {inspect.stack()[1].filename}")
         
+        self.IUD = None
         self.ipiv_milkers =None
         self.ipiv_data = None
+        self.ipiv_pivot_table = None
+        self.pt=None
     
     def load(self):
- 
-        
+         
         self.IUD = get_dependency('insem_ultra_data')
         self.process()
         
@@ -48,7 +50,7 @@ class IpivPivotTable:
         merge_1 = pd.merge(xxx, self.pt, how='right', left_index=True, right_index=True)
         merge_1.index = merge_1.index.astype(int)
 
-        self.ipiv_pivot_table = merge_1.sort_index()
+        self.ipiv_pivot_table = merge_1.reset_index().sort_values('wy_id').reset_index(drop=True)
         return self.ipiv_pivot_table
     
 
