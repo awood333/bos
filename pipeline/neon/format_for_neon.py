@@ -8,12 +8,12 @@ class FormatForNeon:
     Generic Modal-side type coercion + safe write for a DataFrame going to Neon.
 
     Two ways to type columns:
-      - `schema`: {column_name: kind} for columns with stable, known names
-                  (kind in 'int' | 'float' | 'date' | 'text' | 'bool')
-      - `positional_rules`: [(start_idx, end_idx, kind), ...] for columns
-                  whose *names* change per run (e.g. tenday's rolling
-                  10-day date columns) but whose *position* is fixed.
-                  Applied by df.columns[start_idx:end_idx], not by name.
+    - `schema`: {column_name: kind} for columns with stable, known names
+      (kind in 'int' | 'float' | 'date' | 'text' | 'bool')
+    - `positional_rules`: [(start_idx, end_idx, kind), ...] for columns
+      whose *names* change per run (e.g. tenday's rolling
+      10-day date columns) but whose *position* is fixed.
+      Applied by df.columns[start_idx:end_idx], not by name.
 
     Only handles type fidelity (dtype + real None for missing).
     Display formatting stays in bos_dashboard.
@@ -31,12 +31,12 @@ class FormatForNeon:
     def __init__(self, schema: dict = None, positional_rules: list = None):
         """
         schema: {column_name: pg_type_or_kind}. Accepts either raw Postgres
-            type strings ("INTEGER", "TEXT", "DATE") or already-normalized
-            kinds ("int", "text", "date") — both are handled.
+        type strings ("INTEGER", "TEXT", "DATE") or already-normalized
+        kinds ("int", "text", "date") — both are handled.
         positional_rules: list of (start_idx, end_idx, kind) tuples, applied
-            in order after the named schema. end_idx is exclusive, matching
-            Python slice convention (unlike the old range(1, 11) code, which
-            is idx 1..10 inclusive -> here that's (1, 11, 'int')).
+        in order after the named schema. end_idx is exclusive, matching
+        Python slice convention (unlike the old range(1, 11) code, which
+        is idx 1..10 inclusive -> here that's (1, 11, 'int')).
         """
         self.spec = {}
         for col, pg_type in (schema or {}).items():
@@ -133,12 +133,25 @@ class FormatForNeon:
             out[col] = self._coerce_column(out[col], kind)
         return out
 
-    def write(self, df: pd.DataFrame, table_name: str, engine, pk_col: str = None,
+    def _pk_clause(self, pk_col):
+        """
+        Build a SQL-safe column list for PRIMARY KEY / ON CONFLICT targets.
+        Accepts a single column name (str) or multiple (list/tuple) for
+        composite keys.
+        """
+        if isinstance(pk_col, (list, tuple)):
+            return ", ".join(f'"{c}"' for c in pk_col)
+        return f'"{pk_col}"'
+
+    def write(self, df: pd.DataFrame, table_name: str, engine, pk_col=None,
               indexed_date: bool = False, date_index_name: str = "date"):
         """
         Type-coerce and write using a fresh engine connection/transaction.
         Re-adds the PRIMARY KEY every time — to_sql(if_exists='replace')
         always drops it otherwise. Use this for standalone, one-off writes.
+
+        pk_col: single column name (str), or a list/tuple of column names
+        for a composite primary key.
         """
         typed = (self.apply_indexed_date(df, date_index_name)
                  if indexed_date else self.apply(df))
@@ -149,17 +162,20 @@ class FormatForNeon:
 
             if pk_col:
                 conn.execute(text(
-                    f'ALTER TABLE "{table_name}" ADD PRIMARY KEY ("{pk_col}")'
+                    f'ALTER TABLE "{table_name}" ADD PRIMARY KEY ({self._pk_clause(pk_col)})'
                 ))
 
         return typed
 
-    def write_conn(self, df: pd.DataFrame, table_name: str, conn, pk_col: str = None,
+    def write_conn(self, df: pd.DataFrame, table_name: str, conn, pk_col=None,
                    indexed_date: bool = False, date_index_name: str = "date"):
         """
         Same as write(), but takes an already-open connection instead of
         an engine, so multiple tables can be written inside one shared
         engine.begin() block (all commit or roll back together).
+
+        pk_col: single column name (str), or a list/tuple of column names
+        for a composite primary key.
         """
         typed = (self.apply_indexed_date(df, date_index_name)
                  if indexed_date else self.apply(df))
@@ -169,7 +185,7 @@ class FormatForNeon:
 
         if pk_col:
             conn.execute(text(
-                f'ALTER TABLE "{table_name}" ADD PRIMARY KEY ("{pk_col}")'
+                f'ALTER TABLE "{table_name}" ADD PRIMARY KEY ({self._pk_clause(pk_col)})'
             ))
 
         return typed

@@ -65,7 +65,8 @@ class Container:
         self.register_singleton('insem_ultra_data',     self._create_insem_ultra_data)
         self.register_singleton('check_last_stop',      self._create_check_last_stop)
         self.register_singleton('i_u_merge',            self._create_i_u_merge)
-        self.register_singleton('ipiv',                 self._create_ipiv)
+        self.register_singleton('ipiv_data',            self._create_ipiv)
+        self.register_singleton('ipiv_pivot_table',     self._create_ipiv_pivot_table)
         self.register_singleton('next_ultra_check',     self._create_next_ultra_check)
         self.register_singleton('is_pregnant',          self._create_is_pregnant)
         
@@ -262,8 +263,12 @@ class Container:
         return I_U_merge()
     
     def _create_ipiv(self):
-        from insem_functions.Ipiv import Ipiv
-        return Ipiv()
+        from insem_functions.ipiv_data import IpivData
+        return IpivData()
+    
+    def _create_ipiv_pivot_table(self):
+        from insem_functions.ipiv_pivot_table import IpivPivotTable
+        return IpivPivotTable()
     
     def _create_next_ultra_check(self):
         from insem_functions.next_ultra_check import NextUltraCheck
