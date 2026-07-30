@@ -33,6 +33,7 @@ class MilkAggregates:
         self.fullday_lastdate = None
         self.datex = None
         self.AM_liters = None
+        self.PM_liters = None
         self.halfday = None
         self.tenday = None
         self.tenday1 = None
@@ -62,9 +63,11 @@ class MilkAggregates:
         self.am               = self.MAB.am
         self.pm               = self.MAB.pm
         self.fullday          = self.MAB.fullday
+        self.fullday.sort_index(inplace=True)
         self.fullday_lastdate = self.MAB.fullday_lastdate
         self.datex            = self.MAB.datex
         self.AM_liters        = self.MAB.AM_liters
+        self.PM_liters        = self.MAB.PM_liters
 
 
 
@@ -98,33 +101,26 @@ class MilkAggregates:
 
     def ten_day(self):
 
-        lastday = self.fullday.iloc[-1:,:]     #last milking day recorded
-        ld=lastday.loc[:,(lastday>0).any()].columns.tolist()     #the .any is important
-        # ld_nums = [int(x-1) for x in ld] #decrements the wy's
+        #get the last row of fullday and make list (milkers) of cols that are not NaN
+        lastrow = self.fullday.iloc[-1:,:].copy()   
+        milkers=lastrow.dropna(axis=1).columns.tolist()    
+         # note that this drops cows from tenday that are gone on that last day
        
-        self.tenday1 = self.fullday.iloc[-10:,:].copy() # has all wy's
-        tenday2 = self.tenday1.loc[:,ld]           # has milkers only
+        self.tenday1 = self.fullday.iloc[-10:,:].copy() # has all wy's, datex index
+        tenday2 = self.tenday1.loc[:,milkers]           # has milkers only
         
-        tenday_cols1 = self.tenday1.index.to_list()
-        tenday_cols  = [date.strftime('%m-%d') for date in tenday_cols1]   #headers for the 10 days of liters  
+        tenday_cols1 = self.tenday1.index.to_list() #datex
+        tenday_cols  = [date.strftime('%m-%d') for date in tenday_cols1]   #date headers for the 10 days of liters  
      
-        tendayT=tenday2.T
-        tendayT.index.astype(int)
+        tendayT=tenday2.T #date col headers
+        tendayT.index.astype(int) #wy_ids
     
-        tendayT.columns=tenday_cols
+        tendayT.columns=tenday_cols  #dates
         avg = tendayT.mean(axis=1)
         tendayT['avg'] = avg
-        lastcol = tendayT.iloc[:,9]
+        lastcol = tendayT.iloc[:,9]  #10th col
         tendayT['pct chg from avg'] = ((lastcol/ tendayT['avg'] ) - 1)
-           
-        # tendayT.loc['total'] = tendayT.iloc[:-1,:].sum(axis=0)
-
-        # Round the first 11 columns to 1 decimal place
-        for col in tendayT.columns[:11]:
-            tendayT[col] = tendayT[col].round(1).astype(float)
   
-
-        tendayT['avg']=avg.round(1).astype(float)
         tendayT.index.name='wy_id'
  
         days1 = pd.DataFrame(self.allx.loc[:,['wy_id','days_milking', 'u_read', 'expected_bdate']])
