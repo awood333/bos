@@ -100,7 +100,7 @@ class status_data:
                     status_col_1.at[date, wy] = 'dry'
         
         self.status_col_all = status_col_1
-        self.status_col = status_col_1.iloc[-1:,:].T
+        self.status_col = status_col_1.iloc[-1,:]
         self.alive_ids_today = self.status_col[~self.status_col.isin(['gone', 'nby'])].index
             
         return self.status_col, self.status_col_all, self.alive_ids_today

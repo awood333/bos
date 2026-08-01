@@ -2,6 +2,7 @@
 
 import sys
 from pathlib import Path
+
 # Add project root (bos_backend/) to sys.path so container module is found
 project_root = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(project_root))
@@ -18,7 +19,7 @@ class DailyModal:
         self.tenday = None
         self.halfday = None
         self.fullday = None
-        self.WB_groups = None
+        self.WB_groups_tenday = None
         self.groups = None
         self.allx = None
 
@@ -33,14 +34,14 @@ class DailyModal:
         self.tenday_fmt = FormatForNeon(
             schema={
                 "wy_id": "int",
-                "milking days": "int",
-                "days_milking": "int",
-                "expected_bdate": "date",
+                "avg": "float",
+                "pct chg from avg": "percent",
             },
             positional_rules=[(1, 11, "int")],  # dynamic 10-day columns
         )
         self.halfday_fmt = FormatForNeon(
             schema={
+                "wy_id": "int",
                 "AM": "float",
                 "PM": "float",
             },
@@ -50,8 +51,8 @@ class DailyModal:
         
         
         self.groups_fmt = FormatForNeon(
-            schema={  
-                "wy_id" : "int",
+            schema={
+                "wy_id" : "int",                
                 "group_name": "text",
                 "avg": "float",
                 "days_milking": "int",
@@ -69,7 +70,7 @@ class DailyModal:
         self.MAB = get_dependency('milk_aggregates_basic')
         self.WG = get_dependency('whiteboard_groups')
 
-
+        #methods
         (self.tenday_formatted, self.halfday_formatted,
          self.fullday_formatted, self.WB_groups_formatted) = self.createDailyData()
 
@@ -103,9 +104,9 @@ class DailyModal:
         self.tenday = self.MA.tenday.copy()
         self.halfday = self.MA.halfday.copy()
         self.fullday = self.MAB.fullday.copy()
-        self.WB_groups = self.WG.whiteboard_groups_tenday.copy()
+        self.WB_groups_tenday = self.WG.whiteboard_groups_tenday.copy()
 
-        return [self.tenday, self.halfday, self.fullday, self.WB_groups,
+        return [self.tenday, self.halfday, self.fullday, self.WB_groups_tenday,
 ]
 
 

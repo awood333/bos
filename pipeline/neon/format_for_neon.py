@@ -23,12 +23,13 @@ class FormatForNeon:
     """
 
     _PG_TYPE_MAP = {
-        "integer": "int", "bigint": "int", "smallint": "int",
-        "text": "text", "varchar": "text", "char": "text",
-        "date": "date", "timestamp": "date", "timestamptz": "date",
-        "double precision": "float", "real": "float",
-        "numeric": "float", "float": "float",
-        "boolean": "bool",
+        "integer": "int"    , "bigint": "int"       , "smallint": "int",
+        "text": "text"      , "varchar": "text"     , "char": "text",
+        "date": "date"      , "timestamp": "date"   , "boolean": "bool",
+        "timestamptz": "date", 
+        "double precision": "float" , "real": "float",
+        "numeric": "float"          , "float": "float", 
+        
     }
 
     def __init__(self, schema: dict = None, positional_rules: list = None):

@@ -11,6 +11,8 @@ class WhiteboardGroups:
     def __init__(self):
 
         print(f"WhiteboardGroups instantiated by: {inspect.stack()[1].filename}")
+        self.tenday_avg = None
+        self.allx = pd.DataFrame()
         self.whiteboard_groups_tenday = pd.DataFrame()
         
         
@@ -19,8 +21,9 @@ class WhiteboardGroups:
         IUD = get_dependency('insem_ultra_data')
         MA  = get_dependency('milk_aggregates')
         
-        self.allx = IUD.allx        
-        self.tenday_avg = MA.tenday.loc[:,['wy_id','avg']].set_index('wy_id')
+        self.allx = IUD.allx
+        tenday_avg_1 = MA.tenday.loc[:,['wy_id','avg']]
+        self.tenday_avg = tenday_avg_1.set_index('wy_id')
         
         # methods
         self.whiteboard_groups_tenday = self.neon_data_loader()
@@ -45,7 +48,6 @@ class WhiteboardGroups:
             
             days1 = pd.DataFrame(self.allx.loc[:,['wy_id','days_milking', 'u_read', 'expected_bdate']])
             days = days1.set_index('wy_id')
-
             
             wbgroups5 = wbgroups4.merge(days, 
                         how='left', 

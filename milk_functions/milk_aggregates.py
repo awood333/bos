@@ -70,7 +70,6 @@ class MilkAggregates:
         self.PM_liters        = self.MAB.PM_liters
 
 
-
         # methods
         startdate = self.DR.startdate  #timestamp
         self.start = pd.to_datetime(startdate)
@@ -90,11 +89,10 @@ class MilkAggregates:
         halfday_AM = lastday_AM.loc[ldam,:]
         halfday_PM = lastday_PM.loc[ldpm,:]    
         
-        date_str = str(halfday_AM.columns[0])  # e.g. '2026-06-22'
-        
         self.halfday = halfday_AM.merge(halfday_PM, how='left', left_index=True, right_index=True)
         self.halfday.columns = ['AM', 'PM']
-        self.halfday.index.name = date_str
+        self.halfday.index.name = 'wy_id'
+
         self.halfday = self.halfday.reset_index()
             
         return  self.halfday
@@ -122,17 +120,7 @@ class MilkAggregates:
         tendayT['pct chg from avg'] = ((lastcol/ tendayT['avg'] ) - 1)
   
         tendayT.index.name='wy_id'
- 
-        days1 = pd.DataFrame(self.allx.loc[:,['wy_id','days_milking', 'u_read', 'expected_bdate']])
-        days = days1.set_index('wy_id')
-
-        tenday2 = tendayT.merge(days, 
-                    how='left', 
-                    left_index=True, 
-                    right_index=True
-                                    )
-        # tenday2.index.name = 'wy_id_1'
-        tenday3 = tenday2.reset_index()
+        tenday3 = tendayT.reset_index()
         self.tenday = tenday3
         
 

@@ -1,6 +1,4 @@
-'''
-plot_functions.plot_net_revenue_model
-'''
+'''plot_functions/plot_net_revenue_model.py'''
 import io
 import pandas as pd
 import matplotlib
@@ -8,7 +6,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 from container import get_dependency
-from utilities.s3_loader import s3_upload_png 
+from pipeline.aws.s3_loader import s3_upload_png 
 S3_NET_REVENUE_PREFIX = "plots/Net_Revenue"
 
 class PlotNetRevenueModel:
@@ -25,7 +23,8 @@ class PlotNetRevenueModel:
 
     def load(self):
         self.NR = get_dependency('net_revenue')
-        self.SD = get_dependency('status_data')  
+        self.SD = get_dependency('status_data')
+        self.DOC= get_dependency('date_of_change')  
         self.process()
 
     def process(self):
@@ -33,8 +32,8 @@ class PlotNetRevenueModel:
         self.feedcost_weekly = self.NR.feedcost_weekly
         self.net_revenue_weekly = self.NR.net_revenue_weekly
         self.alive_ids = self.SD.alive_ids_today
-        self.date_of_change1 = pd.to_datetime('2025-09-27').date()
-        self.date_of_change2 = pd.to_datetime('2025-11-04').date()
+        self.date_of_change1 = self.DOC.date_of_change1
+        self.date_of_change2 = self.DOC.date_of_change2
         self.plot_all_live_cows()
 
     def plot_all_live_cows(self):

@@ -44,7 +44,7 @@ class FeedCostDataLoader:
         
     def get_iu_merge(self) -> pd.DataFrame:
         with self.engine.connect() as conn:
-            return pd.read_sql_table('iu_merge', conn)
+            return pd.read_sql_table('iu_merge_formatted', conn)
     
     
 class FeedCostDataProcessor:

@@ -69,10 +69,10 @@ class MilkAggregatesBasic:
         engine = get_engine()
         with engine.connect() as conn:
             def _read_type(type_name):
-                sql = f"SELECT * FROM milk_transpose WHERE type = '{type_name}'"
+                sql = f"SELECT * FROM milk_transpose WHERE type = '{type_name}' ORDER BY date"
                 return (pd.read_sql(sql, conn)
                           .drop(columns=['type'])
-                          .set_index('date')
+                          .set_index('date')  #this is the first col 'name' in neon milk_transpose
                           .T)
 
             self.AM_liters = _read_type('AM_liters')
@@ -133,6 +133,7 @@ class MilkAggregatesBasic:
         self.pm.columns = self.datex
         self.pm.replace(0, np.nan, inplace=True)
         self.pm.drop(self.pm.columns[0], axis=1, inplace=True)
+        print('last pm ', self.pm.iloc[-1,93:95])
 
         # fullday calc
         fullday1 = np.add(am1, pm1)
@@ -147,10 +148,6 @@ class MilkAggregatesBasic:
 
         self.fullday_lastdate = pd.DataFrame(
             index=[fullday2.index[-1]], columns=['last_date'])
-        
-        fullday2_test = fullday2.loc['2025-05-01':,94].copy()
-        
-        
         
         self.fullday_preClean = fullday2
         return [self.am, self.pm, self.fullday_preClean, self.fullday_lastdate]

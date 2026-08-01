@@ -118,7 +118,7 @@ class ModelGroups:
         # print('liters_a: '  ,liters_a .iloc[94,-1])
         # print('week_num_a: ' ,week_num_a.iloc[94,-1])
         print('94 is_preg - pregnant   :' ,pregnant.loc[94].iloc[-5:-1])
-        print('94 is_preg - pregnant_a :' ,pregnant_a.loc[94,] .iloc[-5:-1])
+        print('94 is_preg - pregnant_a :' ,pregnant_a.loc[94] .iloc[-5:-1])
         
         conditions = [
             is_heifer, # highest priority. np.select locks in None for any missing-data cell and never 

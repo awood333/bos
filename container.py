@@ -87,6 +87,7 @@ class Container:
         #plot functions
         self.register_singleton('plot_net_revenue_model', self._create_plot_net_revenue_model)
         self.register_singleton('run_lactation_plot',     self._create_run_lactation_plot)
+        self.register_singleton('date_of_change',           self._create_date_of_change)
         
         #groups and tests
         self.register_singleton('whiteboard_groups',    self._create_whiteboard_groups)     
@@ -330,6 +331,10 @@ class Container:
     def _create_run_lactation_plot(self):
         from plot_functions.Run_lactation_plot import RunLactationPlot
         return RunLactationPlot()
+    
+    def _create_date_of_change(self):
+        from plot_functions.date_of_change import DateOfChange
+        return DateOfChange()
 
 
 

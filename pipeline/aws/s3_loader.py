@@ -1,4 +1,4 @@
-'''remote  s3_loader.py'''
+'''rpipeline/aws/s3_loader.py'''
 
 import subprocess
 
