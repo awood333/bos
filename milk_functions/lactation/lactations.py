@@ -16,6 +16,9 @@ class Lactations:
         self.alive_ids = None
         self.L1 = self.L2 = self.L3 = self.L4 = self.L5 = self.L6 = None
         self.live_L1 = self.live_L2 = self.live_L3 = self.live_L4 = self.live_L5 = self.live_L6 = None
+        self.headers = None
+        self.alive_ids_int = None
+        self.alive_ids_str = None 
 
     def load(self):
 
@@ -26,9 +29,11 @@ class Lactations:
         
     def process(self):
 
-        self.headers = self.Lacts.headers
+        self.headers        = self.Lacts.headers
         self.alive_ids_int  = self.SD.alive_ids_today
         self.alive_ids_str  = [str(i) for i in self.SD.alive_ids_today]
+        
+        #methods
         self.create_separate_lactations()
         self.create_live_lactations()
         

@@ -23,6 +23,9 @@ class WeeklyLactations():
         self.live_lact_wk_5 = None
         self.max_liters_list2 = None
         self.max_df = None
+        self.avg_liters = None
+        self.max_liters = None
+        self.sum_liters = None        
 
     def load(self):
         self.MB     = get_dependency('milk_basics')
@@ -46,13 +49,15 @@ class WeeklyLactations():
          self.lactation_wk_3, self.lactation_wk_4, 
          self.lactation_wk_5) = self.create_separate_lactations()
         
-        self.max_liters_list2 = self.create_max_liters()
-        self.max_df = self.unpack_max_liters()
+        (self.max_liters, self.avg_liters, 
+         self.sum_liters) = self.create_max_avg_sum_liters()
+        
+    
         self.create_live_lactations()
 
 
     def create_308day(self):
-
+        ''' limit the lactation to 308 days'''
         self.lact1 = self.L.L1.iloc[:308,:].copy()
         self.lact2 = self.L.L2.iloc[:308,:].copy()
         self.lact3 = self.L.L3.iloc[:308,:].copy()
@@ -65,6 +70,7 @@ class WeeklyLactations():
 
 
     def create_weekly(self):
+        ''' convert the 308 day lacts to 44wks '''
         var = (self.lact1, self.lact2, self.lact3, self.lact4, self.lact5    )
         self.wk_lacts = []
         j = 0
@@ -78,7 +84,8 @@ class WeeklyLactations():
 
         return self.wk_lacts # nested list
 
-    def create_separate_lactations(self):   # CONTAINS ALL COWS LACTATING
+    def create_separate_lactations(self):
+        ''' CONTAINS ALL COWS LACTATING '''
         wl = self.wk_lacts
 
         self.lactation_wk_1 = wl[0]
@@ -94,35 +101,28 @@ class WeeklyLactations():
                     self.lactation_wk_5
                     )
         
-    def create_max_liters(self):
-        lacts = (
-                    self.lactation_wk_2,
-                    self.lactation_wk_3
-                    )
+    def create_max_avg_sum_liters(self):
         
-        max_liters = {} 
-        self.max_liters_list2 = max_liters_list1=[]
+        lacts = (self.lactation_wk_1, self.lactation_wk_2,
+                 self.lactation_wk_3, self.lactation_wk_4,
+                 self.lactation_wk_5)
         
-        max_liters = {} 
-        for lact in lacts:
-            for col in lact.columns:
-                max_liters[col] = lact[col].max()
-            max_liters_list1 = [max_liters]
-        self.max_liters_list2.append(max_liters_list1)
-        max_liters_list1=[]
-        
-        return self.max_liters_list2   
-    
-    def unpack_max_liters(self):
-        max_list = self.max_liters_list2
-        max_dfs = []
-        for max_item in max_list:
-            max_dfs.append(pd.DataFrame(max_item, index=[0]))
-    
-        self.max_df = pd.concat(max_dfs, ignore_index=True)
-    
-        return self.max_df
-    
+        self.max_liters = pd.DataFrame(
+            [lact.max() for lact in lacts],
+            index=['lact_2', 'lact_3']
+            )
+        self.avg_liters = pd.DataFrame(
+            [lact.mean() for lact in lacts],
+            index=['lact_2', 'lact_3']
+            )
+        self.sum_liters = pd.DataFrame(
+            [lact.sum() for lact in lacts],
+            index=['lact_2', 'lact_3']
+            )
+                    
+
+        return self.max_liters, self.avg_liters, self.sum_liters
+
     def create_live_lactations(self):
         #filter by alive_ids
         self.live_lact_wk_1 = self.lactation_wk_1.loc[:,self.alive_ids]
