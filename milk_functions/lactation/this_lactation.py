@@ -8,16 +8,28 @@ class ThisLactation():
         print(f"ThisLactation instantiated by: {inspect.stack()[1].filename}")
         self.MB = None
         self.WD = None
+        self.IUD = None
+        self.SD = None
         # self.SD = None
         self.this_lact_wkly = None
         self.this_lact_daily = None
 
     def load(self):
-        self.MB = get_dependency('milk_basics')
-        self.WD = get_dependency('wet_dry')
+        self.MB  = get_dependency('milk_basics')
+        self.WD  = get_dependency('wet_dry')
+        self.SD  = get_dependency('alive_ids_today')
+        self.IUD = get_dependency('insem_ultra_data')
         self.process()
         
     def process(self):
+        
+        self.last_calf_bdate= self.IUD.last_calf_bdate
+        self.last_calf_num  = self.IUD.last_calf_num
+        self.alive_ids      = self.SD .alive_ids_today
+        self.period_df      = self.WD .period_df
+        self.period_weekly  = self.WD .period_weekly
+        
+        #methods
         self.this_lact_wkly, self.this_lact_daily,  = self.create_daily_weekly()
         
 

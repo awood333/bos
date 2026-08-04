@@ -30,8 +30,6 @@ class ModelGroups:
         self.alive_ids = None
         self.ultra_4 = None
         self.ultra_pivot = None
-        self.wet_dry_letters = None
-        self.wd_lact_num = None
         self.weeknums = None
         self.liters_T = None
         self.period = None
@@ -61,22 +59,17 @@ class ModelGroups:
         self.lastday  = self.MB.lastday
 
         self.alive_ids  = self.SD.alive_ids_today
-        self.fullday    = self.MA.weekly_avg
         
-        self.wet_dry_days_weekly  = self.WD.wet_dry_days_weekly[
-            self.WD.wet_dry_days_weekly.index >= pd.to_datetime(self.startdate)]\
-            .reset_index().rename(columns={'index': 'date'}).set_index('date')
-            
-        self.wet_period_weekly = self.WD.period_weekly[
-            self.WD.period_weekly.index  >= pd.to_datetime(self.startdate)]\
-            .reset_index().rename(columns={'index': 'date'}).set_index('date')
-            
+        self.fullday    = self.MA.weekly_avg
+
         self.weeknums = self.wet_dry_days_weekly[self.alive_ids].T
         self.liters_T  = self.fullday[self.alive_ids].T
         self.period  = self.wet_period_weekly[self.alive_ids].T
         
         start_lact_1 = self.MB.data['start_pivot']
-        self.start_lact = start_lact_1.loc[self.alive_ids, :] #cols are lact nums, rows are wy
+        
+        ''' #cols are lact nums, rows are wy '''
+        self.start_lact = start_lact_1.loc[self.alive_ids, :] 
         
         stop_lact_1  = self.MB.data['stop_pivot']
         self.stop_lact  = stop_lact_1.loc[self.alive_ids, :]  
@@ -124,10 +117,10 @@ class ModelGroups:
             is_heifer, # highest priority. np.select locks in None for any missing-data cell and never 
                         #evaluates the later conditions for that cell
             missing, 
-            week_num_a < 21,
-            (week_num_a >= 21) & (liters_a >= 15),
-            (week_num_a >= 21) & (liters_a > 0) & (liters_a < 15) & is_preg,
-            (week_num_a >= 21) & (liters_a > 0) & (liters_a < 15) & ~is_preg,
+            week_num_a < 3,
+            (week_num_a >= 3) & (liters_a >= 15),
+            (week_num_a >= 3) & (liters_a > 0) & (liters_a < 15) & is_preg,
+            (week_num_a >= 3) & (liters_a > 0) & (liters_a < 15) & ~is_preg,
             liters_a == 0,
         ]
         choices = ['H', None, 'F', 'A', 'C', 'B', 'D' ]

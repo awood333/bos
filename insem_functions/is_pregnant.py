@@ -91,18 +91,6 @@ class IsPregnant:
         self.ultra_4, self.ultra_pivot = self.create_ultra_ok_all_dates()
         self.create_preg_df()
   
-        
-        
-    def reform_period(self):
-        
-        df = self.period
-        regex_pattern = r'([A-Za-z]+)(\d+)'
-        #([A-Za-z]+) captures one or more letters (the W, D, whatever prefix)
-        #(\d+) captures one or more digits (the number)
-        self.wd_letters  = df.apply(lambda col: col.str.extract(regex_pattern)[0])
-        self.wd_lact_num = df.apply(lambda col: col.str.extract(regex_pattern)[1]).astype(float)
-        return self.wd_letters, self.wd_lact_num
-        
 
     def create_ultra_ok_all_dates(self):
 
