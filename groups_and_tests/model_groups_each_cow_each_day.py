@@ -45,7 +45,8 @@ class ModelGroupsEachCowEachDay:
             "fresh_ids": "F",
             "group_A_ids": "A",
             "group_B_ids": "B",
-            "group_C_ids": "C"
+            "group_C_ids": "C",
+            "group_D_ids": "D"
         }
 
 		for group_key, label in group_map.items():

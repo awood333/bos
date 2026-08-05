@@ -1,6 +1,7 @@
 '''insem_functions\\is_pregnant.py'''
 import inspect
 import pandas as pd
+import numpy  as np
 from container import get_dependency
 
 class IsPregnant:
@@ -21,8 +22,8 @@ class IsPregnant:
         self.startdate = None
         self.lastday  = None
         self.milk = None
-        self.wet_dry_days_weekly = None
-        self.period_weekly = None
+        self.wet_dry_days_daily = None
+        self.period_daily = None
         self.alive_ids = None
         self.ultra_4 = None
         self.ultra_pivot = None
@@ -37,8 +38,10 @@ class IsPregnant:
         
         #methods
         self.wet = None
-        self.preg_df = None
+        self.preg_df_daily = None
         self.groups_count_daily = None
+        self.preg_df_daily = None
+        self.preg_df_weekly = None
 
 
 
@@ -58,21 +61,26 @@ class IsPregnant:
         
         #alive_ids includes heifers, milking and dry
         self.alive_ids  = self.SD.alive_ids_today
+        self.milk       = self.MA.weekly_avg.copy()
         
-        self.milk    = self.MA.weekly_avg.copy()
-        
-        self.wet_dry_days_weekly  = self.WD.wet_dry_days_weekly[
+        self.wet_dry_days_daily  = self.WD.wet_dry_days_weekly[
             self.WD.wet_dry_days_weekly.index >= pd.to_datetime(self.startdate)]\
             .reset_index().rename(columns={'index': 'date'}).set_index('date')
             
-        self.period_weekly = self.WD.period_weekly[
+        self.period_daily = self.WD.period_weekly[
             self.WD.period_weekly.index  >= pd.to_datetime(self.startdate)]\
             .reset_index().rename(columns={'index': 'date'}).set_index('date')
             
-        self.daynums = self.wet_dry_days_weekly[self.alive_ids].T
-        self.liters_T  = self.milk[self.alive_ids].T
-        self.period  = self.period_weekly[self.alive_ids].T
+        self.wd_letters  = self.WD.wd_letters_daily.loc [self.startdate:,:]
+        self.wd_lact_num = self.WD.wd_lact_num_daily.loc[self.startdate:,:]
         
+        self.daynums    = self.wet_dry_days_daily[self.alive_ids].T
+        self.liters_T   = self.milk[self.alive_ids].T
+        self.period     = self.period_daily[self.alive_ids].T
+        
+
+        
+                
         # Convert (year, month, week) to Monday of that ISO week
         if isinstance(self.liters_T.columns, pd.MultiIndex):
             self.liters_T.columns = pd.to_datetime(
@@ -84,12 +92,11 @@ class IsPregnant:
         
         stop_lact_1  = self.MB.data['stop_pivot']
         self.stop_lact  = stop_lact_1.loc[self.alive_ids, :]
-        
-   
+
         #methods
-        self.wd_letters, self.wd_lact_num = self.reform_period()
         self.ultra_4, self.ultra_pivot = self.create_ultra_ok_all_dates()
-        self.create_preg_df()
+        self.preg_df_daily  = self.create_preg_df_all_dates()
+        self.preg_df_weekly = self.convert_preg_df_to_weekly()
   
 
     def create_ultra_ok_all_dates(self):
@@ -116,15 +123,15 @@ class IsPregnant:
         self.ultra_pivot = ultra_5
         return self.ultra_4, self.ultra_pivot
     
-    def create_preg_df(self):
-        wyids = self.wd_lact_num.index 
-        dates = self.wd_lact_num.columns
+    def create_preg_df_all_dates(self):
+        dates = pd.date_range(self.startdate, self.lastday)
+        wyids = self.alive_ids
         results = {}  # collect columns as series
         
         for i in wyids:
             preg1 = {}
             for date in dates:
-                wd_lact_num = self.wd_lact_num.loc[i, date]
+                wd_lact_num = self.wd_lact_num.loc[date, i]
                 
                 if pd.isna(wd_lact_num):
                     preg1[date] = None
@@ -146,8 +153,37 @@ class IsPregnant:
             
             results[i] = pd.Series(preg1)
         
-        self.preg_df = pd.DataFrame(results)
-        return self.preg_df
+        preg_df_1 = pd.DataFrame(results)
+        preg_df_1.index = pd.to_datetime(preg_df_1.index)
+        self.preg_df_daily = preg_df_1.loc[ self.startdate:,: ]
+        return self.preg_df_daily
+    
+    import numpy as np
+
+    def convert_preg_df_to_weekly(self, freq='W-MON'):
+        """
+        Resample daily pregnancy status to weekly.
+
+        For each week/cow:
+        - 'preg'      if pregnant on any day in that week
+        - 'not_preg'  if observed not pregnant and never pregnant that week
+        - NaN         if no observation that week
+        """
+        has_preg = self.preg_df_daily.eq('preg').resample(freq).max()
+        has_not_preg = self.preg_df_daily.eq('not_preg').resample(freq).max()
+
+        weekly = pd.DataFrame(
+            np.nan,
+            index=has_preg.index,
+            columns=self.preg_df_daily.columns,
+            dtype=object
+        )
+        weekly[has_preg] = 'preg'
+        weekly[~has_preg & has_not_preg] = 'not_preg'
+
+        self.preg_df_weekly = weekly
+        return self.preg_df_weekly
+        
          
 if __name__ == "__main__":
     obj = IsPregnant()

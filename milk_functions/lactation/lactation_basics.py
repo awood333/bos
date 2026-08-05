@@ -9,9 +9,11 @@ class LactationBasics:
     def __init__(self):
         print(f"LactationBasics instantiated by: {inspect.stack()[1].filename}") 
         self.MB = None
+        self.MAB = None
         self.lactations_array = None
         self.headers = None
-        self.lacts_str =None
+        self.lacts_str = None
+        self.ongoing_lactations = None
 
     def load(self):
         self.MB  = get_dependency('milk_basics')
@@ -19,10 +21,11 @@ class LactationBasics:
         self.process()
         
     def process(self):
-        #methods
         self.lactations_array, self.headers = self.create_lactation_basics()
+        self.create_ongoing_lactations()
 
     def create_lactation_basics(self):
+        ''' creates lactations from 2016-09-01'''
         milkx = self.MAB.fullday
         ext_range = self.MB.data['ext_rng']
         milk = milkx.reindex(ext_range)
@@ -44,34 +47,36 @@ class LactationBasics:
 
         milk3 = model.copy()
 
-        for i in lacts_int:   #iterates down the lactations in the pivot table
+        for i in lacts_int:
             lact = {}
-            
-            for j in WY_int: #get all the wy's for each lact then proceed to the next lact
+            for j in WY_int:
                 start = np.nan
                 stop  = np.nan
                 missing = False
-                
-                #if wy_id is missing from livebirths
+
+                # If no start date -> no lactation
                 if j not in lact_start2.index or i not in lact_start2.columns:
                     missing = True
-                #if wy_id is missing from stop_dates                    
-                if j not in lact_stop2.index or i not in lact_stop2.columns:
-                    missing = True
-                if not missing:
+                else:
                     start = lact_start2.loc[j, i]
-                    stop  = lact_stop2.loc[j, i]
 
-                # If missing from one or both start/stop are NaN -> create blank (zero) column
-                if missing or (pd.isna(start) and pd.isna(stop)):
-                    milk2 = model.copy()  # model is (999,1) index 1..999? Actually it's 1..999 (999 rows) but we need 1000? Check: model = pd.DataFrame(index=range(1,1000)) -> 999 indices. That's a bug, but we'll preserve existing logic.
+                if pd.isna(start):
+                    missing = True
+
+                # If start exists, capture stop date; if it's missing, cow is still milking
+                if not missing:
+                    if (j in lact_stop2.index and i in lact_stop2.columns
+                            and not pd.isna(lact_stop2.loc[j, i])):
+                        stop = lact_stop2.loc[j, i]
+                    else:
+                        stop = lastday  # ongoing lactation
+
+                if missing:
+                    milk2 = model.copy()
                     milk2[''] = 0.0
                     milk2.name = j
                     milk3 = pd.concat([milk3, milk2], axis=1)
                     continue
-                    #if it exists
-                if not pd.isna(start) and pd.isna (stop):
-                    stop = lastday
                     
                 milk1 = pd.DataFrame(milk.loc[start:stop, j])
                 
@@ -114,6 +119,25 @@ class LactationBasics:
         
         print('lactations array',self.lactations_array.shape)
         return self.lactations_array, self.headers
+
+    def create_ongoing_lactations(self):
+        """For each WY id, find the lactation number with a start date but no stop date."""
+        start_pivot = self.MB.data['start_pivot']
+        stop_pivot = self.MB.data['stop_pivot']
+
+        ongoing = {}
+        for wy in start_pivot.index:
+            current = None
+            for lact in start_pivot.columns:
+                if lact in stop_pivot.columns:
+                    start = start_pivot.loc[wy, lact]
+                    stop = stop_pivot.loc[wy, lact]
+                    if pd.notna(start) and pd.isna(stop):
+                        current = lact
+                        break
+            ongoing[wy] = current
+
+        self.ongoing_lactations = pd.Series(ongoing, dtype='object')
 
 if __name__ == "__main__":
     obj = LactationBasics()

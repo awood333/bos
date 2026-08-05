@@ -61,7 +61,7 @@ class Container:
         self.register_singleton('bos_state_orchestrator',self._create_bos_state_orchestrator)   
         
         # Insem
-        self.register_singleton('Insem_ultra_basics',   self._create_insem_ultra_basics)
+        self.register_singleton('insem_ultra_basics',   self._create_insem_ultra_basics)
         self.register_singleton('insem_ultra_data',     self._create_insem_ultra_data)
         self.register_singleton('check_last_stop',      self._create_check_last_stop)
         self.register_singleton('i_u_merge',            self._create_i_u_merge)
@@ -82,7 +82,6 @@ class Container:
         # milk_functions
         self.register_singleton('milk_aggregates_basic', self._create_milk_aggregates_basic)
         self.register_singleton('milk_aggregates',      self._create_milk_aggregates)
-        self.register_singleton('raw_milk_update',      self._create_raw_milk_update)
 
         #plot functions
         self.register_singleton('plot_net_revenue_model', self._create_plot_net_revenue_model)
@@ -246,11 +245,11 @@ class Container:
     
     # Insem functions
     def _create_insem_ultra_basics(self):
-        from insem_functions.Insem_ultra_basics import InsemUltraBasics
+        from insem_functions.insem_ultra_basics import InsemUltraBasics
         return InsemUltraBasics()
             
     def _create_insem_ultra_data(self):
-        from insem_functions.Insem_ultra_data import InsemUltraData
+        from insem_functions.insem_ultra_data import InsemUltraData
         return InsemUltraData()
         
     def _create_check_last_stop(self):
@@ -317,10 +316,6 @@ class Container:
         from milk_functions.milk_aggregates import MilkAggregates
         return MilkAggregates()
     
-    def _create_raw_milk_update(self):
-        from milk_functions.raw_milk_update import RawMilkUpdate
-        return RawMilkUpdate()
-    
     
     
     # plot functions
@@ -364,7 +359,7 @@ class Container:
     
     def _create_lactations(self):
         from milk_functions.lactation.lactations import Lactations
-        return Lactations()    
+        return Lactations()
     
     def _create_weekly_lactations(self):
         from milk_functions.lactation.weekly_lactations import WeeklyLactations

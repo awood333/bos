@@ -32,12 +32,15 @@ class WetDry:
         self.lacts = None
         
         #methods
-        self.period_df = None
-        self.period_weekly = None
+        self.period_daily = None
+        self.wd_letters_daily = None 
+        self.wd_lact_num_daily = None
+        self.period_weekly      = None
+        self.wet_period_weekly  = None
         self.wet_dry_days_weekly = None
-        self.wet_dry_days = None
-        self.wd_letters = None 
-        self.wd_lact_num = None
+        self.wet_dry_days_daily = None
+        self.wd_letters_weekly = None 
+        self.wd_lact_num_weekly = None
 
         
     def load(self):
@@ -70,38 +73,49 @@ class WetDry:
         self.lacts      = self.start_pivot.columns    
 
         #methods
-        self.wet_dry_days, self.period_df   = self.create_wet_dry_table()
-        self.period_weekly                  = self.create_period_weekly()
-        self.wd_letters, self.wd_lact_num   = self.reform_period()
-        self.wet_dry_days_weekly            = self.create_wet_dry_weekly()
+        (self.wet_dry_days_daily, 
+         self.period_daily)     = self.create_wet_dry_daily()
+        
+        (self.wd_letters_daily, 
+        self.wd_lact_num_daily) = self.reform_period_daily()
+        
+        
+        self.period_weekly      = self.create_period_weekly()
+        
+        (self.wd_letters_weekly, 
+         self.wd_lact_num_weekly)   = self.reform_period_weekly()
+        
+        self.wet_dry_days_weekly    = self.create_wet_dry_days_weekly()
         
           
-    def create_wet_dry_table(self):
-        '''  returns self.wet_dry_days, self.period_df  '''
-        idx     = self.ext_rng
+    def create_wet_dry_daily(self):
+        '''  returns self.wet_dry_days_daily, self.period_daily  '''
+        
         wy_ids  = self.MB.data['wy_ids']
         lacts   = self.lacts #col headers from start_pivot
         lastday = self.MB.data['lastday']
-
+        
+        idx     = self.ext_rng #starting 2016-09-01
         n_rows  = len(idx)
-        day_num_array     = np.zeros((n_rows, len(wy_ids)))
-        labels  = np.full((n_rows, len(wy_ids)), '', dtype=object)
+        day_num_array   = np.zeros((n_rows, len(wy_ids)))
+        period_array    = np.full ((n_rows, len(wy_ids)), '', dtype=object)
 
 
-# outer loop iterates over wy_ids
+# outer loop iterates over wy_ids.  
+# enumerate(wy_ids) returns a sequence of tuples: (0, wy_id_0)
         for col, wy_id in enumerate(wy_ids):
             blocks = []
             label_blocks = []                                           
-            first_start_date = None
-            heifer_start = None
-            prev_stop_date = None
-            prev_lact = None
-            earliest_date = None
+            first_start_date    = None
+            heifer_start        = None
+            prev_stop_date      = None
+            prev_lact           = None
+            earliest_date       = None
             
             # --- gets the birth dates
             bd = self.bd[(self.bd['wy_id'] == wy_id)] #gets the one row in birth_death for this wy_id
-            b_date1 = pd.to_datetime(bd['b_date']) # isolates the bdate
-            b_date = pd.NaT if b_date1.empty else b_date1.iloc[0] # writes NaT for the empty slots (which don't exist)
+            b_date1 = bd['b_date'] # isolates the bdate
+            b_date = pd.NaT if b_date1.empty else b_date1.iloc[0] # Timestamp... writes NaT for the empty slots (which don't exist)
 
             # --- gets death dates ---            
             death_date_val = pd.NaT
@@ -114,52 +128,52 @@ class WetDry:
 
 #inner loop iterates over lactation numbers
             for lact in lacts:
-# get a start and stop timestamp
-                start = pd.to_datetime(self.start_pivot.at[wy_id, lact]
+                # get a start_day and stop_day as timestamp
+                start_day = pd.to_datetime(self.start_pivot.at[wy_id, lact]
                         if (wy_id in self.start_pivot.index and lact in self.start_pivot.columns)
                         else np.nan)
-                stop  = pd.to_datetime(self.stop_pivot.at[wy_id, lact]
+                stop_day  = pd.to_datetime(self.stop_pivot.at[wy_id, lact]
                         if (wy_id in self.stop_pivot.index and lact in self.stop_pivot.columns)
                         else np.nan)
 
-                if pd.isna(start):
+                if pd.isna(start_day):
                     continue
-#first_start_date needs def here to differentiate cows from heifers
-                if (first_start_date is None and (start > b_date)): 
-                    first_start_date = pd.Timestamp(start)
+                #first_start_date needs def here to differentiate cows from heifers
+                if (first_start_date is None and (start_day > b_date)): 
+                    first_start_date = pd.Timestamp(start_day)
                 
-# this sets up the initial lag of start and stop (essential for heifer definition)
-                if (prev_stop_date is None)  and (stop < start):
-                    prev_stop_date = stop
-
-
+# this sets up the initial lag of start_day and stop_day (essential for heifer definition)
+                if (prev_stop_date is None)  and (stop_day < start_day):
+                    prev_stop_date = stop_day
+                    #here, prev_stop_date is the (future) stop_day
+                    
                 if prev_stop_date is not None:
                     dry_start = pd.Timestamp(prev_stop_date) + pd.Timedelta(days=1)
-                    dry_end   = pd.Timestamp(start) - pd.Timedelta(days=1)
+                    dry_end   = pd.Timestamp(start_day) - pd.Timedelta(days=1)
                     if dry_start <= dry_end:
                         n_dry = (dry_end - dry_start).days + 1
                         blocks.append(np.arange(1, n_dry + 1).reshape(-1, 1))
                         label_blocks.append(np.full((n_dry, 1), f'D{prev_lact}', dtype=object))
 
 
-#this sets up 'milking' currently -- if 'stop' is blank
-                wet_stop = lastday if pd.isna(stop) else pd.Timestamp(stop)
-                if wet_stop < pd.Timestamp(start):
-                    print(f"wy_id {wy_id}, lact {lact}: stop ({wet_stop.date()}) before start ({pd.Timestamp(start).date()}), skipped")
-                    prev_stop_date = None if pd.isna(stop) else pd.Timestamp(stop)
+#this sets up 'milking' currently -- if 'stop_day' is blank
+                wet_stop = lastday if pd.isna(stop_day) else pd.Timestamp(stop_day)
+                if wet_stop < pd.Timestamp(start_day):
+                    print(f"wy_id {wy_id}, lact {lact}: stop_day ({wet_stop.date()}) before start_day ({pd.Timestamp(start_day).date()}), skipped")
+                    prev_stop_date = None if pd.isna(stop_day) else pd.Timestamp(stop_day)
                     prev_lact = lact
                     continue
-                n_wet = (wet_stop - pd.Timestamp(start)).days + 1
+                n_wet = (wet_stop - pd.Timestamp(start_day)).days + 1
                 blocks.append(np.arange(1, n_wet + 1).reshape(-1, 1))
                 label_blocks.append(np.full((n_wet, 1), f'W{lact}', dtype=object))
 
-                prev_stop_date = None if pd.isna(stop) else pd.Timestamp(stop)
+                prev_stop_date = None if pd.isna(stop_day) else pd.Timestamp(stop_day)
                 prev_lact = lact
 
 # --- trailing period (gone or dry) ---
             if prev_stop_date is not None and prev_stop_date < lastday:
                 if pd.notna(death_date_val):
-                    # Cow died – dry period from last stop to death_date, then zero days after death
+                    # Cow died – dry period from last stop_day to death_date, then zero days after death
                     if prev_stop_date < death_date_val:
                         dry_start = prev_stop_date + pd.Timedelta(days=1)
                         dry_end   = death_date_val
@@ -213,51 +227,69 @@ class WetDry:
             n = stacked.shape[0]
             rows_to_fill = min(n, n_rows - row_offset)
             day_num_array[row_offset:row_offset + rows_to_fill, col] = stacked[:rows_to_fill, 0]
-            labels[row_offset:row_offset + rows_to_fill, col] = stacked_labels[:rows_to_fill, 0]
+            period_array [row_offset:row_offset + rows_to_fill, col] = stacked_labels[:rows_to_fill, 0]
 
         wet_dry_table1      = pd.DataFrame(day_num_array, index=idx, columns=wy_ids)
-        self.wet_dry_days  = wet_dry_table1.loc[self.startdate: , :]
-        period_df1          = pd.DataFrame(labels, index=idx, columns=wy_ids).copy()
-        self.period_df      = period_df1.loc[self.startdate :, :].copy()
-        return self.wet_dry_days, self.period_df
+        #startdate is 2016-09-01
+        self.wet_dry_days_daily  = wet_dry_table1.loc[self.startdate: , :]
+        period_df1          = pd.DataFrame(period_array, index=idx, columns=wy_ids).copy()
+        self.period_daily   = period_df1.loc[self.startdate :, :].copy()
+        return self.wet_dry_days_daily, self.period_daily
     
+        
+    def reform_period_daily(self):
+        ''' the self.period df comes from wet_dry and has eg W1 for each date for each cow
+            This 'reform' splits the period into the W and the number: two df's 'letters' and 'wd_lact_num_weekly '''
+        df = self.period_daily
+        regex_pattern = r'([A-Za-z]+)(\d+)'
+        #([A-Za-z]+) captures one or more letters (the W, D, whatever prefix)
+        #(\d+) captures one or more digits (the number)
+        self.wd_letters_daily  = df.apply(lambda col: col.str.extract(regex_pattern)[0])
+        self.wd_lact_num_daily = df.apply(lambda col: col.str.extract(regex_pattern)[1]).astype(float)
+        return self.wd_letters_daily, self.wd_lact_num_daily
 
+
+
+
+#-----WEEKLY CONVERSION-----**********************************************
 
     def create_period_weekly(self, freq='W'):
         
-        ''' converts the daily df self.period_df to weekly'''
-        self.period_weekly = self.period_df.resample(freq).last()
+        ''' converts the daily df self.period_daily to weekly'''
+        self.period_weekly = self.period_daily.resample(freq).last()
             
         self.wet_period_weekly = self.period_weekly[
-            self.period_weekly.index  >= pd.to_datetime(self.startdate)]\
-            .reset_index().rename(columns={'index': 'date'}).set_index('date')
+            self.period_weekly.index  >= self.startdate] \
+                .reset_index().rename(columns={'index': 'date'}) \
+                    .set_index('date') #startdate is 2016-09-01
         return self.period_weekly
     
 
         
-    def reform_period(self):
+    def reform_period_weekly(self):
         ''' the self.period df comes from wet_dry and has eg W1 for each date for each cow
-            This 'reform' splits the period into the W and the number: two df's 'letters' and 'wd_lact_num '''
+            This 'reform' splits the period into the W and the number: two df's 'letters' and 'wd_lact_num_weekly '''
         df = self.period_weekly
         regex_pattern = r'([A-Za-z]+)(\d+)'
         #([A-Za-z]+) captures one or more letters (the W, D, whatever prefix)
         #(\d+) captures one or more digits (the number)
-        self.wd_letters  = df.apply(lambda col: col.str.extract(regex_pattern)[0])
-        self.wd_lact_num = df.apply(lambda col: col.str.extract(regex_pattern)[1]).astype(float)
-        return self.wd_letters, self.wd_lact_num
+        self.wd_letters_weekly  = df.apply(lambda col: col.str.extract(regex_pattern)[0])
+        self.wd_lact_num_weekly = df.apply(lambda col: col.str.extract(regex_pattern)[1]).astype(float)
+        return self.wd_letters_weekly, self.wd_lact_num_weekly
             
   
-    def create_wet_dry_weekly(self, freq='W'):
+    def create_wet_dry_days_weekly(self, freq='W'):
         '''Weekly aggregation of wet_dry_days (numeric) using last value.'''
-        weekly_last = self.wet_dry_days.resample(freq).last()
+        weekly_last = self.wet_dry_days_daily.resample(freq).last()
         
         self.wet_dry_days_weekly = weekly_last.apply(
             lambda col: col.map(lambda x: 0 if x == 0 else (x - 1) // 7 + 1))
         
         self.wet_dry_days_weekly  = self.wet_dry_days_weekly[
-            self.wet_dry_days_weekly.index >= pd.to_datetime(self.startdate)]\
-            .reset_index().rename(columns={'index': 'date'}).set_index('date')
-            
+            self.wet_dry_days_weekly.index >= self.startdate] \
+                .reset_index().rename(columns={'index': 'date'}) \
+                    .set_index('date')
+                
         return self.wet_dry_days_weekly
 
 
