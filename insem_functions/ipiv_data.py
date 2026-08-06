@@ -18,7 +18,7 @@ class IpivData:
     def load(self):
         self.MB  = get_dependency('milk_basics')
         self.DR  = get_dependency('date_range')
-        self.IUB = get_dependency('Insem_ultra_basics')
+        self.IUB = get_dependency('insem_ultra_basics')
         self.IUD = get_dependency('insem_ultra_data')
         self.process()
         

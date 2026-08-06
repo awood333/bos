@@ -29,7 +29,7 @@ bos.egg-info/
 
 # Ignore specific scripts/utilities
 RunMilkUpdate.py
-insem_functions/Insem_ultra_basics.py
+insem_functions/insem_ultra_basics.py
 utilities/rclone_gdrive_aws.sh
 utilities/rclone_gdrive_aws.bat
 dependency_graph.html
