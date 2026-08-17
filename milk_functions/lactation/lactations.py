@@ -80,7 +80,11 @@ class Lactations:
         ]
 
         weekly = [
-            df.groupby(df.index // 7).mean().head(45)
+            df.where(df != 0)
+              .groupby(df.index // 7)
+              .mean()
+              .fillna(0)
+              .head(45)
             for df in live_frames
         ]
 
@@ -111,7 +115,11 @@ class Lactations:
 
         self.milking = milking
         self.milking_weekly = (
-            milking.groupby(milking.index // 7).mean().head(45)
+            milking.where(milking != 0)
+                   .groupby(milking.index // 7)
+                   .mean()
+                   .fillna(0)
+                   .head(45)
         )
 
         return self.milking, self.milking_weekly

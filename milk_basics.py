@@ -1,6 +1,7 @@
 '''milk_basics.py'''
 import inspect
 import pandas as pd
+from container import get_dependency
 from utilities.db_retry import retry_db
 from sqlalchemy import text
 from sql_db_related.neon_connect import get_engine
@@ -121,6 +122,7 @@ class MilkBasics:
             'lastday': self.lastday,
             'wy_ids' : self.wy_id_list,
             'ext_rng': self.extended_date_range_milk
+
         }
         return self.data
 

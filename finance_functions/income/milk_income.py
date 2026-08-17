@@ -51,8 +51,9 @@ class MilkIncome:
         return self.income_weekly
     
     def create_income_monthly(self):
+        
         income_1 = self.milk_monthly_total.copy()
-        income_2 = income_1* 22
+        income_2 = income_1 * 22
         self.income_monthly = pd.DataFrame(income_2)
         return self.income_monthly
 

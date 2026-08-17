@@ -1,5 +1,5 @@
 
-'''Run_update_plots.py: Concierge runner for plot classes'''
+'''plot_functions/Run_update_plots.py: Concierge runner for plot classes'''
 import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))

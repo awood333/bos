@@ -26,7 +26,7 @@ class NetRevenue:
         self.process()
 
     def process(self):
-        self.startdate  = self.DR.startdate        
+        self.startdate  = self.DR.startdate    
         self.feedcost_weekly   = self.FCBD.feedcost_by_group_by_week_df
         self.feedcost_monthly   = self.FCBD.feedcost_by_group_by_month_df
 
@@ -46,13 +46,13 @@ class NetRevenue:
 
         # explicit alignment guard, same reasoning as model_groups.py:
         # equal shape doesn't guarantee equal index/columns
-        income_a, cost_a = income1.align(cost1, join='inner')
-        if income_a.shape != income1.shape or cost_a.shape != cost1.shape:
+        income_1, cost_1 = income1.align(cost1, join='inner')
+        if income_1.shape != income1.shape or cost_1.shape != cost1.shape:
             print(f"WARNING: net_revenue_weekly alignment dropped cells — "
-                f"income {income1.shape} -> {income_a.shape}, "
-                f"cost {cost1.shape} -> {cost_a.shape}")
+                f"income {income1.shape} -> {income_1.shape}, "
+                f"cost {cost1.shape} -> {cost_1.shape}")
 
-        net_revenue = income_a.sub(cost_a, fill_value=0)
+        net_revenue = income_1.sub(cost_1, fill_value=0)
         self.net_revenue_weekly = net_revenue
         return self.net_revenue_weekly
 
@@ -61,15 +61,15 @@ class NetRevenue:
     
     def create_net_revenue_monthly(self):
         income1 = self.income_monthly
-        cost1 = self.feedcost_monthly
+        cost1   = self.feedcost_monthly
 
-        income_a, cost_a = income1.align(cost1, join='inner')
-        if income_a.shape != income1.shape or cost_a.shape != cost1.shape:
+        income_1, cost_1 = income1.align(cost1, join='inner')
+        if income_1.shape != income1.shape or cost_1.shape != cost1.shape:
             print(f"WARNING: net_revenue_monthly alignment dropped cells — "
-                f"income {income1.shape} -> {income_a.shape}, "
-                f"cost {cost1.shape} -> {cost_a.shape}")
+                f"income {income1.shape} -> {income_1.shape}, "
+                f"cost {cost1.shape} -> {cost_1.shape}")
 
-        net_revenue = income_a.sub(cost_a, fill_value=0)
+        net_revenue = income_1.sub(cost_1, fill_value=0)
         self.net_revenue_monthly = net_revenue
         return self.net_revenue_monthly
 

@@ -10,6 +10,7 @@ from pipeline.aws.s3_loader import s3_upload_png
 
 S3_LACTATION_PREFIX = "plots/Lactation_Curves"
 
+#NOTE: THIS RUNS THE RCLONE
 
 class LactationPlots:
     def __init__(self):
@@ -87,7 +88,7 @@ class LactationPlots:
             return
 
         ax.set_xlabel('Week of Lactation')
-        ax.set_ylabel('Average Daily Milk Yield (kg)')
+        ax.set_ylabel('Average Daily Milk, Liters')
         ax.set_title(f'Lactation Curves - WY {wy_str}')
         ax.grid(True, linestyle='--', alpha=0.7)
         ax.legend()

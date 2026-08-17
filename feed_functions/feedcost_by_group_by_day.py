@@ -38,7 +38,10 @@ class FeedCostByGroupByDay:
     def process(self):
         self.wyids  = self.MB.data['bd'].index
         self.dates  = self.DR.date_range_weekly
-        self.groups = self.MG.group_df
+        self.groups_daily   = self.MG.model_groups_daily
+        self.groups_weekly  = self.MG.model_groups_weekly
+        self.groups_monthly = self.MG.model_groups_monthly
+        
         self.cost_f = self.FB.feedcost_F_df
         self.cost_a = self.FB.feedcost_A_df
         self.cost_b = self.FB.feedcost_B_df
@@ -53,9 +56,8 @@ class FeedCostByGroupByDay:
             
             
     def create_feedcost_by_group_by_day(self):
-        # dates = pd.to_datetime(self.dates).normalize()
-        groups = self.groups.copy()
-
+        
+        groups = self.groups_daily.copy()
 
         cost_map = {
         'F': self.cost_f,
@@ -78,8 +80,8 @@ class FeedCostByGroupByDay:
         #.stack() flattens that entire grid into one long column in a single C-level operation
 
         # long format: one row per (wy_id, date) -> group letter
-        long = groups.stack(future_stack=True).rename('group').reset_index()
-        long.columns = ['date', 'wy_id',  'group']
+        long = groups.stack(future_stack=True).rename('group').reset_index() #future_stack is for new (future) implementation
+        long.columns = [ 'date', 'wy_id',  'group']
 
         #squeeze each cost frame down to a Series before concat
         cost_series = {}
@@ -106,7 +108,7 @@ class FeedCostByGroupByDay:
         
         
     def create_feedcost_by_group_by_week(self):
-        groups = self.groups.copy()  # already weekly, W-SUN anchored, from model_groups
+        groups = self.groups_weekly.copy()  # already weekly, W-SUN anchored, from model_groups
 
         cost_map = {
             'F': self.cost_f,
@@ -141,7 +143,7 @@ class FeedCostByGroupByDay:
         return self.feedcost_by_group_by_week_df
             
     def create_feedcost_by_group_by_month(self):
-        groups = self.groups.copy()  # must be MS-anchored monthly group labels, matching monthly_avg
+        groups = self.groups_monthly.copy()  # must be MS-anchored monthly group labels, matching monthly_avg
 
         cost_map = {
             'F': self.cost_f,

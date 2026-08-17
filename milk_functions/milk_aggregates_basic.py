@@ -42,20 +42,31 @@ class MilkAggregatesBasic:
         self.datex = None
         self.start_pivot = None
         self.stop_pivot = None
+        self.alive_ids_today = None
 
     def load(self):
-        self.MB   = get_dependency('milk_basics')
+        self.MB     = get_dependency('milk_basics')
+        self.DR     = get_dependency('date_range')
+
+
         self.process()
         
     def process(self):
-        
+      
         self.data = self.MB.data
         self.start_pivot = self.MB.data['start_pivot']
         self.stop_pivot  = self.MB.data['stop_pivot']
+        self.start_date  = self.DR.startdate
+        
+      
+
+
+        # Methods
 
         [self.maxcols, self.idx_am, self.idx_pm,
          self.wy_am_np, self.wy_pm_np,
-         self.liters_am_np, self.liters_pm_np] = self.basics()
+         self.liters_am_np, self.liters_pm_np,
+         self.alive_ids_today] = self.basics()
 
         [self.am, self.pm, self.fullday_preClean,
          self.fullday_lastdate] = self.fullday_calc()
@@ -94,10 +105,22 @@ class MilkAggregatesBasic:
         self.wy_pm_np     = self.PM_wy    .to_numpy(dtype=float)
         self.liters_am_np = self.AM_liters.to_numpy(dtype=float)
         self.liters_pm_np = self.PM_liters.to_numpy(dtype=float)
+        
+        bd = self.data['bd'].set_index('wy_id')
+        last_date = self.datex[-1]
+        alive_mask = (
+            bd['b_date'].notna() &
+            (bd['b_date'] <= last_date) &
+            (bd['death_date'].isna() | (bd['death_date'] > last_date))
+        )
+        self.alive_ids_today = bd.index[alive_mask]   
 
         return [self.maxcols, self.idx_am, self.idx_pm,
                 self.wy_am_np, self.wy_pm_np,
-                self.liters_am_np, self.liters_pm_np]
+                self.liters_am_np, self.liters_pm_np,
+                self.alive_ids_today]
+        
+        
 
     def fullday_calc(self):
         # AM calc
@@ -134,6 +157,9 @@ class MilkAggregatesBasic:
         self.pm.replace(0, np.nan, inplace=True)
         self.pm.drop(self.pm.columns[0], axis=1, inplace=True)
         print('last pm ', self.pm.iloc[-1,93:95])
+
+
+
 
         # fullday calc
         fullday1 = np.add(am1, pm1)
@@ -193,8 +219,9 @@ class MilkAggregatesBasic:
         interpolated = self.fullday_preClean.interpolate(method='linear', limit_area='inside', axis=0)
 
         fullday_imputed_mask = self.fullday_preClean.isna() & fullday_wet_mask & interpolated.notna()
-        fullday_clean = self.fullday_preClean.where(~fullday_wet_mask, interpolated)
-        self.fullday = fullday_clean
+        fullday_clean_1 = self.fullday_preClean.where(~fullday_wet_mask, interpolated)
+        
+        self.fullday = fullday_clean_1.loc[self.start_date :, self.alive_ids_today]
 
 
 

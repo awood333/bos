@@ -74,19 +74,17 @@ class IsPregnant:
         self.wd_letters  = self.WD.wd_letters_daily.loc [self.startdate:,:]
         self.wd_lact_num = self.WD.wd_lact_num_daily.loc[self.startdate:,:]
         
-        self.daynums    = self.wet_dry_days_daily[self.alive_ids].T
-        self.liters_T   = self.milk[self.alive_ids].T
+        self.daynums    = self.wet_dry_days_daily[self.alive_ids]  # not needed??
+        self.liters     = self.milk[self.alive_ids]
         self.period     = self.period_daily[self.alive_ids].T
         
 
-        
-                
-        # Convert (year, month, week) to Monday of that ISO week
-        if isinstance(self.liters_T.columns, pd.MultiIndex):
-            self.liters_T.columns = pd.to_datetime(
-                self.liters_T.columns.map(lambda x: f"{x[0]}-W{x[2]:02d}-1"),
-                format='%G-W%V-%u'
-            )        
+        # if isinstance(self.liters.index, pd.MultiIndex):
+        #     self.liters.index = pd.to_datetime(
+        #         self.liters.index.map(lambda x: f"{x[0]}-W{x[2]:02d}-1"),
+        #         format='%G-W%V-%u'
+            # )
+                    
         start_lact_1 = self.MB.data['start_pivot']
         self.start_lact = start_lact_1.loc[self.alive_ids, :] #cols are lact nums, rows are wy
         
@@ -109,12 +107,13 @@ class IsPregnant:
         # #idxmax() returns the index label of the first occurrence of the maximum value for each group.
         # idx     = ultra_3.groupby(['wy_id', 'calf_num'])['ultra_date'].idxmax() 
         
-        self.ultra_4 = (
+        ultra_4a = (
             ultra_3.sort_values('ultra_date')
             .groupby(['wy_id', 'calf_num'],sort=False)
             .last()
             .reset_index()
             )
+        self.ultra_4 = ultra_4a.sort_values(['wy_id', 'ultra_date']).reset_index(drop=True)
         
         ultra_5 = pd.pivot_table(self.ultra_4,
                                 index = 'wy_id',
@@ -158,9 +157,9 @@ class IsPregnant:
         self.preg_df_daily = preg_df_1.loc[ self.startdate:,: ]
         return self.preg_df_daily
     
-    import numpy as np
 
-    def convert_preg_df_to_weekly(self, freq='W-MON'):
+
+    def convert_preg_df_to_weekly(self, freq='W-SUN'):
         """
         Resample daily pregnancy status to weekly.
 

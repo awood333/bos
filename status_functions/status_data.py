@@ -13,8 +13,8 @@ class status_data:
         # load
         self.MB = None
         self.DR = None
-        self.MAB= None
-        self.WD = None 
+        self.WD = None
+        self._MAB = None 
         
         #process
         self.startdate = None
@@ -32,9 +32,14 @@ class status_data:
     def load(self):
         self.MB = get_dependency('milk_basics')
         self.DR = get_dependency('date_range')
-        self.MAB= get_dependency('milk_aggregates_basic')
         self.WD = get_dependency('wet_dry')
         self.process()
+        
+    @property  #makes MAB lazy - avoids circulat for alive_ids_today
+    def MAB(self):
+        if self._MAB is None:
+            self._MAB = get_dependency("milk_aggregates_basic")
+        return self._MAB
         
     def process(self):        
 
