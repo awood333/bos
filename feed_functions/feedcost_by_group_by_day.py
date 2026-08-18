@@ -157,6 +157,7 @@ class FeedCostByGroupByDay:
         # long format: one row per (month, wy_id) -> group letter
         long = groups.stack(future_stack=True).rename('group').reset_index()
         long.columns = ['date', 'wy_id', 'group']
+        long['date'] = pd.to_datetime(long['date']).dt.to_period('M').astype(str)
 
         # squeeze each daily cost frame to a Series, normalize, then resample to
         # monthly totals on the SAME anchor as groups ('MS' = month-start label).
@@ -170,11 +171,13 @@ class FeedCostByGroupByDay:
         cost_wide = pd.concat(cost_series, axis=1)  # monthly date x {F,A,B,C,D,H}
         cost_long = cost_wide.stack(future_stack=True).rename('cost').reset_index()
         cost_long.columns = ['date', 'group', 'cost']
-
+        cost_long['date'] = pd.to_datetime(cost_long['date']).dt.to_period('M').astype(str)
+        
         merged = long.merge(cost_long, on=['date', 'group'], how='left')
 
         cost_by_group_by_month_df = merged.pivot(index='date', columns='wy_id', values='cost')
         self.feedcost_by_group_by_month_df = cost_by_group_by_month_df
+        
         return self.feedcost_by_group_by_month_df
         
             

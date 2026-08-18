@@ -33,26 +33,22 @@ class status_data:
         self.MB = get_dependency('milk_basics')
         self.DR = get_dependency('date_range')
         self.WD = get_dependency('wet_dry')
+        self.MAB = get_dependency("milk_aggregates_basic")        
         self.process()
         
-    @property  #makes MAB lazy - avoids circulat for alive_ids_today
-    def MAB(self):
-        if self._MAB is None:
-            self._MAB = get_dependency("milk_aggregates_basic")
-        return self._MAB
         
     def process(self):        
 
         self.startdate = self.DR.startdate
-        self.enddate_daily = getattr(self.DR, 'enddate_daily', None)        
+        self.enddate_daily =self.DR.enddate_daily     
         self.lb = self.MB.data['lb']
         self.bd = self.MB.data['bd']
-        print(f"status_data.process() called, instance id: {id(self)}")
+        bd = self.MB.data['bd'].set_index('wy_id')
+        self.alive_ids_today = self.MAB.alive_ids_today
              
           #methods
         [self.status_col, 
-         self.status_col_all,
-        self.alive_ids_today]       = self.create_status()
+         self.status_col_all]       = self.create_status()
         
         
         
@@ -61,7 +57,7 @@ class status_data:
         ''' uses weekly data from milk_basics to determine milking groups - for the 'model_groups'''
         bd_1 = self.bd.set_index('wy_id')
         lb_1 = self.lb[['wy_id', 'b_date', 'calf_num' ]].set_index('wy_id')
-        wyids = bd_1.index.to_list()
+        wyids = self.alive_ids_today
         f_1 = self.MAB.fullday
      
         wetdry_period   = self.WD.period_weekly
@@ -92,7 +88,7 @@ class status_data:
                 if date < b_date:
                     status_col_1.at[date, wy] = 'nby'
                     
-                elif fullday.at[date,wy] > 0:
+                elif fullday.at[date, wy] > 0:
                     status_col_1.at[date, wy] = 'milking'
                     
                 elif first_calf_list and pd.notna(first_calf_bdate) and date < first_calf_bdate:
@@ -106,9 +102,8 @@ class status_data:
         
         self.status_col_all = status_col_1
         self.status_col = status_col_1.iloc[-1,:]
-        self.alive_ids_today = self.status_col[~self.status_col.isin(['gone', 'nby'])].index
             
-        return self.status_col, self.status_col_all, self.alive_ids_today
+        return self.status_col, self.status_col_all
     
     
 if __name__ == "__main__":
