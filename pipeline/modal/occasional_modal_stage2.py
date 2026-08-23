@@ -22,6 +22,8 @@ class OccasionalModalStage2:
 
         self.ipiv_pivot_table = None
         self.ipiv_pivot_table_formatted = None
+        self.net_revenue_table = None
+        self.net_revenue_table_formatted = None
 
         self.ipiv_pivot_table_fmt = FormatForNeon(
             schema={
@@ -32,11 +34,25 @@ class OccasionalModalStage2:
             positional_rules=[(3, None, "date")],  # every lact_num column, however many exist
         )
 
+        self.net_revenue_table_fmt = FormatForNeon(
+            schema={
+                "datex": "date",
+                "income": "float",
+                "cost": "float",
+                "net_revenue": "float",
+            },
+            # positional_rules=[(3, None, "date")],  # every lact_num column, however many exist
+        )
+
     def load_and_process(self):
 
-        self.IPIVT = get_dependency('ipiv_pivot_table')
+        self.IPIVT  = get_dependency('ipiv_pivot_table')
+        self.NR     = get_dependency('net_revenue')
 
-        self.ipiv_pivot_table_formatted = self.createOccasionalData()
+        [self.ipiv_pivot_table_formatted, 
+         self.net_revenue_table_formatted] = self.createOccasionalData()
+        
+
 
         from sql_db_related.neon_connect import get_engine
         engine = get_engine()
@@ -48,9 +64,22 @@ class OccasionalModalStage2:
             self.ipiv_pivot_table_fmt.write_conn(
                 self.ipiv_pivot_table_formatted, 'ipiv_pivot_table_formatted', conn, pk_col='wy_id')
 
+            self.net_revenue_table_fmt.write_conn(
+                self.net_revenue_table_formatted, 'net_revenue_table_formatted', conn, pk_col='datex')
+
+
+
     def createOccasionalData(self):
         self.ipiv_pivot_table = self.IPIVT.ipiv_pivot_table.copy()
-        return self.ipiv_pivot_table
+        
+        self.net_revenue_table= self.NR.net_revenue_monthly.copy()
+        # Convert PeriodIndex (monthly periods) to a real date column
+        self.net_revenue_table.index = self.net_revenue_table.index.to_timestamp()
+        self.net_revenue_table.index.name = 'datex'
+        self.net_revenue_table = self.net_revenue_table.reset_index()
+      
+        
+        return self.ipiv_pivot_table, self.net_revenue_table
 
 
 if __name__ == "__main__":

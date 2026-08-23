@@ -37,9 +37,7 @@ class NetRevenue:
         #methhods
 
         self.net_revenue_weekly         = self.create_net_revenue_weekly()
-        
-        [self.net_revenue_monthly_all,
-        self.net_revenue_monthly_sum]   = self.create_net_revenue_monthly()
+        self.net_revenue_monthly   = self.create_net_revenue_monthly()
         
     
     def create_net_revenue_weekly(self):
@@ -63,28 +61,25 @@ class NetRevenue:
     
     def create_net_revenue_monthly(self):
         income1 = self.income_monthly.copy()
-        cost1   = self.feedcost_by_group_by_month_df.copy()
+        cost1   = pd.DataFrame(self.feedcost_by_group_by_month_df.sum(axis=1).rename('cost'))
         
         # format as monthly period: 2025-06 instead of 2025-06-30
         # this eliminates the prob of one df being 2026-06-01 and the other 2026-06-31
         income1.index = pd.to_datetime(income1.index).to_period('M')
         cost1.index   = pd.to_datetime(cost1.index)  .to_period('M')
-    
-    
-        income_1, cost_1 = income1.align(cost1, join='inner')
-        if income_1.shape != income1.shape or cost_1.shape != cost1.shape:
-            print(f"WARNING: net_revenue_monthly alignment dropped cells — "
-                f"income {income1.shape} -> {income_1.shape}, "
-                f"cost {cost1.shape} -> {cost_1.shape}")
+        
+        cost1 = cost1.groupby(level=0).sum()
+        cost1 = cost1.reindex(income1.index)
+        income_1, cost_1 = income1, cost1
 
-        net_revenue = income_1.sub(cost_1, fill_value=0)
-        self.net_revenue_monthly_all = net_revenue
-        self.net_revenue_monthly_sum = pd.DataFrame({
-            'income':      income_1.sum(axis=1),
-            'cost':        cost_1.sum(axis=1),
-            'net_revenue': net_revenue.sum(axis=1)            
+        net_revenue = income_1['income'] - (cost_1['cost']) 
+        self.net_revenue_monthly = pd.DataFrame({
+            'avg liters':  income_1['avg liters'],
+            'income':      income_1['income'],
+            'cost':        cost_1['cost'],
+            'net_revenue': net_revenue            
         })
-        return self.net_revenue_monthly_all, self.net_revenue_monthly_sum
+        return self.net_revenue_monthly
 
  
 if __name__ == "__main__":
