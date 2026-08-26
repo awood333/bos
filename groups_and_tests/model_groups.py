@@ -36,9 +36,14 @@ class ModelGroups:
         self.start_lact = None
         self.stop_lact = None
         self.pregnant = None
+        
+        self.model_groups_daily = None
         self.model_groups_weekly = None
-
-
+        self.model_groups_monthly = None
+        
+        self.model_groups_daily_dict = None
+        self.model_groups_weekly_dict = None
+        self.model_groups_monthly_dict = None
 
     def load(self):
 
@@ -53,7 +58,6 @@ class ModelGroups:
         self.MA = get_dependency('milk_aggregates')
         self.IP = get_dependency('is_pregnant')
         self.process()
-        
         
     def process(self):
         
@@ -83,13 +87,16 @@ class ModelGroups:
         
               
         #methods
-        self.model_groups_daily     = self.create_model_groups_daily()
-        self.model_groups_weekly    = self.create_model_groups_weekly()
-        self.model_groups_monthly   = self.create_model_groups_monthly()
-
-
-
-
+  
+        self.model_groups_daily,
+        self.model_groups_daily_dict    = self.create_model_groups_daily()
+        
+        self.model_groups_weekly,
+        self.model_groups_weekly_dict   = self.create_model_groups_weekly()
+        
+        self.model_groups_monthly,
+        self.model_groups_monthly_dict  = self.create_model_groups_monthly()
+    
        
     def create_model_groups_daily(self):
         liters_1   = self.liters
@@ -97,13 +104,6 @@ class ModelGroups:
         pregnant_1 = self.pregnant
         period_1   = self.period
 
-
-        # # Align to liters_1
-        # week_num_1 = week_num_1.reindex(index=liters_1.index, columns=liters_1.columns)
-        # pregnant_1 = pregnant_1.reindex(index=liters_1.index, columns=liters_1.columns)
-        # period_1   = period_1  .reindex(index=liters_1.index, columns=liters_1.columns)
-
-        # Extract period letter safely
         period_letter = period_1.astype('string').apply(
             lambda col: col.str.extract(r'([A-Za-z]+)')[0]
         )
@@ -123,7 +123,6 @@ class ModelGroups:
         ]
         choices = ['H', 'D', None, 'F', 'A', 'C', 'B']
 
-        # Convert to plain numpy bool arrays
         cond_arrs = [
             c.to_numpy(dtype=bool, na_value=False) if not c.empty
             else np.zeros(liters_1.shape, dtype=bool)
@@ -136,8 +135,8 @@ class ModelGroups:
         )
 
         self.model_groups_daily = group_df
+        self.model_groups_daily_dict = self._model_groups_dict_from_df(group_df)
         return self.model_groups_daily
-
 
     
     def create_model_groups_weekly(self):
@@ -194,10 +193,13 @@ class ModelGroups:
 
         group_arr = np.select(cond_arrs, choices, default=None)
         group_df = pd.DataFrame(
-            group_arr, index=liters_1.index, columns=liters_1.columns
+            group_arr, 
+            index=liters_1.index, 
+            columns=liters_1.columns
         )
 
         self.model_groups_weekly = group_df
+        self.model_groups_weekly_dict = self._model_groups_dict_from_df(group_df)        
         return self.model_groups_weekly  
 
          
@@ -270,9 +272,37 @@ class ModelGroups:
         ).T
 
         self.model_groups_monthly = group_df
-        return self.model_groups_monthly
-         
-         
+        self.model_groups_monthly_dict = self._model_groups_dict_from_df(group_df)        
+        return self.model_groups_monthly,  self.model_groups_monthly_dict
+            
+    
+    def _model_groups_dict_from_df(self, df):
+        """Generic: takes DataFrame index=dates, columns=cow_ids, values=labels.
+        Returns {group_key: {date_str: [cow_ids]}}"""
+        label_to_key = {
+            'H': 'heifer_ids',
+            'D': 'dry_ids',
+            'G': 'missing_ids',
+            'F': 'fresh_ids',
+            'A': 'group_A_ids',
+            'B': 'group_B_ids',
+            'C': 'group_C_ids',
+        }
+
+        result = {key: {} for key in label_to_key.values()}
+
+        for date in df.index:
+            date_str = pd.Timestamp(date).strftime('%Y-%m-%d')
+            for cow_id, label in df.loc[date].items():
+                if pd.isna(label):
+                    continue
+                key = label_to_key.get(label)
+                if key is not None:
+                    result[key].setdefault(date_str, []).append(
+                        str(int(float(cow_id)))
+                    )
+
+        return result         
          
 if __name__ == "__main__":
     obj = ModelGroups()

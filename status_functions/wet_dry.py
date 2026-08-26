@@ -33,6 +33,7 @@ class WetDry:
         
         #methods
         self.period_daily = None
+        self.max_days_per_period = None
         self.wd_letters_daily = None 
         self.wd_lact_num_daily = None
         self.period_weekly      = None
@@ -57,8 +58,8 @@ class WetDry:
         self.death_date = self.MB.bd[['wy_id','death_date']]
         self.ext_rng    = self.MB.data['ext_rng']
         self.datex      = self.MB.data['datex']
-        # self.startdate  = self.MB.data['start']
-        self.startdate  = self.DR.startdate
+        # self.startdate  = self.DR.startdate
+        self.startdate  = pd.to_datetime("2016-09-01")
       
         fullday         = self.MAB.fullday.copy()
         fullday.columns = fullday.columns.astype(str)
@@ -74,7 +75,8 @@ class WetDry:
 
         #methods
         (self.wet_dry_days_daily, 
-         self.period_daily)     = self.create_wet_dry_daily()
+         self.period_daily, 
+         self.max_days_per_period)     = self.create_wet_dry_daily()
         
         (self.wd_letters_daily, 
         self.wd_lact_num_daily) = self.reform_period_daily()
@@ -263,11 +265,25 @@ class WetDry:
             period_array [row_offset:row_offset + rows_to_fill, col] = stacked_labels[:rows_to_fill, 0]
 
         wet_dry_table1      = pd.DataFrame(day_num_array, index=idx, columns=wy_ids)
-        #startdate is 2016-09-01
         self.wet_dry_days_daily  = wet_dry_table1.loc[self.startdate: , :]
         period_df1          = pd.DataFrame(period_array, index=idx, columns=wy_ids).copy()
         self.period_daily   = period_df1.loc[self.startdate :, :].copy()
-        return self.wet_dry_days_daily, self.period_daily
+        
+           # --- get max days wetdry for each period ---
+        period_labels = sorted(self.period_daily.stack().replace('', pd.NA).dropna().unique())
+        max_days_per_period = pd.DataFrame(
+            index=period_labels, columns=self.period_daily.columns, dtype=float
+        )
+
+        for wy_id in self.period_daily.columns:
+            period = self.period_daily[wy_id]
+            days   = self.wet_dry_days_daily[wy_id]
+            valid  = period != ''
+            max_days_per_period[wy_id] = days[valid].groupby(period[valid]).max()
+
+        self.max_days_per_period = max_days_per_period
+        
+        return self.wet_dry_days_daily, self.period_daily, self.max_days_per_period
     
         
     def reform_period_daily(self):

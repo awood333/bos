@@ -27,18 +27,37 @@ class NetRevenue:
 
     def process(self):
         self.startdate  = self.DR.startdate    
-        self.feedcost_by_group_by_week_df    = self.FCBD.feedcost_by_group_by_week_df
-        self.feedcost_by_group_by_month_df   = self.FCBD.feedcost_by_group_by_month_df
+        self.feedcost_by_group_by_day_df    = self.FCBD.feedcost_by_group_by_day_df
+        self.feedcost_by_group_by_week_df   = self.FCBD.feedcost_by_group_by_week_df
+        self.feedcost_by_group_by_month_df  = self.FCBD.feedcost_by_group_by_month_df
 
-        self.income_weekly  = self.MI.income_weekly.copy()
+        self.income_daily    = self.MI.income_daily.copy()
+        self.income_weekly   = self.MI.income_weekly.copy()
         self.income_monthly  = self.MI.income_monthly.copy()
               
             
         #methhods
-
-        self.net_revenue_weekly         = self.create_net_revenue_weekly()
-        self.net_revenue_monthly   = self.create_net_revenue_monthly()
+        self.net_revenue_daily      = self.create_net_revenue_daily()
+        self.net_revenue_weekly     = self.create_net_revenue_weekly()
+        self.net_revenue_monthly    = self.create_net_revenue_monthly()
         
+        
+    
+    def create_net_revenue_daily(self):
+        income1 = self.income_daily
+        cost1 = self.feedcost_by_group_by_day_df
+
+        # explicit alignment guard, same reasoning as model_groups.py:
+        # equal shape doesn't guarantee equal index/columns
+        income_1, cost_1 = income1.align(cost1, join='inner')
+        if income_1.shape != income1.shape or cost_1.shape != cost1.shape:
+            print(f"WARNING: net_revenue_daily alignment dropped cells — "
+                f"income {income1.shape} -> {income_1.shape}, "
+                f"cost {cost1.shape} -> {cost_1.shape}")
+
+        net_revenue = income_1.sub(cost_1, fill_value=0)
+        self.net_revenue_daily = net_revenue        
+        return self.net_revenue_daily
     
     def create_net_revenue_weekly(self):
         income1 = self.income_weekly

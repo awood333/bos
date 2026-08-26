@@ -35,24 +35,29 @@ class MilkIncome:
         
 
         self.startdate    = self.DR.startdate
+        self.milk_daily         = self.MA.milk
         self.milk_weekly_total  = self.MA.weekly_total
         self.milk_monthly_total = self.MA.monthly_total
         self.milk_monthly_avg = self.MA.monthly_avg
  
+        self.income_daily   = self.create_income_daily()
         self.income_weekly  = self.create_income_weekly()
         self.income_monthly = self.create_income_monthly()
         
-        
+    def create_income_daily(self):    
+        income_1 = self.milk_daily.copy()
+        income_2 = income_1 * 22
+        self.income_weekly = pd.DataFrame(income_2)
+        return self.income_weekly
+    
     
     def create_income_weekly(self):
-
         income_1 = self.milk_weekly_total.copy()
         income_2 = income_1 * 22
         self.income_weekly = pd.DataFrame(income_2)
         return self.income_weekly
     
     def create_income_monthly(self):
-        
         income = self.milk_monthly_total * 22
         self.income_monthly = income.to_frame(name='income_monthly')     
         avg_liters    = self.milk_monthly_avg

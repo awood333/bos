@@ -12,6 +12,7 @@ class FeedCostByGroupByDay:
         self.DR = None
         self.MG = None
         self.FB = None
+        self.WD = None
 
         
         #methods
@@ -76,10 +77,9 @@ class FeedCostByGroupByDay:
         # if the columns have a single level, the output is a Series;
         # if the columns have multiple levels, the new index level(s) is (are) taken 
         # from the prescribed level(s) and the output is a DataFrame.
-        
         #.stack() flattens that entire grid into one long column in a single C-level operation
 
-        # long format: one row per (wy_id, date) -> group letter
+        # long: one row per (wy_id, date) -> group letter
         long = groups.stack(future_stack=True).rename('group').reset_index() #future_stack is for new (future) implementation
         long.columns = [ 'date', 'wy_id',  'group']
 
@@ -101,6 +101,8 @@ class FeedCostByGroupByDay:
         cost_long.columns = ['date', 'group', 'cost']
 
         merged = long.merge(cost_long, on=['date', 'group'], how='left')
+
+
 
         cost_by_group_df = merged.pivot(index='date', columns='wy_id', values='cost')
         self.cost_by_group_by_day_df = cost_by_group_df
@@ -138,9 +140,12 @@ class FeedCostByGroupByDay:
 
         merged = long.merge(cost_long, on=['date', 'group'], how='left')
 
+        # returns weekly feedcost total of each cow (from start date) 
+
         cost_by_group_by_week_df = merged.pivot(index='date', columns='wy_id', values='cost')
         self.feedcost_by_group_by_week_df = cost_by_group_by_week_df
         return self.feedcost_by_group_by_week_df
+
             
     def create_feedcost_by_group_by_month(self):
         groups = self.groups_monthly.copy()  # must be MS-anchored monthly group labels, matching monthly_avg
@@ -175,6 +180,7 @@ class FeedCostByGroupByDay:
         
         merged = long.merge(cost_long, on=['date', 'group'], how='left')
 
+        # returns monthly feedcost total of each cow (from start date) 
         cost_by_group_by_month_df = merged.pivot(index='date', columns='wy_id', values='cost')
         self.feedcost_by_group_by_month_df = cost_by_group_by_month_df
         
