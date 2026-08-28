@@ -21,7 +21,7 @@ class BuildWBGroups:
         self.split_group_frames()
 
     def process(self):
-        start = pd.to_datetime("2025-09-20")
+        start = pd.to_datetime("2026-08-27")
 
         am_wy, counts = self._AM_wy_and_group_count_query()
 
@@ -46,7 +46,7 @@ class BuildWBGroups:
         group_data = self._build_group_data(counts, am_wy)
 
         # DEBUG: run for the date of interest regardless of mismatches
-        self.debug_group_assignment_for_date("2025-12-17")
+        self.debug_group_assignment_for_date("2026-08-27")
 
         self.group_frames = self._to_sheet_frames(group_data)
 
@@ -169,6 +169,8 @@ class BuildWBGroups:
             debug_data[f"{g}_assigned"] = group_slices[g]
 
         self.debug_df = pd.DataFrame([debug_data])
+        
+        
     def _to_sheet_frames(self, group_data: dict) -> dict:
         frames = {}
         for g, date_map in group_data.items():

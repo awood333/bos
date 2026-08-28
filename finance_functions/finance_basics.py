@@ -16,7 +16,7 @@ class FinanceBasics:
         self.startdate = None
         self.stopdate = None
         self.idx = None
-        self.feed_pivot = None
+        self.feed_cost_pivot = None
         self.cost_xfeed_pivot = None
         self.feedcost_pivot = None
         self.engine = get_engine()
@@ -32,7 +32,7 @@ class FinanceBasics:
             self.bkk_farm_1['desc_1'].notna()].copy()  #removes the missing rows (when entry is in 'credit')
         
         self.bkk_farm_2 = self.bkk_farm_1[
-            self.bkk_farm_1['desc_1'] !='nonfarm'].copy()
+            self.bkk_farm_1['desc_1'] !='nonfarm'].copy()  #bkk x nonfarm
         
         self.bkk_nonfarm = self.bkk_farm_1[
             self.bkk_farm_1['desc_1'] =='nonfarm'].copy()
@@ -44,45 +44,53 @@ class FinanceBasics:
             self.bkk_farm_2['capex'] == 'x'].copy()        
         
         self.bkk_farm_x_feed = self.bkk_farm_non_capex[
-            self.bkk_farm_2['desc_1'] != 'feed' ].copy()
+            self.bkk_farm_non_capex['desc_1'] != 'feed' ].copy()
         
         self.bkk_feed = self.bkk_farm_non_capex[
-            self.bkk_farm_2['desc_1'] == 'feed' ].copy()
+            self.bkk_farm_non_capex['desc_1'] == 'feed' ].copy()
 
         #datex cannot be the index - multiple values -- so use the datex col instead
-        self.feed_pivot = self.create_feed_pivot()
+        self.feed_cost_pivot = self.create_feed_pivot()
         self.cost_xfeed_pivot = self.create_cost_xfeed_pivot()
-
-
-        
         
     def create_feed_pivot(self):
-        df1 = self.bkk_feed.copy().sort_values('datex')
+        df1 = self.bkk_feed.copy()
+        df1['datex'] = pd.to_datetime(
+            df1['year'].astype(str) + '-' + df1['month'].astype(str) + '-01'
+        )
+        df1 = df1.sort_values('datex')        
+        
         
         df2 = pd.pivot_table(df1,
-            index = ['year','month'],
+            index = 'datex',
             values = 'debit',
             columns= 'desc_2',
             aggfunc= 'sum'  )
  
-        self.create_feed_pivot = df2
-        return self.feed_pivot
-    
-    
-    def create_cost_xfeed_pivot(self):
-        
-        bkk4 = pd.pivot_table(
-            self.bkk_farm_x_feed, 
-            index = ['year','month'],
-            values = 'debit',
-            columns= 'desc_1',
-            aggfunc= 'sum'
+            # Melt wide pivot -> tidy long format
+        self.feed_cost_pivot = (
+            df2.stack()
+            .rename('value')
+            .reset_index()          # columns: datex, desc_2, value
             )
         
-        bkk4 = bkk4.drop(columns=['sale'])
-        self.cost_xfeed_pivot = bkk4
+        return self.feed_cost_pivot
         
-        return self.cost_xfeed_pivot
+        
+    def create_cost_xfeed_pivot(self):
+        df = self.bkk_farm_x_feed.copy()
+        df['datex'] = pd.to_datetime(
+            df['year'].astype(str) + '-' + df['month'].astype(str) + '-01'
+        )
+        df = df[df['desc_1'] != 'sale']
+
+        self.cost_xfeed_pivot = (
+            df.groupby(['datex', 'desc_1'], as_index=False)['debit']
+            .sum()
+            .rename(columns={'debit': 'value'})
+        )
+        return self.cost_xfeed_pivot  #longifies the cost data after grouping it by month (the datex line crams it together)
+
 
 
     

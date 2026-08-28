@@ -104,9 +104,8 @@ class Container:
         self.register_singleton('finance_basics',       self._create_finance_basics)
         self.register_singleton('capex_basics',         self._create_capex_basics)         
         self.register_singleton('capex_projects',       self._create_capex_projects)
-        self.register_singleton('income_statement',     self._create_income_statement)        
+        self.register_singleton('net_income',           self._create_net_income)        
         self.register_singleton('milk_income',          self._create_milk_income)
-        # self.register_singleton('cow_pl',               self._create_cow_pl)
         self.register_singleton('depreciation',         self._create_depreciation)        
         self.register_singleton('net_revenue',          self._create_net_revenue)
         self.register_singleton('sahagon',              self._create_sahagon)
@@ -374,17 +373,6 @@ class Container:
         from pipeline.modal.daily_modal import DailyModal
         return DailyModal()
     
-    # def _create_occasional_modal_stage1(self):
-    #     from pipeline.modal.occasional_modal_stage1 import OccasionalModalStage1
-    #     return OccasionalModalStage1()
-  
-    # def _create_occasional_modal_stage2(self):
-    #     from pipeline.modal.occasional_modal_stage2 import OccasionalModalStage2
-    #     return OccasionalModalStage2()
-
-    # def _create_modal_orchestrator(self):
-    #     from pipeline.modal.modal_orchestrator import ModalOrchestrator
-    #     return ModalOrchestrator()
 
 
     # Finance functions 
@@ -400,12 +388,12 @@ class Container:
         from finance_functions.capex.capex_projects import CapexProjects
         return CapexProjects()
 
-    def _create_income_statement(self):
-        from finance_functions.income.income_statement import IncomeStatement
-        return IncomeStatement()       
+    def _create_net_income(self):
+        from finance_functions.PL.net_income.net_income import NetIncome
+        return NetIncome()       
 
     def _create_milk_income(self):
-        from finance_functions.income.milk_income import MilkIncome
+        from finance_functions.PL.net_income.milk_income import MilkIncome
         return MilkIncome()
         
     def _create_depreciation(self):
@@ -417,7 +405,7 @@ class Container:
         return NetRevenue()
         
     def _create_sahagon(self):
-        from finance_functions.income.sahagon import sahagon
+        from finance_functions.PL.net_income.sahagon import sahagon
         return sahagon()    
 
 

@@ -103,6 +103,12 @@ class ModelGroups:
         week_num_1 = self.weeknums
         pregnant_1 = self.pregnant
         period_1   = self.period
+        
+        
+        # Align all frames to liters_1 so np.select gets same-shape conditions
+        week_num_1 = week_num_1 .reindex(index=liters_1.index, columns=liters_1.columns)
+        pregnant_1 = pregnant_1 .reindex(index=liters_1.index, columns=liters_1.columns)
+        period_1   = period_1   .reindex(index=liters_1.index, columns=liters_1.columns)
 
         period_letter = period_1.astype('string').apply(
             lambda col: col.str.extract(r'([A-Za-z]+)')[0]

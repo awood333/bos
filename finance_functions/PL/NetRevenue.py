@@ -2,15 +2,15 @@
 import inspect
 import pandas as pd
 from container import get_dependency
+from sql_db_related.neon_connect import get_engine
+
 
 class NetRevenue:
     def __init__(self):
         print(f"NetRevenue instantiated by: {inspect.stack()[1].filename}")
         self.DR = None
         self.MI = None
-        self.FCBD = None
-        
-        
+        self.FCBD = None        
         self.startdate = None        
         self.feedcost_by_group_by_week_df = None
         self.feedcost_by_group_by_month_df  = None
@@ -18,11 +18,14 @@ class NetRevenue:
         self.income_monthly = None
         self.net_revenue_weekly  = None
         self.net_revenue_monthly_all = None
-
+        self.engine = get_engine()
+        
+        
     def load(self):
         self.DR   = get_dependency('date_range')
         self.MI   = get_dependency('milk_income')
         self.FCBD = get_dependency('feedcost_by_group_by_day')
+        self.FB   = get_dependency('finance_basics')
         self.process()
 
     def process(self):
@@ -34,6 +37,11 @@ class NetRevenue:
         self.income_daily    = self.MI.income_daily.copy()
         self.income_weekly   = self.MI.income_weekly.copy()
         self.income_monthly  = self.MI.income_monthly.copy()
+        
+        with self.engine.connect() as conn:
+            self.cost_xfeed = pd.read_sql_table('cost_xfeed_pivot_formatted', conn)
+            
+
               
             
         #methhods
@@ -75,9 +83,6 @@ class NetRevenue:
         self.net_revenue_weekly = net_revenue
         return self.net_revenue_weekly
 
-
-
-    
     def create_net_revenue_monthly(self):
         income1 = self.income_monthly.copy()
         cost1   = pd.DataFrame(self.feedcost_by_group_by_month_df.sum(axis=1).rename('cost'))
@@ -99,6 +104,10 @@ class NetRevenue:
             'net_revenue': net_revenue            
         })
         return self.net_revenue_monthly
+    
+
+        
+        return self.net_income
 
  
 if __name__ == "__main__":

@@ -25,6 +25,7 @@ class OccasionalModalStage2:
         self.net_revenue_table = None
         self.net_revenue_table_formatted = None
 
+
         self.ipiv_pivot_table_fmt = FormatForNeon(
             schema={
                 "wy_id": "int",
@@ -48,6 +49,7 @@ class OccasionalModalStage2:
 
         self.IPIVT  = get_dependency('ipiv_pivot_table')
         self.NR     = get_dependency('net_revenue')
+        self.FB     = get_dependency('finance_basics')
 
         [self.ipiv_pivot_table_formatted, 
          self.net_revenue_table_formatted] = self.createOccasionalData()
@@ -67,6 +69,7 @@ class OccasionalModalStage2:
             self.net_revenue_table_fmt.write_conn(
                 self.net_revenue_table_formatted, 'net_revenue_table_formatted', conn, pk_col='datex')
 
+#NOTE: the df's referenced here are only the 'less occasional' ones in addition to the ones in stage1
 
 
     def createOccasionalData(self):
@@ -77,7 +80,6 @@ class OccasionalModalStage2:
         self.net_revenue_table.index = self.net_revenue_table.index.to_timestamp()
         self.net_revenue_table.index.name = 'datex'
         self.net_revenue_table = self.net_revenue_table.reset_index()
-      
         
         return self.ipiv_pivot_table, self.net_revenue_table
 

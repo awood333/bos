@@ -25,11 +25,15 @@ class OccasionalModalStage1:
         self.i_u_merge = None
         self.allx = None
         self.ipiv_data = None
+        self.feed_cost_pivot = None
+        self.cost_xfeed_pivot = None
 
         self.next_ultra_check_formatted = None
         self.i_u_merge_formatted = None
         self.allx_formatted = None
         self.ipiv_data_formatted = None
+        self.feed_cost_pivot_formatted = None
+        self.cost_xfeed_pivot_formatted = None
 
         self.nuc_fmt = FormatForNeon(
             schema={
@@ -73,9 +77,27 @@ class OccasionalModalStage1:
                 "wy_id": "int",
                 "lact_num": "int",
                 "try_num": "int",
-                "insem_date": "date",
+                "insem_date": "datex",
             }
         )
+        
+        self.feed_cost_pivot_fmt = FormatForNeon(
+            schema={
+                "datex": "datex",
+                "desc_2": "text",
+                "value": "float",
+            }
+        )
+        
+        self.cost_xfeed_pivot_fmt = FormatForNeon(
+            schema={
+                "datex": "datex",
+                "desc_1": "text",
+                "value": "float",
+            }
+        )
+        
+        
 
     def load_and_process(self):
 
@@ -83,9 +105,11 @@ class OccasionalModalStage1:
         self.IUM = get_dependency('i_u_merge')
         self.IUD = get_dependency('insem_ultra_data')
         self.IPIV = get_dependency('ipiv_data')
+        self.FB   = get_dependency('finance_basics')
 
         (self.next_ultra_check_formatted, self.i_u_merge_formatted,
-         self.allx_formatted, self.ipiv_data_formatted) = self.createOccasionalData()
+         self.allx_formatted, self.ipiv_data_formatted,
+         self.feed_cost_pivot_formatted, self.cost_xfeed_pivot_formatted)       = self.createOccasionalData()
 
         from sql_db_related.neon_connect import get_engine
         engine = get_engine()
@@ -106,20 +130,33 @@ class OccasionalModalStage1:
             self.ipiv_data_fmt.write_conn(
                 self.ipiv_data_formatted, 'ipiv_data_formatted', conn,
                 pk_col=['wy_id', 'lact_num', 'try_num'])
+            
+            self.feed_cost_pivot_fmt.write_conn(
+                self.feed_cost_pivot_formatted, 'feed_cost_pivot_formatted', conn,
+                pk_col=['datex', 'desc_2']
+            )
+            
+            self.cost_xfeed_pivot_fmt.write_conn(
+                self.cost_xfeed_pivot_formatted, 'cost_xfeed_pivot_formatted', conn,
+                pk_col=['datex', 'desc_1']
+            )
+            
 
     def createOccasionalData(self):
         """
         Pulls raw dependency dataframes only. No dtype coercion here —
         FormatForNeon handles that per-table in write_to_neon, at write time.
         """
-        self.next_ultra_check = self.NUC.next_ultra_check.copy()
-        self.i_u_merge = self.IUM.iu.copy()
-        self.allx = self.IUD.allx.copy()
-        self.allx['updated'] = pd.Timestamp.now()
-        self.ipiv_data = self.IPIV.ipiv_data.copy()
+        self.next_ultra_check   = self.NUC.next_ultra_check.copy()
+        self.i_u_merge          = self.IUM.iu.copy()
+        self.allx               = self.IUD.allx.copy()
+        self.allx['updated']    = pd.Timestamp.now()
+        self.ipiv_data          = self.IPIV.ipiv_data.copy()
+        self.feed_cost_pivot    = self.FB.feed_cost_pivot.copy()
+        self.cost_xfeed_pivot   = self.FB.cost_xfeed_pivot.copy()
 
         return [self.next_ultra_check, self.i_u_merge,
-                self.allx, self.ipiv_data]
+                self.allx, self.ipiv_data, self.feed_cost_pivot, self.cost_xfeed_pivot]
 
 
 if __name__ == "__main__":

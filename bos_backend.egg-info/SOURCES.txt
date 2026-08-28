@@ -21,7 +21,7 @@ feed_functions/heifers/import pytest.py
 feed_functions/heifers/import unittest.py
 finance_functions/__init__.py
 finance_functions/finance_basics.py
-finance_functions/income_statement.py
+finance_functions/income.py
 finance_functions/PL/NetRevenue.py
 finance_functions/PL/__init__.py
 finance_functions/PL/depreciation.py
@@ -29,7 +29,7 @@ finance_functions/capex/__init__.py
 finance_functions/capex/capex_basics.py
 finance_functions/capex/capex_projects.py
 finance_functions/income/__init__.py
-finance_functions/income/income_statement.py
+finance_functions/income/income.py
 finance_functions/income/milk_income.py
 finance_functions/income/sahagon.py
 finance_functions/tax_docs/__init__.py
