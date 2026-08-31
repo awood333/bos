@@ -108,7 +108,6 @@ class Container:
         self.register_singleton('milk_income',          self._create_milk_income)
         self.register_singleton('depreciation',         self._create_depreciation)        
         self.register_singleton('net_revenue',          self._create_net_revenue)
-        self.register_singleton('sahagon',              self._create_sahagon)
 
         # pipeline dependencies
         self.register_singleton('format_for_neon',      self._create_format_for_neon)
@@ -389,11 +388,11 @@ class Container:
         return CapexProjects()
 
     def _create_net_income(self):
-        from finance_functions.PL.net_income.net_income import NetIncome
+        from finance_functions.PL.net_income import NetIncome
         return NetIncome()       
 
     def _create_milk_income(self):
-        from finance_functions.PL.net_income.milk_income import MilkIncome
+        from finance_functions.milk_income import MilkIncome
         return MilkIncome()
         
     def _create_depreciation(self):
@@ -401,12 +400,10 @@ class Container:
         return DepreciationCalc()
     
     def _create_net_revenue(self):
-        from finance_functions.PL.NetRevenue import NetRevenue
+        from finance_functions.PL.net_revenue import NetRevenue
         return NetRevenue()
         
-    def _create_sahagon(self):
-        from finance_functions.PL.net_income.sahagon import sahagon
-        return sahagon()    
+
 
 
 

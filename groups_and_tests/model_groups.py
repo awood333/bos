@@ -144,7 +144,8 @@ class ModelGroups:
         self.model_groups_daily_dict = self._model_groups_dict_from_df(group_df)
         return self.model_groups_daily
 
-    
+# groups_and_tests/model_groups.py
+
     def create_model_groups_weekly(self):
         liters_1   = self.liters
         week_num_1 = self.weeknums
@@ -173,22 +174,6 @@ class ModelGroups:
             (week_num_1 >= 3) & (liters_1 > 0) & (liters_1 < 15) &  is_preg,
         ]
         choices = ['H', 'D', 'G', 'F', 'A', 'B', 'C']
-        
-        
-        
-        # DEBUG: check specific cell
-        cell_date = '2025-06-01'
-        cell_cow = 94
-
-        print('wyid: ', cell_cow,'period_letter cell:', period_letter.loc[cell_date, cell_cow])
-        print('is_dry cell:', is_dry.loc[cell_date, cell_cow])
-        print('missing cell:', missing.loc[cell_date, cell_cow])
-
-        for i, cond in enumerate(conditions):
-            print(f'condition {i} ({choices[i]}):', cond.loc[cell_date, cell_cow])
-
-        
-        
 
         # convert to plain numpy bool arrays for np.select
         cond_arrs = [
@@ -206,7 +191,7 @@ class ModelGroups:
 
         self.model_groups_weekly = group_df
         self.model_groups_weekly_dict = self._model_groups_dict_from_df(group_df)        
-        return self.model_groups_weekly  
+        return self.model_groups_weekly
 
          
     def create_model_groups_monthly(self):

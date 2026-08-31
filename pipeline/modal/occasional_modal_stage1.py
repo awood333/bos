@@ -33,7 +33,7 @@ class OccasionalModalStage1:
         self.allx_formatted = None
         self.ipiv_data_formatted = None
         self.feed_cost_pivot_formatted = None
-        self.cost_xfeed_pivot_formatted = None
+        self.cost_x_feed_formatted = None
 
         self.nuc_fmt = FormatForNeon(
             schema={
@@ -109,7 +109,7 @@ class OccasionalModalStage1:
 
         (self.next_ultra_check_formatted, self.i_u_merge_formatted,
          self.allx_formatted, self.ipiv_data_formatted,
-         self.feed_cost_pivot_formatted, self.cost_xfeed_pivot_formatted)       = self.createOccasionalData()
+         self.feed_cost_pivot_formatted, self.cost_x_feed_formatted)       = self.createOccasionalData()
 
         from sql_db_related.neon_connect import get_engine
         engine = get_engine()
@@ -137,7 +137,7 @@ class OccasionalModalStage1:
             )
             
             self.cost_xfeed_pivot_fmt.write_conn(
-                self.cost_xfeed_pivot_formatted, 'cost_xfeed_pivot_formatted', conn,
+                self.cost_x_feed_formatted, 'cost_x_feed_formatted', conn,
                 pk_col=['datex', 'desc_1']
             )
             
