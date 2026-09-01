@@ -2,6 +2,7 @@
 
 import inspect
 import pandas as pd
+from pathlib import Path
 from container import get_dependency
 
 class FeedCostByGroupByDay:
@@ -54,7 +55,7 @@ class FeedCostByGroupByDay:
         self.feedcost_by_group_by_day_df   = self.create_feedcost_by_group_by_day()
         self.feedcost_by_group_by_week_df  = self.create_feedcost_by_group_by_week()
         self.feedcost_by_group_by_month_df = self.create_feedcost_by_group_by_month()
-            
+        self.write_to_csv()
             
     def create_feedcost_by_group_by_day(self):
         
@@ -186,7 +187,13 @@ class FeedCostByGroupByDay:
         
         return self.feedcost_by_group_by_month_df
         
-            
+    
+    def write_to_csv(self):
+        output_dir = Path("/home/alanw/Documents/vsCode_output/feed")
+        output_dir.mkdir(parents=True, exist_ok=True)
+        self.feedcost_by_group_by_month_df.to_csv(output_dir / "feedcost_by_group_by_month_df.csv")   
+    
+         
 if __name__ == "__main__":
     obj = FeedCostByGroupByDay()
     obj.load()
