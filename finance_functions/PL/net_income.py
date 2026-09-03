@@ -32,7 +32,7 @@ class NetIncome():
         
         #methods
         self.net_income = self.create_net_income()
-        self.print_to_csv()
+        self.write_to_csv()
         
     def create_net_income(self):
         
@@ -54,7 +54,7 @@ class NetIncome():
         
         return self.net_income
     
-    def print_to_csv(self):
+    def write_to_csv(self):
         output_dir = Path("/home/alanw/Documents/vsCode_output/finance")
         output_dir.mkdir(parents=True, exist_ok=True)
         self.net_income.to_csv(output_dir / "net_income.csv")   

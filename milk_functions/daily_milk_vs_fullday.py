@@ -2,7 +2,7 @@
 
 import inspect
 import pandas as pd
-import numpy as np
+from   pathlib import Path
 from container import get_dependency
 from sql_db_related.neon_connect import get_engine
 
@@ -10,6 +10,7 @@ class DailyMilkVsFullday:
     def __init__(self):
         print(f"MilkAggregatesBasic instantiated by: {inspect.stack()[1].filename}")
         self.engine = get_engine()
+        self.CP = pd.DataFrame()
 
     def load(self):
         self.MA = get_dependency('milk_aggregates_basic')        
@@ -17,32 +18,37 @@ class DailyMilkVsFullday:
         
     def process(self):
         
-        start = pd.to_datetime("2025-09-20" )
-        fullday_1 = self.MA.fullday.loc[start :, :]
-        self.fullday = fullday_1.sum(axis=1).rename('fullday').to_frame()
-                
-        df = self._read_neon_query()
-        df['sale + heldback'] = df['sale_total'] + df['heldback_total']
-        self.sale = df
-
-        self.fullday_sale_diff = self.compare_fullday_sale()
+        wy_total = self.MA.fullday.iloc[ -10 :, :]
+        self.fullday = wy_total.sum(axis=1).rename('WY').to_frame()
+        self.CP = self._read_neon_query()
+        self.WY_CP_diff = self.compare_WY_CP()
+        self.write_to_csv()
         
     def _read_neon_query(self):
-
+        #this is 'daily_milk' table in Neon
         with self.engine.connect() as conn:
-            return pd.read_sql_table('daily_milk', conn)
+            daily_milk_df_1 = pd.read_sql_table('daily_milk', conn)
+            daily_milk_df_2 = daily_milk_df_1.iloc[ -10 : , :].copy()
+            self.CP = daily_milk_df_2.rename(columns={'sale_total' : 'CP'})
+        return self.CP
         
-    def compare_fullday_sale(self):
-        ''' sale is from the CP receipts, fullday is from our whiteboard'''
-        diff_1 = pd.merge(self.fullday,self.sale,
+    def compare_WY_CP(self):
+        ''' CP is from the CP receipts, WY_total is from our whiteboard'''
+        diff_1 = pd.merge(self.fullday,self.CP,
                                   on='datex',
                                   how='outer')
-        
-        diff_1['diff'] = (diff_1['fullday'] - diff_1['sale + heldback'])
-        
-        self.fullday_sale_diff = diff_1
-        return self.fullday_sale_diff
+        diff_1['WY - heldback'] = diff_1['WY'] - diff_1['heldback_total']
+        diff_1['WY-CP'] = (diff_1['WY'] - diff_1['WY - heldback'])
 
+        
+        self.WY_CP_diff = diff_1
+        return self.WY_CP_diff
+
+        
+    def write_to_csv(self):
+        output_dir = Path("/home/alanw/Documents/vsCode_output/milk")
+        output_dir.mkdir(parents=True, exist_ok=True)
+        self.WY_CP_diff.to_csv(output_dir / "WY_CP_diff.csv")   
         
         
         
