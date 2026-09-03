@@ -1,14 +1,8 @@
-# bos_backend.py  —  Modal entrypoint for the BOS pipeline
-# Place in D:\Git_repos\bos_backend\ (repo root, same level as container.py)
-#
-# First run:
-#   modal secret create neon-credentials "DATABASE_URL=postgresql://...full url..."
-#
+
 # NOTE: USE THIS ON COMMAND LINE :::  modal run pipeline/modal/modal_dailyUpdate.py
 
 import sys
 from datetime import datetime
-from container import get_dependency
 import modal
 
 # ── Image ─────────────────────────────────────────────────────────────────────
@@ -66,6 +60,8 @@ app = modal.App("bos_backend")
 def run_pipeline():
 
     sys.path.insert(0, "/root/bos")
+    from container import get_dependency
+
 
     print(f"\n=== BOS pipeline starting: {datetime.now()} ===\n")
 

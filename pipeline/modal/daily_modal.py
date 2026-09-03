@@ -1,4 +1,22 @@
-'''milk_functions/report_milk/daily_modal_data.py'''
+'''pipeline/modal/daily_modal.py'''
+
+import os
+os.environ["BOS_LOCAL"] = "0"   
+# Force this pipeline's DB target to Neon, unconditionally.
+#
+# neon_connect.get_engine() defaults to the local Docker mirror
+# (BOS_LOCAL="1") unless told otherwise, and caches whichever engine
+# it builds on first call for the life of the process. DailyModal's
+# whole point is to compute fresh formatted tables and write them up
+# to Neon — the one source of truth the bos_dashboard frontend reads
+# from — so it must never read raw inputs from Docker, which is only
+# ever a downstream mirror, refreshed *after* this script runs
+# (see sync_neon_to_local.sh). Setting this before any get_dependency()
+# call fires guarantees every engine built downstream — MilkBasics,
+# MilkAggregates, WhiteboardGroups, etc. — points at Neon, regardless
+# of what .env or the calling environment (local shell vs. Modal
+# secret) may have set BOS_LOCAL to.
+os.environ["BOS_LOCAL"] = "0"
 
 import sys
 from pathlib import Path
@@ -21,7 +39,7 @@ class DailyModal:
         self.fullday = None
         self.WB_groups_tenday = None
         self.groups = None
-        self.allx = None
+
 
 
         self.tenday_formatted = None

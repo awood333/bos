@@ -1,5 +1,4 @@
-#!/bin/bash
-
+#sql_db_related/docker_sync_neon_to_local.sh
 echo "=== Starting local Postgres container (if not already running) ==="
 docker start bos_local_pg 2>/dev/null || echo "Container already running."
 
