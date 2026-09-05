@@ -10,7 +10,7 @@ class DailyMilkVsFullday:
     def __init__(self):
         print(f"MilkAggregatesBasic instantiated by: {inspect.stack()[1].filename}")
         self.engine = get_engine()
-        self.CP = pd.DataFrame()
+        self.daily_milk = pd.DataFrame()
 
     def load(self):
         self.MA = get_dependency('milk_aggregates_basic')        
@@ -20,7 +20,7 @@ class DailyMilkVsFullday:
         
         wy_total = self.MA.fullday.iloc[ -10 :, :]
         self.fullday = wy_total.sum(axis=1).rename('WY').to_frame()
-        self.CP = self._read_neon_query()
+        self.daily_milk, self.WY = self._read_neon_query()
         self.WY_CP_diff = self.compare_WY_CP()
         self.write_to_csv()
         
@@ -29,12 +29,16 @@ class DailyMilkVsFullday:
         with self.engine.connect() as conn:
             daily_milk_df_1 = pd.read_sql_table('daily_milk', conn)
             daily_milk_df_2 = daily_milk_df_1.iloc[ -10 : , :].copy()
-            self.CP = daily_milk_df_2.rename(columns={'sale_total' : 'CP'})
-        return self.CP
+            self.daily_milk = daily_milk_df_2.rename(columns={'sale_total' : 'CP'})
+            
+            milk_totals_df_1 = pd.read_sql_table('milk_totals', conn)
+            milk_totals_df_2 = milk_totals_df_1.iloc[-10:, :][['datex', 'total_liters']].copy()
+            self.WY = milk_totals_df_2.rename(columns={'total_liters': 'WY'})
+        return self.daily_milk, self.WY
         
     def compare_WY_CP(self):
         ''' CP is from the CP receipts, WY_total is from our whiteboard'''
-        diff_1 = pd.merge(self.fullday,self.CP,
+        diff_1 = pd.merge(self.fullday,self.daily_milk,
                                   on='datex',
                                   how='outer')
         diff_1['WY - heldback'] = diff_1['WY'] - diff_1['heldback_total']

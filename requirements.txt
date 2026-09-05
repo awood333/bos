@@ -5,8 +5,6 @@ annotated-types==0.8.0
 anyio==4.14.2
 attrs==26.1.0
 blinker==1.9.0
-bos==0.1.0
-bos_backend==0.1.0
 cbor2==6.1.4
 certifi==2026.7.22
 cffi==2.1.1

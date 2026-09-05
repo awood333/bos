@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.dialects.postgresql import JSONB
 import pandas as pd
+import questionary
 
 load_dotenv()
 
@@ -18,9 +19,28 @@ print(f"Sync started: {datetime.now()}")
 print("=" * 60)
 
 inspector = inspect(neon_engine)
-tables = inspector.get_table_names()
-views = inspector.get_view_names()
-print(f"\nFound on Neon: {len(tables)} tables, {len(views)} views")
+all_tables = sorted(inspector.get_table_names())
+all_views = sorted(inspector.get_view_names())
+print(f"\nFound on Neon: {len(all_tables)} tables, {len(all_views)} views")
+
+# ── Step 0: let user pick which tables/views to sync ─────────────────
+choices = (
+    [questionary.Choice(f"[table] {t}", value=("table", t)) for t in all_tables]
+    + [questionary.Choice(f"[view]  {v}", value=("view", v)) for v in all_views]
+)
+
+selected = questionary.checkbox(
+    "Sync — which tables/views?",
+    choices=choices,
+).ask()
+
+if not selected:
+    print("Nothing selected — aborting.")
+    raise SystemExit(0)
+
+tables = [name for kind, name in selected if kind == "table"]
+views = [name for kind, name in selected if kind == "view"]
+print(f"\nSelected: {len(tables)} tables, {len(views)} views")
 
 # ── Step 1: drop existing local views first ─────────────────────────
 print("\n--- Step 1: clearing local views (so table drops won't be blocked) ---")
@@ -30,8 +50,9 @@ print(f"Local views found before sync: {existing_local_views or '(none)'}")
 
 with local_engine.begin() as conn:
     for view in existing_local_views:
-        print(f"  Dropping local view {view}...")
-        conn.execute(text(f'DROP VIEW IF EXISTS "{view}" CASCADE'))
+        if view in views:
+            print(f"  Dropping local view {view}...")
+            conn.execute(text(f'DROP VIEW IF EXISTS "{view}" CASCADE'))
 
 # ── Step 2: sync tables ──────────────────────────────────────────────
 print(f"\n--- Step 2: syncing {len(tables)} tables ---")
@@ -78,12 +99,12 @@ missing_views = set(views) - local_views_after
 if missing_tables:
     print(f"  ⚠ WARNING — tables missing locally after sync: {missing_tables}")
 else:
-    print(f"  ✓ All {len(tables)} tables present locally")
+    print(f"  ✓ All {len(tables)} selected tables present locally")
 
 if missing_views:
     print(f"  ⚠ WARNING — views missing locally after sync: {missing_views}")
 else:
-    print(f"  ✓ All {len(views)} views present locally")
+    print(f"  ✓ All {len(views)} selected views present locally")
 
 empty_tables = [t for t, n in table_row_counts.items() if n == 0]
 if empty_tables:
