@@ -79,7 +79,8 @@ class Container:
 
         # milk_functions
         self.register_singleton('milk_aggregates_basic', self._create_milk_aggregates_basic)
-        self.register_singleton('milk_aggregates',      self._create_milk_aggregates)
+        self.register_singleton('milk_aggregates',       self._create_milk_aggregates)
+        self.register_singleton('daily_milk_vs_fullday', self._create_daily_milk_vs_fullday)
 
         #plot functions
         self.register_singleton('plot_net_revenue_model', self._create_plot_net_revenue_model)
@@ -304,6 +305,9 @@ class Container:
         from milk_functions.milk_aggregates import MilkAggregates
         return MilkAggregates()
     
+    def _create_daily_milk_vs_fullday(self):
+        from milk_functions.daily_milk_vs_fullday import DailyMilkVsFullday
+        return DailyMilkVsFullday()
     
     
     # plot functions

@@ -1,5 +1,21 @@
 '''pipeline/modal/occasional_modal.py'''
 
+"""
+This module is imported from two different places that run in two
+different filesystems (see run_modal_selector.py's docstrings for the
+full explanation):
+
+    - run_stage()  (remote, inside the Modal container)
+    - main()       (local, on your host machine)
+
+Each of those callers is responsible for pushing the correct project
+root onto sys.path BEFORE importing this module — /root/bos remotely,
+BOS_ROOT locally. That's why there is no sys.path.insert(...) in this
+file: hardcoding one path here would silently break the other caller.
+If you ever see "ModuleNotFoundError: No module named 'container'"
+coming from this file, the fix belongs in the CALLER, not here.
+"""
+
 import os
 os.environ["BOS_LOCAL"] = "0"    #gets use
 
@@ -7,12 +23,15 @@ import pandas as pd
 from container import get_dependency
 from pipeline.neon.format_for_neon import FormatForNeon
 
+
 class OccasionalModal:
 
     TASK_NAMES = [
-        "next_ultra_check", "i_u_merge", "allx", "ipiv_data",
-        "feed_cost_pivot", "cost_xfeed_pivot",
+        "next_ultra_check", "i_u_merge", 
+        "allx",             "ipiv_data",
+        "feed_cost_pivot",  "cost_xfeed_pivot",
         "ipiv_pivot_table", "net_revenue",
+        "daily_milk_vs_fullday",
     ]
 
     def __init__(self, targets=None):
@@ -50,6 +69,9 @@ class OccasionalModal:
         self.net_revenue_table_fmt = FormatForNeon(
             schema={"datex": "date", "income": "float", "cost": "float", "net_revenue": "float"},
         )
+        self.daily_milk_vs_fullday_fmt = FormatForNeon(schema={
+            "datex": "datex", "am_liters": "float", "pm_liters": "float", "total_liters": "float",
+        })        
 
     def load_and_process(self):
         if "next_ultra_check" in self.targets:
@@ -66,6 +88,8 @@ class OccasionalModal:
             self.IPIVT = get_dependency('ipiv_pivot_table')
         if "net_revenue" in self.targets:
             self.NR = get_dependency('net_revenue')
+        if "daily_milk_vs_fullday" in self.targets:
+            self.DMVF = get_dependency('daily_milk_vs_fullday')            
 
         self.createOccasionalData()
 
@@ -93,6 +117,9 @@ class OccasionalModal:
             nr.index = nr.index.to_timestamp()
             nr.index.name = 'datex'
             self.net_revenue_table_formatted = nr.reset_index()
+        if "daily_milk_vs_fullday" in self.targets:
+            self.daily_milk_vs_fullday_formatted = self.DMVF.daily_milk_vs_fullday.copy()
+
 
     def write_to_neon(self, engine):
         with engine.begin() as conn:
@@ -115,3 +142,5 @@ class OccasionalModal:
                 self.ipiv_pivot_table_fmt.write_conn(self.ipiv_pivot_table_formatted, 'ipiv_pivot_table_formatted', conn, pk_col='wy_id')
             if "net_revenue" in self.targets:
                 self.net_revenue_table_fmt.write_conn(self.net_revenue_table_formatted, 'net_revenue_table_formatted', conn, pk_col='datex')
+            if "daily_milk_vs_fullday" in self.targets:
+                self.daily_milk_vs_fullday_fmt.write_conn(self.daily_milk_vs_fullday_formatted, 'daily_milk_vs_fullday_formatted', conn, pk_col='datex')         

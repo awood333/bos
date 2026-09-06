@@ -7,8 +7,8 @@ minimal requirements file (only third-party packages actually used).
 Safe to run repeatedly — always overwrites the output file fresh.
 
 Usage:
-    python build_modal_reqs.py                     # scans ./pipeline, writes modal_reqs.txt
-    python build_modal_reqs.py pipeline modal_reqs.txt
+    python build_modal_reqs.py                     # scans ./bos_backend root, writes modal_reqs.txt
+    python build_modal_reqs.py bos_backend modal_reqs.txt
     python build_modal_reqs.py some_dir some_output.txt --pin
 """
 
@@ -30,8 +30,16 @@ IMPORT_TO_PYPI = {
     "google": "google-api-python-client",
 }
 
+# Directories to never descend into — installed deps, VCS, caches, etc.
+# Without this, rglob would also scan every package inside .venv itself,
+# producing a huge, nonsensical requirements file.
+IGNORE_DIRS = {".venv", "venv", ".git", "__pycache__", "node_modules", ".pytest_cache"}
+
 def find_py_files(root: pathlib.Path):
-    return list(root.rglob("*.py"))
+    return [
+        f for f in root.rglob("*.py")
+        if not any(part in IGNORE_DIRS for part in f.relative_to(root).parts)
+    ]
 
 def top_level_imports(py_file: pathlib.Path):
     try:
@@ -64,7 +72,7 @@ def installed_version(pypi_name: str):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("scan_dir", nargs="?", default="pipeline")
+    parser.add_argument("scan_dir", nargs="?", default=".")
     parser.add_argument("output", nargs="?", default="modal_reqs.txt")
     parser.add_argument("--pin", action="store_true")
     args = parser.parse_args()

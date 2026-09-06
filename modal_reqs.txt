@@ -1,4 +1,10 @@
 boto3
+python-dotenv
+matplotlib
+modal
+networkx
+numpy
 pandas
 psycopg2-binary
+questionary
 sqlalchemy
