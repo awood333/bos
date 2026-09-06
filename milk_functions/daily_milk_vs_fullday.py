@@ -41,8 +41,8 @@ class DailyMilkVsFullday:
         diff_1 = pd.merge(self.fullday,self.daily_milk,
                                   on='datex',
                                   how='outer')
-        diff_1['wy - heldback'] = diff_1['wy'] - diff_1['heldback_total']
-        diff_1['wy-cp'] = (diff_1['wy'] - diff_1['wy - heldback'])
+        diff_1['wy_x_heldback'] = diff_1['wy'] - diff_1['heldback_total']
+        diff_1['wy_minus_cp'] = (diff_1['wy_x_heldback'] - diff_1['cp'])
 
         
         self.daily_milk_vs_fullday = diff_1
