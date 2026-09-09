@@ -2,7 +2,7 @@
 
 import inspect
 import pandas as pd
-from sql_db_related.neon_connect import get_engine
+from   pipeline.neon.neon_connect import get_engine, read_sql_table_traced
 from container import get_dependency
 
 
@@ -25,7 +25,7 @@ class IpivPivotTable:
         
         engine = get_engine()
         with engine.connect() as conn:
-            self.ipiv_data = pd.read_sql_table('ipiv_data_formatted', conn)        
+            self.ipiv_data = read_sql_table_traced('ipiv_data_formatted', conn)        
         
         #methods
         self.ipiv_pivot_table = self.create_ipiv_pivot_table()

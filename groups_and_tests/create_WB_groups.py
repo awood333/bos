@@ -1,7 +1,7 @@
 '''groups_and_tests/create_WB_groups.py'''
 import inspect
 import pandas as pd
-from sql_db_related.neon_connect import get_engine
+from   pipeline.neon.neon_connect import get_engine, read_sql_table_traced
 from container import get_dependency
 
 
@@ -52,8 +52,8 @@ class BuildWBGroups:
 
     def _AM_wy_and_group_count_query(self):
         with self.engine.connect() as conn:
-            am_wy = pd.read_sql_table('AM_wy', conn)
-            group_counts = pd.read_sql_table('group_counts', conn)
+            am_wy = read_sql_table_traced('AM_wy', conn)
+            group_counts = read_sql_table_traced('group_counts', conn)
         return am_wy, group_counts
 
     def _build_group_data(self, counts_df: pd.DataFrame, wide_df: pd.DataFrame) -> dict:

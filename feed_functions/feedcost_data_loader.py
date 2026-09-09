@@ -1,6 +1,6 @@
 
 import pandas as pd
-from sql_db_related.neon_connect import get_engine
+from   pipeline.neon.neon_connect import get_engine, read_sql_table_traced
 # from container import get_dependency
 
 
@@ -19,32 +19,32 @@ class FeedCostDataLoader:
         
     def load_basic_feed_types(self):
         with self.engine.connect() as conn:
-            return pd.read_sql_table('feed_daily_amt_last_rows', conn)
+            return read_sql_table_traced('feed_daily_amt_last_rows', conn)
 
         
     #this is a list of the feed types in the daily amt ledger
     def load_feed_type_feed_daily_amt_ledger(self):
         with self.engine.connect() as conn:
-            return pd.read_sql_table('feed_type_feed_daily_amt_ledger', conn)
+            return read_sql_table_traced('feed_type_feed_daily_amt_ledger', conn)
 
     #this is a list of the feed types in the feed_invoice_ledger
     def load_feed_type_feed_invoice_ledger(self):
         with self.engine.connect() as conn:
-            return pd.read_sql_table('feed_type_feed_invoice_ledger', conn)
+            return read_sql_table_traced('feed_type_feed_invoice_ledger', conn)
 
     def load_feed_invoice_ledger(self) -> pd.DataFrame:
         with self.engine.connect() as conn:
-            return pd.read_sql_table('feed_invoice_ledger', conn)
+            return read_sql_table_traced('feed_invoice_ledger', conn)
         
 
     def load_feed_daily_amt_ledger(self) -> pd.DataFrame:
         with self.engine.connect() as conn:
-            return pd.read_sql_table('feed_daily_amt_ledger', conn)
+            return read_sql_table_traced('feed_daily_amt_ledger', conn)
         
         
     def get_iu_merge(self) -> pd.DataFrame:
         with self.engine.connect() as conn:
-            return pd.read_sql_table('iu_merge_formatted', conn)
+            return read_sql_table_traced('iu_merge_formatted', conn)
     
     
 class FeedCostDataProcessor:

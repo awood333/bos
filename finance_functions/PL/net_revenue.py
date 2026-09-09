@@ -3,7 +3,7 @@ import inspect
 import pandas as pd
 from pathlib import Path
 from container import get_dependency
-from sql_db_related.neon_connect import get_engine
+from   pipeline.neon.neon_connect import get_engine, read_sql_table_traced
 
 
 class NetRevenue:
@@ -27,7 +27,7 @@ class NetRevenue:
         self.MI   = get_dependency('milk_income')
         self.FCBD = get_dependency('feedcost_by_group_by_day')
         self.FB   = get_dependency('finance_basics')
-        self.MA = get_dependency('milk_aggregates')
+        self.MA   = get_dependency('milk_aggregates')
         
         self.process()
 
@@ -44,7 +44,7 @@ class NetRevenue:
         self.income_monthly  = self.MI.income_monthly.copy()
         
         with self.engine.connect() as conn:
-            self.cost_xfeed = pd.read_sql_table('cost_x_feed_formatted', conn)
+            self.cost_xfeed = read_sql_table_traced('cost_x_feed_formatted', conn)
             
 
               
@@ -53,7 +53,7 @@ class NetRevenue:
         self.net_revenue_daily      = self.create_net_revenue_daily()
         self.net_revenue_weekly     = self.create_net_revenue_weekly()
         self.net_revenue_monthly    = self.create_net_revenue_monthly()
-        self.print_to_csv()
+        self.write_to_csv()
         
         
     def create_net_revenue_daily(self):
@@ -93,7 +93,7 @@ class NetRevenue:
 
     def create_net_revenue_monthly(self):
         income1 = self.income_monthly.copy()
-        income_1a = income2.merge(
+        income_1a = income1.merge(
             self.milk_monthly_avg,
             left_index=True,
             right_index=True,
@@ -133,8 +133,8 @@ class NetRevenue:
         })
         return self.net_revenue_monthly
 
-    def print_to_csv(self):
-        output_dir = Path("/home/alanw/Documents/vsCode_output")
+    def write_to_csv(self):
+        output_dir = Path("/home/alanw/Documents/vsCode_output/finance")
         output_dir.mkdir(parents=True, exist_ok=True)
         self.net_revenue_monthly.to_csv(output_dir / "net_revenue_monthly.csv")
  

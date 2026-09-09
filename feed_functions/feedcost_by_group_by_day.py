@@ -52,9 +52,12 @@ class FeedCostByGroupByDay:
         self.cost_h = self.FB.feedcost_H_df
 
      #methods
-        self.feedcost_by_group_by_day_df   = self.create_feedcost_by_group_by_day()
-        self.feedcost_by_group_by_week_df  = self.create_feedcost_by_group_by_week()
-        self.feedcost_by_group_by_month_df = self.create_feedcost_by_group_by_month()
+        self.feedcost_by_group_by_day_df    = self.create_feedcost_by_group_by_day()
+        self.feedcost_by_group_by_week_df   = self.create_feedcost_by_group_by_week()
+        
+        [self.feedcost_by_group_by_month_by_cow, 
+        self.total_feedcost_by_cow]         = self.create_feedcost_by_group_by_month()
+        
         self.write_to_csv()
             
     def create_feedcost_by_group_by_day(self):
@@ -183,15 +186,17 @@ class FeedCostByGroupByDay:
 
         # returns monthly feedcost total of each cow (from start date) 
         cost_by_group_by_month_df = merged.pivot(index='date', columns='wy_id', values='cost')
-        self.feedcost_by_group_by_month_df = cost_by_group_by_month_df
+        self.feedcost_by_group_by_month_by_cow = cost_by_group_by_month_df
+        self.total_feedcost_by_cow = self.feedcost_by_group_by_month_by_cow.sum(axis=0)
         
-        return self.feedcost_by_group_by_month_df
+        return self.feedcost_by_group_by_month_by_cow, self.total_feedcost_by_cow
         
     
     def write_to_csv(self):
         output_dir = Path("/home/alanw/Documents/vsCode_output/feed")
         output_dir.mkdir(parents=True, exist_ok=True)
-        self.feedcost_by_group_by_month_df.to_csv(output_dir / "feedcost_by_group_by_month_df.csv")   
+        self.feedcost_by_group_by_month_by_cow.to_csv(output_dir / "feedcost_by_group_by_month_by_cow.csv") 
+        self.total_feedcost_by_cow.to_csv(output_dir / "self.total_feedcost_by_cow.csv")  
     
          
 if __name__ == "__main__":

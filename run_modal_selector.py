@@ -24,14 +24,14 @@ app = modal.App("bos_occasional_selector")
 
 @app.function(image=image, secrets=[neon_secret], timeout=600)
 def run_stage(targets: list[str]):
-    from runtime import get_bos_root
+    from runtime import get_bos_root   #NOTE: rimtime imported HERE
     sys.path.insert(0, str(get_bos_root()))
     from pipeline.modal.occasional_modal import OccasionalModal
     OccasionalModal(targets=set(targets)).load_and_process()
 
 
 @app.local_entrypoint()
-def main():
+def run_occasional_pipeline():
     import questionary
     from runtime import get_bos_root
     sys.path.insert(0, str(get_bos_root()))

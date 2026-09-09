@@ -59,7 +59,7 @@ print(f"\n--- Step 2: syncing {len(tables)} tables ---")
 table_row_counts = {}
 
 for table in tables:
-    df = pd.read_sql_table(table, neon_engine)
+    df = read_sql_table_traced(table, neon_engine)
     row_count = len(df)
     table_row_counts[table] = row_count
 

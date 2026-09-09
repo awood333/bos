@@ -4,7 +4,7 @@ import inspect
 import pandas as pd
 from   pathlib import Path
 from container import get_dependency
-from sql_db_related.neon_connect import get_engine
+from   pipeline.neon.neon_connect import get_engine, read_sql_table_traced
 
 class DailyMilkVsFullday:
     def __init__(self):
@@ -27,11 +27,11 @@ class DailyMilkVsFullday:
     def _read_neon_query(self):
         #this is 'daily_milk' table in Neon
         with self.engine.connect() as conn:
-            daily_milk_df_1 = pd.read_sql_table('daily_milk', conn)
+            daily_milk_df_1 = read_sql_table_traced('daily_milk', conn)
             daily_milk_df_2 = daily_milk_df_1.iloc[ -10 : , :].copy()
             self.daily_milk = daily_milk_df_2.rename(columns={'sale_total' : 'cp'})
             
-            milk_totals_df_1 = pd.read_sql_table('milk_totals', conn)
+            milk_totals_df_1 = read_sql_table_traced('milk_totals', conn)
             milk_totals_df_2 = milk_totals_df_1.iloc[-10:, :][['datex', 'total_liters']].copy()
             self.wy = milk_totals_df_2.rename(columns={'total_liters': 'wy'})
         return self.daily_milk, self.wy

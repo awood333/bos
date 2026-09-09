@@ -28,12 +28,12 @@ class LactationPlots:
     def process(self):
         self.alive_ids = self.SD.alive_ids_today
         self.weekly_lactations = [
-            (1, self.L.live_L1_weekly),
-            (2, self.L.live_L2_weekly),
-            (3, self.L.live_L3_weekly),
-            (4, self.L.live_L4_weekly),
-            (5, self.L.live_L5_weekly),
-            (6, self.L.live_L6_weekly),
+            (1, self.L.live_L1_weekly_avg),
+            (2, self.L.live_L2_weekly_avg),
+            (3, self.L.live_L3_weekly_avg),
+            (4, self.L.live_L4_weekly_avg),
+            (5, self.L.live_L5_weekly_avg),
+            (6, self.L.live_L6_weekly_avg),
         ]
 
     def plot_all_live_cows(self):

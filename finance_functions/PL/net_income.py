@@ -3,7 +3,7 @@ import inspect
 import pandas as pd
 from pathlib import Path
 from container import get_dependency
-from sql_db_related.neon_connect import get_engine
+from   pipeline.neon.neon_connect import get_engine, read_sql_table_traced
 
 class NetIncome():
     def __init__(self):
@@ -25,7 +25,7 @@ class NetIncome():
         self.total_cost_xfeed.index.name = 'datex'
 
         with self.engine.connect() as conn:
-            self.cost_xfeed_pivot= pd.read_sql_table('cost_x_feed_formatted', conn)
+            self.cost_xfeed_pivot= read_sql_table_traced('cost_x_feed_formatted', conn)
             
         self.non_feed_cost_df = self.FB.non_feed_cost_df
             

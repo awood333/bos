@@ -4,6 +4,7 @@ status_functions.wet_dry
 import inspect
 import pandas as pd
 import numpy as np
+from pathlib import Path
 from container import get_dependency
 
 today = pd.Timestamp.today()
@@ -88,6 +89,7 @@ class WetDry:
          self.wd_lact_num_weekly)   = self.reform_period_weekly()
         
         self.wet_dry_days_weekly    = self.create_wet_dry_days_weekly()
+        self.write_to_csv()
         
           
     def create_wet_dry_daily(self):
@@ -343,7 +345,13 @@ class WetDry:
         return self.wet_dry_days_weekly
 
 
-
+    def write_to_csv(self):
+        output_dir = Path("/home/alanw/Documents/vsCode_output/wet_dry")
+        output_dir.mkdir(parents=True, exist_ok=True)
+        self.wet_dry_days_weekly.to_csv(output_dir / "wet_dry_days_weekly.csv")
+        self.wd_letters_daily.to_csv(output_dir / "wd_letters_daily.csv")
+        self.wd_lact_num_daily.to_csv(output_dir / "wd_lact_num_daily.csv")
+        
 
 if __name__ == '__main__':
     obj=WetDry()

@@ -22,6 +22,7 @@ os.environ["BOS_LOCAL"] = "0"    #gets use
 import pandas as pd
 from container import get_dependency
 from pipeline.neon.format_for_neon import FormatForNeon
+from pipeline.neon.neon_connect import get_engine
 
 
 class OccasionalModal:
@@ -34,12 +35,13 @@ class OccasionalModal:
         "daily_milk_vs_fullday",
     ]
 
-    def __init__(self, targets=None):
+    def __init__(self, targets=None, branch="production"):
+        self.branch = branch
         self.targets = set(targets) if targets else set(self.TASK_NAMES)
         unknown = self.targets - set(self.TASK_NAMES)
         if unknown:
             raise ValueError(f"Unknown targets: {unknown}")
-        print(f"OccasionalModal targets: {sorted(self.targets)}")
+        print(f"OccasionalModal targets: {sorted(self.targets)} (branch={self.branch})")
 
         self.nuc_fmt = FormatForNeon(schema={
             "ultra": "text", "group": "text", "wy_id": "int", "expected_bdate": "date",
@@ -92,9 +94,7 @@ class OccasionalModal:
             self.DMVF = get_dependency('daily_milk_vs_fullday')            
 
         self.createOccasionalData()
-
-        from sql_db_related.neon_connect import get_engine
-        self.write_to_neon(get_engine())
+        self.write_to_neon(get_engine(branch=self.branch))
 
     def createOccasionalData(self):
         if "next_ultra_check" in self.targets:
@@ -109,7 +109,7 @@ class OccasionalModal:
         if "feed_cost_pivot" in self.targets:
             self.feed_cost_pivot_formatted = self.FB.feed_cost_pivot.copy()
         if "cost_xfeed_pivot" in self.targets:
-            self.cost_x_feed_formatted = self.FB.cost_xfeed_pivot.copy()
+            self.cost_x_feed_formatted = self.FB.cost_xfeed_pivot_long.copy()
         if "ipiv_pivot_table" in self.targets:
             self.ipiv_pivot_table_formatted = self.IPIVT.ipiv_pivot_table.copy()
         if "net_revenue" in self.targets:
@@ -143,4 +143,4 @@ class OccasionalModal:
             if "net_revenue" in self.targets:
                 self.net_revenue_table_fmt.write_conn(self.net_revenue_table_formatted, 'net_revenue_table_formatted', conn, pk_col='datex')
             if "daily_milk_vs_fullday" in self.targets:
-                self.daily_milk_vs_fullday_fmt.write_conn(self.daily_milk_vs_fullday_formatted, 'daily_milk_vs_fullday_formatted', conn, pk_col='datex')         
+                self.daily_milk_vs_fullday_fmt.write_conn(self.daily_milk_vs_fullday_formatted, 'daily_milk_vs_fullday_formatted', conn, pk_col='datex')

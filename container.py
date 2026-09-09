@@ -17,20 +17,24 @@ class Container:
                                 #a synchronization primitive used in multithreaded programming to prevent race conditions 
                                 # and ensure thread safety when accessing shared resources
     
-    def __new__(cls):
-        if cls._instance is None:
-            with cls._lock:
-                if cls._instance is None:
-                    cls._instance = super().__new__(cls)
+    def __new__(cls):   #__new__ is a built-in magic method responsible for creating and returning a new instance of a class. 
+                        #While many developers mistake __init__ as the constructor, __init__ only initializes an object after
+                        # it has already been allocated in memory. __new__ is the true constructor
+                        
+                        #cls = 'class' ----thread-safe implementation of the Double-Checked Locking Singleton Pattern
+                        #Checks if a class-level variable named _instance has been created yet.
+        if cls._instance is None:     
+            with cls._lock:  #Uses a lock (which is also stored at the class level) to ensure multiple threads don't create two different objects at the exact same millisecond.
+                if cls._instance is None:  #Checks if a class-level variable named _instance has been created yet.
+                    cls._instance = super().__new__(cls)  #tells the parent class (super()) to allocate memory for a brand new object
                     cls._instance._initialized = False
         return cls._instance
     
-    def __init__(self):
-
-        self._dependency_graph = nx.DiGraph()
+    def __init__(self):     #self (the existing instance),
 
         if not getattr(self, '_initialized', False):
             print(f"Container starting up at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+            self._dependency_graph = nx.DiGraph()
             self._singletons: Dict[str, Any] = {}
             self._factories: Dict[str, Callable] = {}
             self._transients: Dict[str, Callable] = {}
@@ -109,6 +113,7 @@ class Container:
         self.register_singleton('milk_income',          self._create_milk_income)
         self.register_singleton('depreciation',         self._create_depreciation)        
         self.register_singleton('net_revenue',          self._create_net_revenue)
+        self.register_singleton('net_revenue_by_cow',   self._create_net_revenue_by_cow)
 
         # pipeline dependencies
         self.register_singleton('format_for_neon',      self._create_format_for_neon)
@@ -185,6 +190,17 @@ class Container:
         """Get a typed dependency"""
         key = name or dependency_type.__name__.lower()
         return self.get(key)
+
+    
+    def record_table_read(self, table_name: str):
+        """Log a raw table read against whichever dependency is currently
+        being constructed. Called by the SQLAlchemy engine listener in
+        neon_connect.py — not by application code directly."""
+        with self._lock:
+            if self._creation_order:
+                node = f"table:{table_name}"
+                self._dependency_graph.add_edge(self._creation_order[-1], node)
+                
     
     def reset(self):
         """Reset all singletons (useful for testing)"""
@@ -407,7 +423,9 @@ class Container:
         from finance_functions.PL.net_revenue import NetRevenue
         return NetRevenue()
         
-
+    def _create_net_revenue_by_cow(self):
+        from finance_functions.PL.net_revenue_by_cow import NetRevenueByCow
+        return NetRevenueByCow()
 
 
 

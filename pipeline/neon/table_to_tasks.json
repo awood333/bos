@@ -1,0 +1,116 @@
+{
+  "pg_catalog": [
+    "allx",
+    "cost_xfeed_pivot",
+    "daily_milk_vs_fullday",
+    "feed_cost_pivot",
+    "i_u_merge",
+    "ipiv_data",
+    "ipiv_pivot_table",
+    "net_revenue",
+    "next_ultra_check"
+  ],
+  "stop_dates": [
+    "allx",
+    "cost_xfeed_pivot",
+    "daily_milk_vs_fullday",
+    "feed_cost_pivot",
+    "i_u_merge",
+    "ipiv_data",
+    "ipiv_pivot_table",
+    "net_revenue",
+    "next_ultra_check"
+  ],
+  "live_births": [
+    "allx",
+    "cost_xfeed_pivot",
+    "daily_milk_vs_fullday",
+    "feed_cost_pivot",
+    "i_u_merge",
+    "ipiv_data",
+    "ipiv_pivot_table",
+    "net_revenue",
+    "next_ultra_check"
+  ],
+  "ultra": [
+    "allx",
+    "cost_xfeed_pivot",
+    "daily_milk_vs_fullday",
+    "feed_cost_pivot",
+    "i_u_merge",
+    "ipiv_data",
+    "ipiv_pivot_table",
+    "net_revenue",
+    "next_ultra_check"
+  ],
+  "insem": [
+    "allx",
+    "cost_xfeed_pivot",
+    "daily_milk_vs_fullday",
+    "feed_cost_pivot",
+    "i_u_merge",
+    "ipiv_data",
+    "ipiv_pivot_table",
+    "net_revenue",
+    "next_ultra_check"
+  ],
+  "birth_death": [
+    "allx",
+    "cost_xfeed_pivot",
+    "daily_milk_vs_fullday",
+    "feed_cost_pivot",
+    "i_u_merge",
+    "ipiv_data",
+    "ipiv_pivot_table",
+    "net_revenue",
+    "next_ultra_check"
+  ],
+  "AM_wy": [
+    "allx",
+    "cost_xfeed_pivot",
+    "daily_milk_vs_fullday",
+    "feed_cost_pivot",
+    "i_u_merge",
+    "ipiv_data",
+    "ipiv_pivot_table",
+    "net_revenue",
+    "next_ultra_check"
+  ],
+  "milk_transpose": [
+    "allx",
+    "daily_milk_vs_fullday",
+    "ipiv_data",
+    "ipiv_pivot_table",
+    "net_revenue",
+    "next_ultra_check"
+  ],
+  "bkk_bank": [
+    "cost_xfeed_pivot",
+    "feed_cost_pivot",
+    "net_revenue"
+  ],
+  "ipiv_data_formatted": [
+    "ipiv_pivot_table"
+  ],
+  "feed_type_feed_daily_amt_ledger": [
+    "net_revenue"
+  ],
+  "feed_daily_amt_ledger": [
+    "net_revenue"
+  ],
+  "feed_invoice_ledger": [
+    "net_revenue"
+  ],
+  "iu_merge_formatted": [
+    "net_revenue"
+  ],
+  "cost_x_feed_formatted": [
+    "net_revenue"
+  ],
+  "daily_milk": [
+    "daily_milk_vs_fullday"
+  ],
+  "milk_totals": [
+    "daily_milk_vs_fullday"
+  ]
+}

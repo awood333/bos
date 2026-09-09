@@ -4,7 +4,7 @@ import pandas as pd
 from container import get_dependency
 from utilities.db_retry import retry_db
 from sqlalchemy import text
-from sql_db_related.neon_connect import get_engine
+from   pipeline.neon.neon_connect import get_engine, read_sql_table_traced
 
 
 class MilkBasics:

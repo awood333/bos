@@ -1,6 +1,7 @@
 '''WeeklyLactations.py'''
 import inspect
 import pandas as pd
+from pathlib import Path
 from container import get_dependency
 
 
@@ -54,6 +55,7 @@ class WeeklyLactations():
         
     
         self.create_live_lactations()
+        self.write_to_csv()
 
 
     def create_308day(self):
@@ -85,7 +87,7 @@ class WeeklyLactations():
         return self.wk_lacts # nested list
 
     def create_separate_lactations(self):
-        ''' CONTAINS ALL COWS LACTATING '''
+        ''' CONTAINS ALL COWS NOW LACTATING '''
         wl = self.wk_lacts
 
         self.lactation_wk_1 = wl[0]
@@ -107,17 +109,19 @@ class WeeklyLactations():
                  self.lactation_wk_3, self.lactation_wk_4,
                  self.lactation_wk_5)
         
+        lact_names = ['lact_1', 'lact_2', 'lact_3', 'lact_4', 'lact_5']
+        
         self.max_liters = pd.DataFrame(
             [lact.max() for lact in lacts],
-            index=['lact_2', 'lact_3']
+            index=[lact_names]
             )
         self.avg_liters = pd.DataFrame(
             [lact.mean() for lact in lacts],
-            index=['lact_2', 'lact_3']
+            index=[lact_names]
             )
         self.sum_liters = pd.DataFrame(
             [lact.sum() for lact in lacts],
-            index=['lact_2', 'lact_3']
+            index=[lact_names]
             )
                     
 
@@ -134,7 +138,17 @@ class WeeklyLactations():
         return [self.live_lact_wk_1, self.live_lact_wk_2, self.live_lact_wk_3,
                 self.live_lact_wk_4, self.live_lact_wk_5]
               
+              
 
+    def write_to_csv(self):
+        output_dir = Path("/home/alanw/Documents/vsCode_output/milk")
+        output_dir.mkdir(parents=True, exist_ok=True)        
+        
+        max_liters_df = pd.DataFrame(self.max_liters)
+              
+        max_liters_df.to_csv(output_dir / "max_liters.csv")
+        self.avg_liters.to_csv(output_dir / "avg_liters.csv")
+        self.sum_liters.to_csv(output_dir / "sum_liters.csv")
 
 if __name__ == "__main__":
     obj = WeeklyLactations()

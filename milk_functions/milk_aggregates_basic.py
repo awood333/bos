@@ -14,7 +14,7 @@ import pandas as pd
 import numpy as np
 
 from container import get_dependency
-from sql_db_related.neon_connect import get_engine
+from   pipeline.neon.neon_connect import get_engine, read_sql_table_traced
 
 
 class MilkAggregatesBasic:

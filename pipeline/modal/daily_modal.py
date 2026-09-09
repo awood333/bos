@@ -93,7 +93,7 @@ class DailyModal:
         (self.tenday_formatted, self.halfday_formatted,
          self.fullday_formatted, self.WB_groups_formatted) = self.createDailyData()
 
-        from sql_db_related.neon_connect import get_engine
+        from   pipeline.neon.neon_connect import get_engine, read_sql_table_traced
         engine = get_engine()
         self.write_to_neon(engine)
 

@@ -4,7 +4,7 @@ import pandas as pd
 from   pathlib import Path
 from   datetime import datetime, date
 from container import get_dependency
-from   sql_db_related.neon_connect import get_engine
+from   pipeline.neon.neon_connect import get_engine, read_sql_table_traced
 
 from feed_functions.feedcost_basics import FeedcostBasics
 
@@ -28,7 +28,7 @@ class FinanceBasics:
         self.startdate = DR.startdate
         
         with self.engine.connect() as conn:
-                    bkk = pd.read_sql_table('bkk_bank', conn)
+                    bkk = read_sql_table_traced('bkk_bank', conn)
         bkk = bkk.drop(columns=['id'])
                 
         bkk['datex'] = pd.to_datetime(bkk['datex'])
