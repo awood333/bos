@@ -35,7 +35,7 @@ class NetRevenue:
         self.startdate  = self.DR.startdate    
         self.feedcost_by_group_by_day_df    = self.FCBD.feedcost_by_group_by_day_df
         self.feedcost_by_group_by_week_df   = self.FCBD.feedcost_by_group_by_week_df
-        self.feedcost_by_group_by_month_df  = self.FCBD.feedcost_by_group_by_month_df
+        self.feedcost_by_group_by_month_df  = self.FCBD.feedcost_by_group_by_month_by_cow
         
         
         self.milk_monthly_avg =  pd.DataFrame(self.MA.monthly_avg, columns=['MA avg liters'])
