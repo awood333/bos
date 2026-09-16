@@ -2,11 +2,11 @@
 
 """
 This module is imported from two different places that run in two
-different filesystems (see run_modal_selector.py's docstrings for the
-full explanation):
+different filesystems:
 
-    - run_stage()  (remote, inside the Modal container)
-    - main()       (local, on your host machine)
+- the remote Modal function (run_modal_selector.py, inside the
+  Modal container)
+- main() (local, on your host machine)
 
 Each of those callers is responsible for pushing the correct project
 root onto sys.path BEFORE importing this module — /root/bos remotely,
@@ -17,28 +17,38 @@ coming from this file, the fix belongs in the CALLER, not here.
 """
 
 import os
-os.environ["BOS_LOCAL"] = "0"    #gets use
+os.environ["BOS_LOCAL"] = "0"  # gets use
 
 import pandas as pd
 from container import get_dependency
 from pipeline.neon.format_for_neon import FormatForNeon
 from pipeline.neon.neon_connect import get_engine
 
-
 class OccasionalModal:
 
-    TASK_NAMES = [
-        "next_ultra_check", "i_u_merge", 
-        "allx",             "ipiv_data",
-        "feed_cost_pivot",  "cost_xfeed_pivot",
+    TABLE_NAMES = [
+        "next_ultra_check", "i_u_merge",
+        "allx", "ipiv_data",
+        "feed_cost_pivot", "cost_xfeed_pivot",
         "ipiv_pivot_table", "net_revenue",
-        "daily_milk_vs_fullday",
+        "daily_milk_vs_fullday", "daily_milk_vs_fullday"
     ]
+
+    @classmethod
+    def select_targets(cls):
+        """Local-only interactive picker. Import stays inside the method
+        so remote containers never need questionary installed."""
+        import questionary
+        selected = questionary.checkbox(
+            "Occasional — which tables changed?",
+            choices=cls.TABLE_NAMES,
+        ).ask()
+        return selected or []
 
     def __init__(self, targets=None, branch="production"):
         self.branch = branch
-        self.targets = set(targets) if targets else set(self.TASK_NAMES)
-        unknown = self.targets - set(self.TASK_NAMES)
+        self.targets = set(targets) if targets else set(self.TABLE_NAMES)
+        unknown = self.targets - set(self.TABLE_NAMES)
         if unknown:
             raise ValueError(f"Unknown targets: {unknown}")
         print(f"OccasionalModal targets: {sorted(self.targets)} (branch={self.branch})")
@@ -73,7 +83,7 @@ class OccasionalModal:
         )
         self.daily_milk_vs_fullday_fmt = FormatForNeon(schema={
             "datex": "datex", "am_liters": "float", "pm_liters": "float", "total_liters": "float",
-        })        
+        })
 
     def load_and_process(self):
         if "next_ultra_check" in self.targets:
@@ -91,7 +101,7 @@ class OccasionalModal:
         if "net_revenue" in self.targets:
             self.NR = get_dependency('net_revenue')
         if "daily_milk_vs_fullday" in self.targets:
-            self.DMVF = get_dependency('daily_milk_vs_fullday')            
+            self.DMVF = get_dependency('daily_milk_vs_fullday')
 
         self.createOccasionalData()
         self.write_to_neon(get_engine(branch=self.branch))
@@ -120,7 +130,6 @@ class OccasionalModal:
         if "daily_milk_vs_fullday" in self.targets:
             self.daily_milk_vs_fullday_formatted = self.DMVF.daily_milk_vs_fullday.copy()
 
-
     def write_to_neon(self, engine):
         with engine.begin() as conn:
             if "next_ultra_check" in self.targets:
@@ -131,13 +140,13 @@ class OccasionalModal:
                 self.allx_fmt.write_conn(self.allx_formatted, 'allx_formatted', conn, pk_col='wy_id')
             if "ipiv_data" in self.targets:
                 self.ipiv_data_fmt.write_conn(self.ipiv_data_formatted, 'ipiv_data_formatted', conn,
-                                               pk_col=['wy_id', 'lact_num', 'try_num'])
+                    pk_col=['wy_id', 'lact_num', 'try_num'])
             if "feed_cost_pivot" in self.targets:
                 self.feed_cost_pivot_fmt.write_conn(self.feed_cost_pivot_formatted, 'feed_cost_pivot_formatted', conn,
-                                                     pk_col=['datex', 'desc_2'])
+                    pk_col=['datex', 'desc_2'])
             if "cost_xfeed_pivot" in self.targets:
                 self.cost_xfeed_pivot_fmt.write_conn(self.cost_x_feed_formatted, 'cost_x_feed_formatted', conn,
-                                                      pk_col=['datex', 'desc_1'])
+                    pk_col=['datex', 'desc_1'])
             if "ipiv_pivot_table" in self.targets:
                 self.ipiv_pivot_table_fmt.write_conn(self.ipiv_pivot_table_formatted, 'ipiv_pivot_table_formatted', conn, pk_col='wy_id')
             if "net_revenue" in self.targets:

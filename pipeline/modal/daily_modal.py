@@ -79,6 +79,8 @@ class DailyModal:
                 "expected_bdate": "date",
                 "snapshot_date": "date"
             },
+            sort_by=[("group_name", "asc"),
+                     ("avg", "desc")],
         )
      
 

@@ -197,20 +197,19 @@ class InsemUltraData:
         last_calf_cols = self.IUB.last_calf[['last_calf_bdate', 'last_calf_age']]
         
         df3a = df3 . merge(
-            last_calf_cols,
-            left_on = 'wy_id',
-            right_index=True,
+            last_calf_cols.reset_index(),
+            on = 'wy_id',
             how='outer'
             )
         
 
         last_stop_cols = self.IUB.last_stop[['stop_calf_num','last_stop_date']]
         
-        # last_stop_cols index is wy_id, but df3a wy_id is 
+        last_stop_cols.index.name = 'wy_id'
         df4 = df3a.merge(
-            last_stop_cols,
-            left_on='wy_id', 
-            right_index=True,
+            last_stop_cols.reset_index(),
+            left_on='wy_id',
+            right_index=True, 
             how='left' )  
         
         df4['age_insem'] =  (self.today - df4['i_date']).dt.days

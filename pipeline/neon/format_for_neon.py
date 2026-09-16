@@ -32,11 +32,51 @@ class FormatForNeon:
         
     }
 
-    def __init__(self, schema: dict = None, positional_rules: list = None):
+    def __init__(self, schema: dict = None, 
+                 positional_rules: list = None,  
+                 sort_by: list = None):
         self.spec = {}
         for col, pg_type in (schema or {}).items():
             self.spec[col] = self._normalize_kind(pg_type)
         self.positional_rules = positional_rules or []
+        # sort_by: list of (column, direction) tuples, applied left-to-right.
+        self.sort_by = sort_by or []
+
+    def _sort(self, df: pd.DataFrame) -> pd.DataFrame:
+        if not self.sort_by:
+            return df
+        cols = [c for c, _ in self.sort_by]
+        asc  = [d.lower() != "desc" for _, d in self.sort_by]
+        return df.sort_values(cols, ascending=asc, kind="stable").reset_index(drop=True)
+
+    # NOTE: apply() and apply_indexed_date() must each be defined EXACTLY
+    # ONCE in this class. A Python class body executes top-to-bottom, so a
+    # second `def apply(...)` anywhere below silently overwrites the first
+    # in the class namespace — no error, no warning, the first definition
+    # (and its call to self._sort()) just becomes permanently unreachable.
+    # This has already happened twice in this file's history (both methods,
+    # independently) and cost real debugging time each time because nothing
+    # *fails* — sort_by is silently ignored instead. If you're tempted to
+    # add a variant of either method, rename it (e.g. apply_v2) rather than
+    # redefining apply/apply_indexed_date, or the same bug recurs.
+    def apply(self, df: pd.DataFrame) -> pd.DataFrame:
+        out = df.copy()
+        for idx, col in enumerate(out.columns):
+            kind = self.spec.get(col) or self._kind_for_positional(idx)
+            out[col] = self._coerce_column(out[col], kind)
+        return self._sort(out)
+
+    def apply_indexed_date(self, df: pd.DataFrame, index_name: str = "date") -> pd.DataFrame:
+        out = df.copy()
+        out.index = pd.to_datetime(out.index, errors="coerce")
+        out.index.name = index_name
+        out = out.reset_index()
+        for idx, col in enumerate(out.columns):
+            if col == index_name:
+                continue
+            kind = self.spec.get(col) or self._kind_for_positional(idx)
+            out[col] = self._coerce_column(out[col], kind)
+        return self._sort(out)
 
     def _normalize_kind(self, pg_type: str) -> str:
         key = pg_type.strip().lower()
@@ -90,25 +130,6 @@ class FormatForNeon:
             if not pd.api.types.is_numeric_dtype(series):
                 return series.where(series.notna(), None)
             return series
-
-    def apply(self, df: pd.DataFrame) -> pd.DataFrame:
-        out = df.copy()
-        for idx, col in enumerate(out.columns):
-            kind = self.spec.get(col) or self._kind_for_positional(idx)
-            out[col] = self._coerce_column(out[col], kind)
-        return out
-
-    def apply_indexed_date(self, df: pd.DataFrame, index_name: str = "date") -> pd.DataFrame:
-        out = df.copy()
-        out.index = pd.to_datetime(out.index, errors="coerce")
-        out.index.name = index_name
-        out = out.reset_index()
-        for idx, col in enumerate(out.columns):
-            if col == index_name:
-                continue
-            kind = self.spec.get(col) or self._kind_for_positional(idx)
-            out[col] = self._coerce_column(out[col], kind)
-        return out
 
     def _pk_clause(self, pk_col):
         if isinstance(pk_col, (list, tuple)):

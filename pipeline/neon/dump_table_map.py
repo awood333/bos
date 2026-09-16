@@ -27,7 +27,7 @@ ORCHESTRATORS = {
     "daily_modal": (
         DailyModal,
         {
-            # TODO — fill in once DailyModal's actual TASK_NAMES / targets
+            # TODO — fill in once DailyModal's actual TABLE_NAMES / targets
             # pattern (or equivalent) is confirmed
         },
     ),
