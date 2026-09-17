@@ -77,13 +77,14 @@ class WetDry:
         #methods
         (self.wet_dry_days_daily, 
          self.period_daily, 
-         self.max_days_per_period)     = self.create_wet_dry_daily()
+         self.max_days_per_period)  = self.create_wet_dry_daily()
         
         (self.wd_letters_daily, 
-        self.wd_lact_num_daily) = self.reform_period_daily()
+        self.wd_lact_num_daily)     = self.reform_period_daily()
         
         
-        self.period_weekly      = self.create_period_weekly()
+        (self.wet_period_weekly, 
+         self.period_weekly)        = self.create_period_weekly()
         
         (self.wd_letters_weekly, 
          self.wd_lact_num_weekly)   = self.reform_period_weekly()
@@ -105,16 +106,17 @@ class WetDry:
         period_array    = np.full ((n_rows, len(wy_ids)), '', dtype=object)
 
 
-# outer loop iterates over wy_ids.  
-# enumerate(wy_ids) returns a sequence of tuples: (0, wy_id_0)
+        # outer loop iterates over wy_ids.  
+            # enumerate(wy_ids) returns a sequence of tuples: (0, wy_id_0)
         for col, wy_id in enumerate(wy_ids):
-            blocks = []
+            day_num_blocks = []
             label_blocks = []                                           
             first_start_date    = None
             heifer_start        = None
             prev_stop_date      = None
             prev_lact           = None
             earliest_date       = None
+            first_block_start   = None
             has_lactation_blocks = False 
             
             # --- gets the birth dates
@@ -138,8 +140,22 @@ class WetDry:
                     death_date_val = pd.Timestamp(dd_val)
                 except (ValueError, TypeError):
                     death_date_val = pd.NaT
+                    
+                # --- filter: cow already dead before the data range begins ---
+            # Label the whole span 'gone' (this PRECEDES the trailing 'gone' logic below,
+            # which only fires for cows that die *within* the range)
+            if pd.notna(death_date_val) and death_date_val < idx.min():
+                gone_start = idx.min()
+                gone_end   = min(lastday, idx.max())
+                if gone_start <= gone_end:
+                    n_gone     = (gone_end - gone_start).days + 1
+                    row_offset = idx.get_loc(gone_start)
+                    n_fill     = min(n_gone, n_rows - row_offset)
+                    day_num_array[row_offset:row_offset + n_fill, col] = 0
+                    period_array [row_offset:row_offset + n_fill, col] = 'gone'
+                continue                    
 
-#inner loop iterates over lactation numbers
+            #inner loop iterates over lactation numbers
             for lact in lacts:
                 # get a start_day and stop_day as timestamp
                 start_day = pd.to_datetime(self.start_pivot.at[wy_id, lact]
@@ -155,7 +171,7 @@ class WetDry:
                 if (first_start_date is None and (start_day > b_date)): 
                     first_start_date = pd.Timestamp(start_day)
                 
-# this sets up the initial lag of start_day and stop_day (essential for heifer definition)
+                # this sets up the initial lag of start_day and stop_day (essential for heifer definition)
                 if (prev_stop_date is None)  and (stop_day < start_day):
                     prev_stop_date = stop_day
                     #here, prev_stop_date is the (future) stop_day
@@ -165,11 +181,11 @@ class WetDry:
                     dry_end   = pd.Timestamp(start_day) - pd.Timedelta(days=1)
                     if dry_start <= dry_end:
                         n_dry = (dry_end - dry_start).days + 1
-                        blocks.append(np.arange(1, n_dry + 1).reshape(-1, 1))
+                        day_num_blocks.append(np.arange(1, n_dry + 1).reshape(-1, 1))
                         label_blocks.append(np.full((n_dry, 1), f'D{prev_lact}', dtype=object))
 
 
-#this sets up 'milking' currently -- if 'stop_day' is blank
+                #this sets up 'milking' currently -- if 'stop_day' is blank
                 wet_stop = lastday if pd.isna(stop_day) else pd.Timestamp(stop_day)
                 if wet_stop < pd.Timestamp(start_day):
                     # print(f"wy_id {wy_id}, lact {lact}: stop_day ({wet_stop.date()}) before start_day ({pd.Timestamp(start_day).date()}), skipped")
@@ -177,102 +193,124 @@ class WetDry:
                     prev_lact = lact
                     continue
                 n_wet = (wet_stop - pd.Timestamp(start_day)).days + 1
-                blocks.append(np.arange(1, n_wet + 1).reshape(-1, 1))
+                day_num_blocks.append(np.arange(1, n_wet + 1).reshape(-1, 1))
                 label_blocks.append(np.full((n_wet, 1), f'W{lact}', dtype=object))
                 has_lactation_blocks = True
 
                 prev_stop_date = None if pd.isna(stop_day) else pd.Timestamp(stop_day)
                 prev_lact = lact
 
-# --- trailing period (gone or dry) ---
-            if prev_stop_date is not None and prev_stop_date < lastday:
-                if pd.notna(death_date_val):
-                    # Cow died – dry period from last stop_day to death_date, then zero days after death
-                    if prev_stop_date < death_date_val:
-                        dry_start = prev_stop_date + pd.Timedelta(days=1)
-                        dry_end   = death_date_val
-                        if dry_start <= dry_end:
-                            n_dry = (dry_end - dry_start).days + 1
-                            blocks.append(np.arange(1, n_dry + 1).reshape(-1, 1))
+
+
+                # indentation should be same as inner loop
+                # --- trailing period (gone or dry) ---
+                if prev_stop_date is not None and prev_stop_date < lastday:
+                    if pd.notna(death_date_val):
+                        # Cow died – dry period from last stop_day to death_date, then zero days after death
+                        if prev_stop_date < death_date_val:
+                            dry_start = prev_stop_date + pd.Timedelta(days=1)
+                            dry_end   = death_date_val
+                            if dry_start <= dry_end:
+                                n_dry = (dry_end - dry_start).days + 1
+                                day_num_blocks.append(np.arange(1, n_dry + 1).reshape(-1, 1))
+                                label_blocks.append(np.full((n_dry, 1), f'D{prev_lact}', dtype=object))
+                        # Gone period (zero days)
+                        if death_date_val < lastday:
+                            gone_start = death_date_val + pd.Timedelta(days=1)
+                            gone_end   = lastday
+                            n_gone = (gone_end - gone_start).days + 1
+                            day_num_blocks.append(np.zeros((n_gone, 1)))          # keep as a placeholder
+                            label_blocks.append(np.full((n_gone, 1), 'gone', dtype=object))
+                    else:
+                        
+                        # Alive – dry block to lastday
+                        block_start = prev_stop_date + pd.Timedelta(days=1)
+                        block_end   = lastday
+                        if block_start <= block_end:
+                            n_dry = (block_end - block_start).days + 1
+                            day_num_blocks.append(np.arange(1, n_dry + 1).reshape(-1, 1))
                             label_blocks.append(np.full((n_dry, 1), f'D{prev_lact}', dtype=object))
-                    # Gone period (zero days)
-                    if death_date_val < lastday:
-                        gone_start = death_date_val + pd.Timedelta(days=1)
-                        gone_end   = lastday
+                
+                    
+                        
+                # --- heifer period from birth to first_start_date-1 (cows with lactations) ---
+                # --- heifer period from arrival (or birth) to first start date-1 ---
+                heifer_birth = arrival_date if pd.notna(arrival_date) else b_date
+                # Skip the heifer block if the start date is on or before the death date
+                if pd.notna(heifer_birth) and heifer_birth <= death_date_val:
+                    heifer_birth =heifer_birth
+
+                if not pd.isna(heifer_birth):
+                    if first_start_date is not None and heifer_birth < first_start_date:
+                        heifer_end = first_start_date - pd.Timedelta(days=1)
+                    else:
+                        heifer_end = lastday
+
+                    # Cap heifer period at death date so dead heifers don't show H0 after death
+                    if pd.notna(death_date_val):
+                        heifer_end = min(heifer_end, death_date_val)
+
+                    heifer_start = max(heifer_birth, idx.min())
+                    heifer_end   = min(heifer_end, idx.max())
+
+                    if heifer_start <= heifer_end:
+                        n_heifer = (heifer_end - heifer_start).days + 1
+                        day_num_blocks.insert(0, np.arange(1, n_heifer + 1).reshape(-1, 1))
+                        label_blocks.insert(0, np.full((n_heifer, 1), 'H0', dtype=object))
+                        earliest_date = heifer_start
+                    elif first_start_date is not None:
+                        earliest_date = first_start_date
+
+                # For dead cows with no lactations, add a 'gone' block after death
+                if (pd.notna(death_date_val) and death_date_val < lastday
+                        and not has_lactation_blocks):
+                    gone_start = max(death_date_val + pd.Timedelta(days=1), idx.min())
+                    gone_end   = min(lastday, idx.max())
+                    if gone_start <= gone_end:
                         n_gone = (gone_end - gone_start).days + 1
-                        blocks.append(np.zeros((n_gone, 1)))          # keep as a placeholder
+                        day_num_blocks.append(np.zeros((n_gone, 1)))
                         label_blocks.append(np.full((n_gone, 1), 'gone', dtype=object))
-                else:
-                    # Alive – dry block to lastday
-                    block_start = prev_stop_date + pd.Timedelta(days=1)
-                    block_end   = lastday
-                    if block_start <= block_end:
-                        n_dry = (block_end - block_start).days + 1
-                        blocks.append(np.arange(1, n_dry + 1).reshape(-1, 1))
-                        label_blocks.append(np.full((n_dry, 1), f'D{prev_lact}', dtype=object))
-            
-                    
-                    
-# --- heifer period from birth to first_start_date-1 (cows with lactations) ---
-            # --- heifer period from arrival (or birth) to first start date-1 ---
-            heifer_birth = arrival_date if pd.notna(arrival_date) else b_date
+                        if earliest_date is None:
+                            earliest_date = gone_start                        
 
-            if not pd.isna(heifer_birth):
-                if first_start_date is not None and heifer_birth < first_start_date:
-                    heifer_end = first_start_date - pd.Timedelta(days=1)
-                else:
-                    heifer_end = lastday
+                if not day_num_blocks or earliest_date is None:
+                    continue
 
-                # Cap heifer period at death date so dead heifers don't show H0 after death
-                if pd.notna(death_date_val):
-                    heifer_end = min(heifer_end, death_date_val)
+                stacked = np.vstack(day_num_blocks)
+                stacked_labels = np.vstack(label_blocks)
 
-                heifer_start = max(heifer_birth, idx.min())
-                heifer_end   = min(heifer_end, idx.max())
+                try:
+                    row_offset = idx.get_loc(earliest_date)
+                except KeyError:
+                    continue
 
-                if heifer_start <= heifer_end:
-                    n_heifer = (heifer_end - heifer_start).days + 1
-                    blocks.insert(0, np.arange(1, n_heifer + 1).reshape(-1, 1))
-                    label_blocks.insert(0, np.full((n_heifer, 1), 'H0', dtype=object))
-                    earliest_date = heifer_start
-                elif first_start_date is not None:
-                    earliest_date = first_start_date
-
-            # For dead cows with no lactations, add a 'gone' block after death
-            if (pd.notna(death_date_val) and death_date_val < lastday
-                    and not has_lactation_blocks):
-                gone_start = max(death_date_val + pd.Timedelta(days=1), idx.min())
-                gone_end   = min(lastday, idx.max())
-                if gone_start <= gone_end:
-                    n_gone = (gone_end - gone_start).days + 1
-                    blocks.append(np.zeros((n_gone, 1)))
-                    label_blocks.append(np.full((n_gone, 1), 'gone', dtype=object))
-                    if earliest_date is None:
-                        earliest_date = gone_start                        
-
-            if not blocks or earliest_date is None:
-                continue
-
-            stacked = np.vstack(blocks)
-            stacked_labels = np.vstack(label_blocks)
-
-            try:
-                row_offset = idx.get_loc(earliest_date)
-            except KeyError:
-                continue
-
-            n = stacked.shape[0]
-            rows_to_fill = min(n, n_rows - row_offset)
-            day_num_array[row_offset:row_offset + rows_to_fill, col] = stacked[:rows_to_fill, 0]
-            period_array [row_offset:row_offset + rows_to_fill, col] = stacked_labels[:rows_to_fill, 0]
+                n = stacked.shape[0]
+                rows_to_fill = min(n, n_rows - row_offset)
+                day_num_array[row_offset:row_offset + rows_to_fill, col] = stacked[:rows_to_fill, 0]
+                period_array [row_offset:row_offset + rows_to_fill, col] = stacked_labels[:rows_to_fill, 0]
 
         wet_dry_table1      = pd.DataFrame(day_num_array, index=idx, columns=wy_ids)
-        self.wet_dry_days_daily  = wet_dry_table1.loc[self.startdate: , :]
-        period_df1          = pd.DataFrame(period_array, index=idx, columns=wy_ids).copy()
-        self.period_daily   = period_df1.loc[self.startdate :, :].copy()
+        wd1                      = wet_dry_table1.T
+        wd1.index                = wd1.index.astype(int)
+        wd2                      = wd1.sort_index(ascending=True)
+        self.wet_dry_days_daily  = wd2.T.loc[self.startdate: , :]
+             
         
+        period_df1   = pd.DataFrame(period_array, index=idx, columns=wy_ids).copy()
+        pd1          = period_df1.T
+        pd1.index    = pd1.index.astype(int)
+        pd2          = pd1.sort_index(ascending=True)
+        self.period_daily = pd2.T.loc[self.startdate :, :].copy()
+        
+
            # --- get max days wetdry for each period ---
-        period_labels = sorted(self.period_daily.stack().replace('', pd.NA).dropna().unique())
+        period_labels = ['H0']                                   # heifer first
+        for lact in self.lacts:                                  # W1, D1, W2, D2, ...
+            period_labels.append(f'W{lact}')
+            period_labels.append(f'D{lact}')
+        period_labels.append('gone')                             # trailing state
+
+
         max_days_per_period = pd.DataFrame(
             index=period_labels, columns=self.period_daily.columns, dtype=float
         )
@@ -283,7 +321,11 @@ class WetDry:
             valid  = period != ''
             max_days_per_period[wy_id] = days[valid].groupby(period[valid]).max()
 
-        self.max_days_per_period = max_days_per_period
+        m1 = max_days_per_period.T
+        m1.index = m1.index.astype(int)
+        m2 = m1.sort_index(ascending=True)
+        self.max_days_per_period = m2.T
+
         
         return self.wet_dry_days_daily, self.period_daily, self.max_days_per_period
     
@@ -308,13 +350,21 @@ class WetDry:
         
         ''' converts the daily df self.period_daily to weekly'''
         
-        self.period_weekly = self.period_daily.resample(freq).last()
+        period_weekly_1 = self.period_daily.resample(freq).last()
+        period_weekly_2 = period_weekly_1.T
+        period_weekly_2.index = period_weekly_2.index.astype(int)
+        period_weekly_3 = period_weekly_2.sort_index(ascending=True)
+        period_weekly_4 = period_weekly_3.T
+        
+        self.period_weekly = period_weekly_4
             
-        self.wet_period_weekly = self.period_weekly[
-            self.period_weekly.index  >= self.startdate] \
+        self.wet_period_weekly = period_weekly_4[
+            period_weekly_4.index  >= self.startdate] \
                 .reset_index().rename(columns={'index': 'date'}) \
-                    .set_index('date') #startdate is 2016-09-01
-        return self.period_weekly
+                    .set_index('date') 
+                    
+
+        return self.wet_period_weekly, self.period_weekly, 
     
 
         
@@ -329,29 +379,39 @@ class WetDry:
         self.wd_lact_num_weekly = df.apply(lambda col: col.str.extract(regex_pattern)[1]).astype(float)
         return self.wd_letters_weekly, self.wd_lact_num_weekly
             
-  
     def create_wet_dry_days_weekly(self, freq='W'):
         '''Weekly aggregation of wet_dry_days (numeric) using last value.'''
         weekly_last = self.wet_dry_days_daily.resample(freq).last()
-        
-        self.wet_dry_days_weekly = weekly_last.apply(
+
+        wet_dry_days_weekly_1 = weekly_last.apply(
             lambda col: col.map(lambda x: 0 if x == 0 else (x - 1) // 7 + 1))
-        
-        self.wet_dry_days_weekly  = self.wet_dry_days_weekly[
-            self.wet_dry_days_weekly.index >= self.startdate] \
+
+        wet_dry_days_weekly_2 = wet_dry_days_weekly_1[
+            wet_dry_days_weekly_1.index >= self.startdate] \
                 .reset_index().rename(columns={'index': 'date'}) \
                     .set_index('date')
-                
+
+        wet_dry_days_weekly_3 = wet_dry_days_weekly_2.T
+        wet_dry_days_weekly_3.index = wet_dry_days_weekly_3.index.astype(int)
+        wet_dry_days_weekly_4 = wet_dry_days_weekly_3.sort_index(ascending=True).T
+
+        self.wet_dry_days_weekly = wet_dry_days_weekly_4
+
         return self.wet_dry_days_weekly
 
 
     def write_to_csv(self):
         output_dir = Path("/home/alanw/Documents/vsCode_output/wet_dry")
         output_dir.mkdir(parents=True, exist_ok=True)
-        self.wet_dry_days_weekly.to_csv(output_dir / "wet_dry_days_weekly.csv")
-        self.wd_letters_daily.to_csv(output_dir / "wd_letters_daily.csv")
-        self.wd_lact_num_daily.to_csv(output_dir / "wd_lact_num_daily.csv")
         
+        self.wet_dry_days_weekly    .to_csv(output_dir / "wet_dry_days_weekly.csv")
+        self.wd_letters_daily       .to_csv(output_dir / "wd_letters_daily.csv")
+        self.wd_lact_num_daily      .to_csv(output_dir / "wd_lact_num_daily.csv")
+        self.period_weekly          .to_csv(output_dir / "period_weekly.csv")
+        self.wet_period_weekly      .to_csv(output_dir / "wet_period_weekly.csv")
+        self.wet_dry_days_daily     .to_csv(output_dir / "wet_dry_days_daily.csv")
+        self.period_daily           .to_csv(output_dir / "period_daily.csv")
+        self.max_days_per_period    .to_csv(output_dir / "max_days_per_period.csv")     
 
 if __name__ == '__main__':
     obj=WetDry()

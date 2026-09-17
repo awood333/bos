@@ -65,6 +65,7 @@ class MilkBasics:
         self.bd['death_date'] = pd.to_datetime(self.bd['death_date'], errors='coerce')
         self.bd['arrived']    = pd.to_datetime(self.bd['arrived'],    errors='coerce')
         self.bd['adj_bdate']  = pd.to_datetime(self.bd['adj_bdate'],  errors='coerce')
+        self.bd = self.bd.sort_values('wy_id', ascending=True).reset_index(drop=True)
 
         # date cols — lb / u / i
         self.lb['b_date']    = pd.to_datetime(self.lb['b_date'],    errors='coerce')

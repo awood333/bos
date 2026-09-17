@@ -2,6 +2,7 @@
 import inspect
 import pandas as pd
 import numpy as np
+from pathlib import Path
 from container import get_dependency
 
 class ModelGroups:
@@ -61,7 +62,6 @@ class ModelGroups:
         
     def process(self):
         
-        self.DRM = self.DR.date_range_weekly
         self.startdate = self.DR.startdate
         self.lastday  = self.MB.lastday
 
@@ -69,19 +69,19 @@ class ModelGroups:
         
         self.fullday    = self.MA.weekly_avg  #this is created with start date from date_range
 
-        self.weeknums = self.wet_dry_days_weekly[self.alive_ids_today]
+        self.weeknums = self.wet_dry_days_weekly    #[self.alive_ids_today]
         
         
-        self.liters  = self.fullday[self.alive_ids_today]
-        self.period  = self.period_weekly[self.alive_ids_today]
+        self.liters  = self.fullday          #[self.alive_ids_today]
+        self.period  = self.period_weekly    #[self.alive_ids_today]
         
         start_lact_1 = self.MB.data['start_pivot']
         
         ''' #cols are lact nums, rows are wy '''
-        self.start_lact = start_lact_1.loc[self.alive_ids_today, :] 
+        self.start_lact = start_lact_1     #.loc[self.alive_ids_today, :] 
         
         stop_lact_1  = self.MB.data['stop_pivot']
-        self.stop_lact  = stop_lact_1.loc[self.alive_ids_today, :]  
+        self.stop_lact  = stop_lact_1    #.loc[self.alive_ids_today, :]  
         
         self.pregnant = self.IP.preg_df_weekly
         
@@ -96,6 +96,8 @@ class ModelGroups:
         
         self.model_groups_monthly,
         self.model_groups_monthly_dict  = self.create_model_groups_monthly()
+        
+        self.write_to_csv()        
     
        
     def create_model_groups_daily(self):
@@ -294,6 +296,13 @@ class ModelGroups:
                     )
 
         return result         
+    
+    def write_to_csv(self):
+        output_dir = Path("/home/alanw/Documents/vsCode_output/model_groups")
+        output_dir.mkdir(parents=True, exist_ok=True)
+        self.model_groups_monthly.to_csv( output_dir / "model_groups_monthly.csv")
+        self.model_groups_weekly .to_csv( output_dir / "model_groups_weekly.csv")        
+        
          
 if __name__ == "__main__":
     obj = ModelGroups()
